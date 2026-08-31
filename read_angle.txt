@@ -1,0 +1,101 @@
+python3 - <<'PY'
+import json
+import socket
+
+
+ARMS = {
+    "LEFT": ("192.168.127.18", 8080),
+    "RIGHT": ("192.168.127.19", 8080),
+}
+
+
+def query_current_state(ip, port):
+
+    command = {
+        "command": "get_current_arm_state"
+    }
+
+    payload = (
+        json.dumps(command)
+        + "\r\n"
+    ).encode("utf-8")
+
+    with socket.create_connection(
+        (ip, port),
+        timeout=3.0,
+    ) as sock:
+
+        sock.settimeout(3.0)
+
+        sock.sendall(payload)
+
+        data = sock.recv(
+            16384
+        )
+
+    return json.loads(
+        data.decode("utf-8").strip()
+    )
+
+
+for name, (ip, port) in ARMS.items():
+
+    print()
+    print("=" * 70)
+    print(
+        f"{name} ARM  {ip}:{port}"
+    )
+
+    try:
+
+        result = query_current_state(
+            ip,
+            port,
+        )
+
+        joint_raw = (
+            result[
+                "arm_state"
+            ][
+                "joint"
+            ]
+        )
+
+        # 控制器单位：
+        # 0.001 degree
+        joint_deg = [
+            value / 1000.0
+            for value in joint_raw
+        ]
+
+        print(
+            "Raw joint:"
+        )
+
+        print(
+            joint_raw
+        )
+
+        print()
+        print(
+            "Joint [deg]:"
+        )
+
+        print(
+            "["
+            +
+            ", ".join(
+                f"{value:.3f}"
+                for value in joint_deg
+            )
+            +
+            "]"
+        )
+
+    except Exception as exc:
+
+        print(
+            "ERROR:",
+            repr(exc),
+        )
+PY

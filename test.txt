@@ -1,0 +1,38 @@
+向前约15cm
+[INFO] [1787930078.603814777] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787930079.086615819] [quest_right_ik_fusion]: VR d=[-0.001,+0.000,+0.001]  ARM d=[-0.000,+0.001,+0.000]  projected=False  alpha=1.0000  sigma=0.05103  raw_ik=True  solve=1.34 ms
+[INFO] [1787930079.588329670] [quest_right_ik_fusion]: VR d=[-0.001,+0.000,-0.000]  ARM d=[+0.000,+0.001,+0.000]  projected=False  alpha=1.0000  sigma=0.05077  raw_ik=True  solve=2.49 ms
+[INFO] [1787930080.085390393] [quest_right_ik_fusion]: VR d=[-0.001,+0.001,-0.001]  ARM d=[+0.000,+0.000,+0.000]  projected=False  alpha=1.0000  sigma=0.05065  raw_ik=True  solve=0.56 ms
+[INFO] [1787930080.588221728] [quest_right_ik_fusion]: VR d=[-0.000,+0.001,-0.001]  ARM d=[+0.000,+0.000,+0.000]  projected=False  alpha=1.0000  sigma=0.05046  raw_ik=True  solve=2.26 ms
+[INFO] [1787930081.088399670] [quest_right_ik_fusion]: VR d=[+0.011,+0.007,+0.009]  ARM d=[-0.004,-0.006,+0.003]  projected=False  alpha=1.0000  sigma=0.04537  raw_ik=True  solve=2.55 ms
+[INFO] [1787930081.586486613] [quest_right_ik_fusion]: VR d=[+0.056,+0.010,+0.049]  ARM d=[-0.024,-0.028,+0.005]  projected=False  alpha=1.0000  sigma=0.04825  raw_ik=True  solve=2.09 ms
+[INFO] [1787930082.086341654] [quest_right_ik_fusion]: VR d=[+0.106,+0.011,+0.072]  ARM d=[-0.036,-0.053,+0.005]  projected=False  alpha=1.0000  sigma=0.05051  raw_ik=True  solve=0.98 ms
+[INFO] [1787930082.588240966] [quest_right_ik_fusion]: VR d=[+0.144,+0.007,+0.097]  ARM d=[-0.048,-0.072,+0.003]  projected=False  alpha=1.0000  sigma=0.05535  raw_ik=True  solve=2.49 ms
+[INFO] [1787930083.085828413] [quest_right_ik_fusion]: VR d=[+0.146,+0.006,+0.105]  ARM d=[-0.053,-0.073,+0.003]  projected=False  alpha=1.0000  sigma=0.05498  raw_ik=True  solve=0.73 ms
+[INFO] [1787930083.586009057] [quest_right_ik_fusion]: VR d=[+0.146,+0.006,+0.108]  ARM d=[-0.054,-0.073,+0.003]  projected=False  alpha=1.0000  sigma=0.05513  raw_ik=True  solve=0.89 ms
+[INFO] [1787930084.086993796] [quest_right_ik_fusion]: VR d=[+0.144,+0.011,+0.108]  ARM d=[-0.054,-0.072,+0.006]  projected=False  alpha=1.0000  sigma=0.04989  raw_ik=True  solve=2.10 ms
+[INFO] [1787930084.587660568] [quest_right_ik_fusion]: VR d=[+0.144,+0.012,+0.108]  ARM d=[-0.054,-0.072,+0.006]  projected=False  alpha=1.0000  sigma=0.04958  raw_ik=True  solve=2.23 ms
+向右移动约15cm
+[INFO] [1787930191.688075983] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787930192.173052657] [quest_right_ik_fusion]: VR d=[+0.000,+0.001,-0.000]  ARM d=[+0.000,-0.000,+0.000]  projected=False  alpha=1.0000  sigma=0.05073  raw_ik=True  solve=1.47 ms
+[INFO] [1787930192.672074607] [quest_right_ik_fusion]: VR d=[+0.000,+0.000,-0.001]  ARM d=[+0.000,-0.000,+0.000]  projected=False  alpha=1.0000  sigma=0.05077  raw_ik=True  solve=0.67 ms
+[INFO] [1787930193.173614282] [quest_right_ik_fusion]: VR d=[-0.002,-0.001,-0.001]  ARM d=[+0.000,+0.001,-0.000]  projected=False  alpha=1.0000  sigma=0.04932  raw_ik=True  solve=2.19 ms
+[INFO] [1787930193.673912195] [quest_right_ik_fusion]: VR d=[+0.003,-0.025,+0.003]  ARM d=[-0.002,-0.001,-0.013]  projected=False  alpha=1.0000  sigma=0.06567  raw_ik=True  solve=2.62 ms
+[INFO] [1787930194.174504411] [quest_right_ik_fusion]: VR d=[+0.019,-0.090,+0.013]  ARM d=[-0.006,-0.009,-0.045]  projected=False  alpha=1.0000  sigma=0.09605  raw_ik=True  solve=3.00 ms
+[INFO] [1787930194.672684370] [quest_right_ik_fusion]: VR d=[+0.032,-0.165,+0.013]  ARM d=[-0.006,-0.016,-0.082]  projected=False  alpha=1.0000  sigma=0.11738  raw_ik=True  solve=1.90 ms
+[INFO] [1787930195.176975054] [quest_right_ik_fusion]: VR d=[+0.038,-0.208,+0.011]  ARM d=[-0.005,-0.019,-0.104]  projected=False  alpha=1.0000  sigma=0.12862  raw_ik=True  solve=4.72 ms
+[INFO] [1787930195.672259072] [quest_right_ik_fusion]: VR d=[+0.038,-0.208,+0.011]  ARM d=[-0.006,-0.019,-0.104]  projected=False  alpha=1.0000  sigma=0.13000  raw_ik=True  solve=0.83 ms
+[INFO] [1787930196.173240043] [quest_right_ik_fusion]: VR d=[+0.039,-0.205,+0.010]  ARM d=[-0.005,-0.019,-0.103]  projected=False  alpha=1.0000  sigma=0.12978  raw_ik=True  solve=2.01 ms
+[INFO] [1787930196.672637618] [quest_right_ik_fusion]: VR d=[+0.035,-0.210,+0.012]  ARM d=[-0.006,-0.017,-0.105]  projected=False  alpha=1.0000  sigma=0.13133  raw_ik=True  solve=1.40 ms
+向上移动约15cm
+[INFO] [1787930271.656923267] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787930272.144273399] [quest_right_ik_fusion]: VR d=[-0.001,-0.003,+0.002]  ARM d=[-0.001,+0.000,-0.002]  projected=False  alpha=1.0000  sigma=0.05558  raw_ik=True  solve=1.86 ms
+[INFO] [1787930272.643479194] [quest_right_ik_fusion]: VR d=[+0.000,-0.006,+0.002]  ARM d=[-0.001,-0.000,-0.003]  projected=False  alpha=1.0000  sigma=0.05858  raw_ik=True  solve=0.82 ms
+[INFO] [1787930273.143352326] [quest_right_ik_fusion]: VR d=[-0.017,-0.012,+0.026]  ARM d=[-0.013,+0.008,-0.006]  projected=False  alpha=1.0000  sigma=0.06061  raw_ik=True  solve=1.59 ms
+[INFO] [1787930273.645595482] [quest_right_ik_fusion]: VR d=[-0.048,-0.029,+0.092]  ARM d=[-0.046,+0.024,-0.014]  projected=False  alpha=1.0000  sigma=0.06705  raw_ik=True  solve=2.99 ms
+[INFO] [1787930274.145183186] [quest_right_ik_fusion]: VR d=[-0.066,-0.038,+0.124]  ARM d=[-0.062,+0.033,-0.019]  projected=False  alpha=1.0000  sigma=0.06901  raw_ik=True  solve=2.69 ms
+[INFO] [1787930274.643675802] [quest_right_ik_fusion]: VR d=[-0.067,-0.041,+0.128]  ARM d=[-0.064,+0.033,-0.020]  projected=False  alpha=1.0000  sigma=0.07112  raw_ik=True  solve=1.32 ms
+[INFO] [1787930275.144151378] [quest_right_ik_fusion]: VR d=[-0.068,-0.043,+0.129]  ARM d=[-0.065,+0.034,-0.022]  projected=False  alpha=1.0000  sigma=0.07220  raw_ik=True  solve=1.56 ms
+[INFO] [1787930275.643865404] [quest_right_ik_fusion]: VR d=[-0.067,-0.042,+0.128]  ARM d=[-0.064,+0.034,-0.021]  projected=False  alpha=1.0000  sigma=0.07193  raw_ik=True  solve=1.47 ms
+[INFO] [1787930276.142603284] [quest_right_ik_fusion]: VR d=[-0.068,-0.043,+0.129]  ARM d=[-0.065,+0.034,-0.021]  projected=False  alpha=1.0000  sigma=0.07217  raw_ik=True  solve=0.53 ms
+

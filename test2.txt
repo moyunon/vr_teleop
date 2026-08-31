@@ -1,0 +1,37 @@
+绕竖直方向由上往下看逆时针旋转90度
+[INFO] [1787932386.878562761] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787932387.363681144] [quest_right_ik_fusion]: VR rot=[-0.7,+0.5,-0.7]deg  ARM rot=[+0.7,-0.7,-0.5]deg  limited=(False,False)  projected=False  sigma=0.05399
+[INFO] [1787932387.863662415] [quest_right_ik_fusion]: VR rot=[-1.2,+0.5,-0.6]deg  ARM rot=[+0.6,-1.2,-0.5]deg  limited=(False,False)  projected=False  sigma=0.05660
+[INFO] [1787932388.365137616] [quest_right_ik_fusion]: VR rot=[-9.1,+2.0,+6.8]deg  ARM rot=[-6.8,-9.1,-2.0]deg  limited=(False,False)  projected=False  sigma=0.07200
+[INFO] [1787932388.865058305] [quest_right_ik_fusion]: VR rot=[-28.7,+8.7,+21.2]deg  ARM rot=[-21.2,-28.7,-8.7]deg  limited=(False,False)  projected=False  sigma=0.06930
+[INFO] [1787932389.364388246] [quest_right_ik_fusion]: VR rot=[-51.6,+12.1,+38.2]deg  ARM rot=[-38.2,-51.6,-12.1]deg  limited=(False,False)  projected=False  sigma=0.07066
+[INFO] [1787932389.866072198] [quest_right_ik_fusion]: VR rot=[-68.0,+12.9,+50.4]deg  ARM rot=[-50.4,-68.0,-12.9]deg  limited=(False,False)  projected=False  sigma=0.05907
+[INFO] [1787932390.434638299] [quest_right_ik_fusion]: VR rot=[-82.0,+12.0,+59.6]deg  ARM rot=[-59.6,-82.0,-12.0]deg  limited=(False,True)  projected=True  sigma=0.01035
+[INFO] [1787932391.252020807] [quest_right_ik_fusion]: VR rot=[-84.0,+12.6,+58.3]deg  ARM rot=[-58.3,-84.0,-12.6]deg  limited=(False,True)  projected=True  sigma=0.01035
+[INFO] [1787932391.982704238] [quest_right_ik_fusion]: VR rot=[-83.7,+12.7,+57.5]deg  ARM rot=[-57.5,-83.7,-12.7]deg  limited=(False,True)  projected=True  sigma=0.01035
+[INFO] [1787932392.513863350] [quest_right_ik_fusion]: VR rot=[-84.0,+12.3,+57.1]deg  ARM rot=[-57.1,-84.0,-12.3]deg  limited=(False,True)  projected=True  sigma=0.01000
+绕y轴方向由左往右看顺时针旋转90度
+[INFO] [1787932495.423561405] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787932495.918157716] [quest_right_ik_fusion]: VR rot=[+0.4,-0.6,-0.3]deg  ARM rot=[+0.3,+0.4,+0.6]deg  limited=(False,False)  projected=False  sigma=0.05048
+[INFO] [1787932496.418728506] [quest_right_ik_fusion]: VR rot=[+0.4,-8.7,+2.8]deg  ARM rot=[-2.8,+0.4,+8.7]deg  limited=(False,False)  projected=False  sigma=0.05509
+[INFO] [1787932496.920322062] [quest_right_ik_fusion]: VR rot=[-0.4,-36.0,+1.9]deg  ARM rot=[-1.9,-0.4,+36.0]deg  limited=(False,False)  projected=False  sigma=0.06254
+[INFO] [1787932497.420417275] [quest_right_ik_fusion]: VR rot=[-1.8,-59.1,+0.1]deg  ARM rot=[-0.1,-1.8,+59.1]deg  limited=(False,False)  projected=False  sigma=0.05164
+[INFO] [1787932497.919918175] [quest_right_ik_fusion]: VR rot=[-4.7,-77.0,+0.0]deg  ARM rot=[-0.0,-4.7,+77.0]deg  limited=(False,False)  projected=False  sigma=0.03851
+[INFO] [1787932498.417662007] [quest_right_ik_fusion]: VR rot=[-6.2,-81.7,+0.3]deg  ARM rot=[-0.3,-6.2,+81.7]deg  limited=(False,False)  projected=False  sigma=0.03177
+[INFO] [1787932498.917559172] [quest_right_ik_fusion]: VR rot=[-6.2,-81.7,-0.2]deg  ARM rot=[+0.2,-6.2,+81.7]deg  limited=(False,False)  projected=False  sigma=0.03344
+[INFO] [1787932499.418797355] [quest_right_ik_fusion]: VR rot=[-6.2,-82.1,-0.3]deg  ARM rot=[+0.3,-6.2,+82.1]deg  limited=(False,False)  projected=False  sigma=0.03314
+绕x轴方向由前往后看顺时针旋转90度
+[INFO] [1787932645.231006896] [quest_right_ik_fusion]: VR anchor captured.
+[INFO] [1787932645.715091925] [quest_right_ik_fusion]: VR rot=[+0.3,+0.2,-1.0]deg  ARM rot=[+1.0,+0.3,-0.2]deg  limited=(False,False)  projected=False  sigma=0.04765
+[INFO] [1787932646.215884514] [quest_right_ik_fusion]: VR rot=[+0.3,+0.5,-1.1]deg  ARM rot=[+1.1,+0.3,-0.5]deg  limited=(False,False)  projected=False  sigma=0.04887
+[INFO] [1787932646.714781679] [quest_right_ik_fusion]: VR rot=[+0.3,+1.1,-0.8]deg  ARM rot=[+0.8,+0.3,-1.1]deg  limited=(False,False)  projected=False  sigma=0.04769
+[INFO] [1787932647.214275162] [quest_right_ik_fusion]: VR rot=[-0.5,+1.4,-1.4]deg  ARM rot=[+1.4,-0.5,-1.4]deg  limited=(False,False)  projected=False  sigma=0.05000
+[INFO] [1787932647.715975010] [quest_right_ik_fusion]: VR rot=[-13.5,+1.4,-12.7]deg  ARM rot=[+12.7,-13.5,-1.4]deg  limited=(False,False)  projected=False  sigma=0.08534
+[INFO] [1787932648.214304274] [quest_right_ik_fusion]: VR rot=[-32.2,-3.6,-32.0]deg  ARM rot=[+32.0,-32.2,+3.6]deg  limited=(False,False)  projected=False  sigma=0.08679
+[INFO] [1787932648.718020544] [quest_right_ik_fusion]: VR rot=[-50.1,-12.0,-51.3]deg  ARM rot=[+51.3,-50.1,+12.0]deg  limited=(False,False)  projected=False  sigma=0.06698
+[INFO] [1787932649.214119995] [quest_right_ik_fusion]: VR rot=[-56.1,-15.3,-60.0]deg  ARM rot=[+60.0,-56.1,+15.3]deg  limited=(False,False)  projected=False  sigma=0.05377
+[INFO] [1787932649.715148114] [quest_right_ik_fusion]: VR rot=[-57.1,-15.0,-61.1]deg  ARM rot=[+61.1,-57.1,+15.0]deg  limited=(False,False)  projected=False  sigma=0.04740
+[INFO] [1787932650.213912581] [quest_right_ik_fusion]: VR rot=[-57.0,-15.0,-60.9]deg  ARM rot=[+60.9,-57.0,+15.0]deg  limited=(False,False)  projected=False  sigma=0.04911
+[INFO] [1787932650.715143671] [quest_right_ik_fusion]: VR rot=[-56.4,-15.4,-60.5]deg  ARM rot=[+60.5,-56.4,+15.4]deg  limited=(False,False)  projected=False  sigma=0.05288
+
+

@@ -1,0 +1,52 @@
+左机械臂：
+192.168.127.18 : 8080
+
+右机械臂：
+192.168.127.19 : 8080
+
+外部电脑通过机器人底盘 LAN 口进行网络连接。
+
+机体：192.168.127.11 : 8080
+
+https://github.com/borealis-zhe/meta_quest_teleop   VR读取程序
+
+进入到工作环境cd ~/workspace/vr_teleop/meta_quest_teleop
+
+第一个终端：运行程序，读取vr发送的数据
+source /opt/ros/humble/setup.bash
+python3 ros_visualiser/quest_rviz_usb.py
+
+第二个终端：
+ros2 topic echo /meta_quest/right_grip_pose  来查看左手或右手手柄的位姿变化
+ros2 run tf2_ros tf2_echo map left_hand_grip  来查看左手或右手手柄的坐标系变化
+
+第三个终端：打开rviz界面，来查看手柄的移动
+source /opt/ros/humble/setup.bash
+rviz2 -d ros_visualiser/meta_quest_viewer.rviz2
+
+
+
+新开工作空间，用于放置ik等代码，将关节角度透传到睿尔曼机械臂上
+编译：
+cd ~/workspace/vr_teleop/vr_rm75_ws
+
+source /opt/ros/humble/setup.bash
+
+colcon build \
+    --symlink-install \
+    --packages-select vr_rm75_teleop
+
+source install/setup.bash
+
+python3 -m vr_rm75_teleop.check_fk
+
+
+睿尔曼机器人底盘后端，左侧是WAN网口，用于网线连接互联网，右侧是LAN网口，用于将电脑与机器人连上，访问里面的局域网192.168.127.xx
+
+source install/setup.bash
+python3 src/vr_rm75_teleop/vr_rm75_teleop/quest_ik_fusion.py
+rviz2 add TF  选择fixed frame为r_rm75_base_link
+
+source install/setup.bash
+python3 \
+src/vr_rm75_teleop/vr_rm75_teleop/quest_dual_ik_fusion.py
