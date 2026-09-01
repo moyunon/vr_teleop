@@ -2,45 +2,40 @@ import numpy as np
 
 from scipy.spatial.transform import Rotation
 
-
 # =============================================================
-# VR frame -> robot control frame
+# 1. Meta Quest world ROS frame -> RealBot body frame
 #
-# 根据当前实测：
+# 输入来自：
 #
-# VR:
-#   +x backward
-#   +y right
-#   +z up
+#   /meta_quest/left_grip_pose
+#   /meta_quest/right_grip_pose
 #
-# Robot control convention:
-#   +x forward
-#   +y left
-#   +z up
+# frame_id:
 #
-# 因此等价于绕 z 轴旋转 180 deg。
-# =============================================================
-
-# =============================================================
-# 1. VR frame -> RealBot body frame
+#   meta_world_ros
 #
-# 实测 Quest:
-#
-#   +X = backward
-#   +Y = right
-#   +Z = up
-#
-# 我们定义 RealBot body control frame:
+# Quest 原始 OpenXR 坐标已经在 meta_quest_bridge 中转换为：
 #
 #   +X = forward
 #   +Y = left
 #   +Z = up
 #
-# 因此：
+# RealBot body control frame 同样定义为：
 #
-#   VR +X -> Body -X
-#   VR +Y -> Body -Y
-#   VR +Z -> Body +Z
+#   +X = forward
+#   +Y = left
+#   +Z = up
+#
+# 因此当前默认情况下：
+#
+#   meta_world_ros -> body
+#
+# 不需要额外交换坐标轴。
+#
+# 注意：
+# 这里描述的是“坐标轴约定一致”。
+# Quest 世界原点和机器人 body 原点并不重合，因此遥操仍然
+# 必须使用 anchor-relative motion，而不能直接使用绝对位置。
 # =============================================================
 
 C_VR_TO_BODY = np.eye(

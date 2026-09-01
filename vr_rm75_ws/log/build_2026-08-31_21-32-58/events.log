@@ -1,0 +1,681 @@
+[0.000000] (-) TimerEvent: {}
+[0.000161] (-) JobUnselected: {'identifier': 'vr_rm75_teleop'}
+[0.000566] (lsrx_rm75_dual_description) JobQueued: {'identifier': 'lsrx_rm75_dual_description', 'dependencies': OrderedDict()}
+[0.000806] (lsrx_rm75_dual_description) JobStarted: {'identifier': 'lsrx_rm75_dual_description'}
+[0.099938] (-) TimerEvent: {}
+[0.200181] (-) TimerEvent: {}
+[0.300540] (-) TimerEvent: {}
+[0.400825] (-) TimerEvent: {}
+[0.501120] (-) TimerEvent: {}
+[0.601431] (-) TimerEvent: {}
+[0.701716] (-) TimerEvent: {}
+[0.802015] (-) TimerEvent: {}
+[0.902360] (-) TimerEvent: {}
+[1.002551] (-) TimerEvent: {}
+[1.102763] (-) TimerEvent: {}
+[1.202945] (-) TimerEvent: {}
+[1.303131] (-) TimerEvent: {}
+[1.403603] (-) TimerEvent: {}
+[1.503930] (-) TimerEvent: {}
+[1.604240] (-) TimerEvent: {}
+[1.704420] (-) TimerEvent: {}
+[1.804572] (-) TimerEvent: {}
+[1.904748] (-) TimerEvent: {}
+[2.004960] (-) TimerEvent: {}
+[2.105169] (-) TimerEvent: {}
+[2.205410] (-) TimerEvent: {}
+[2.305595] (-) TimerEvent: {}
+[2.405809] (-) TimerEvent: {}
+[2.506117] (-) TimerEvent: {}
+[2.606454] (-) TimerEvent: {}
+[2.706698] (-) TimerEvent: {}
+[2.807015] (-) TimerEvent: {}
+[2.907365] (-) TimerEvent: {}
+[3.007651] (-) TimerEvent: {}
+[3.107953] (-) TimerEvent: {}
+[3.208193] (-) TimerEvent: {}
+[3.308519] (-) TimerEvent: {}
+[3.408807] (-) TimerEvent: {}
+[3.509023] (-) TimerEvent: {}
+[3.609343] (-) TimerEvent: {}
+[3.709535] (-) TimerEvent: {}
+[3.809740] (-) TimerEvent: {}
+[3.909945] (-) TimerEvent: {}
+[4.010192] (-) TimerEvent: {}
+[4.110467] (-) TimerEvent: {}
+[4.210647] (-) TimerEvent: {}
+[4.310943] (-) TimerEvent: {}
+[4.411257] (-) TimerEvent: {}
+[4.511455] (-) TimerEvent: {}
+[4.611711] (-) TimerEvent: {}
+[4.711995] (-) TimerEvent: {}
+[4.812308] (-) TimerEvent: {}
+[4.912487] (-) TimerEvent: {}
+[5.012779] (-) TimerEvent: {}
+[5.113035] (-) TimerEvent: {}
+[5.213282] (-) TimerEvent: {}
+[5.313608] (-) TimerEvent: {}
+[5.413912] (-) TimerEvent: {}
+[5.514219] (-) TimerEvent: {}
+[5.614404] (-) TimerEvent: {}
+[5.714561] (-) TimerEvent: {}
+[5.814774] (-) TimerEvent: {}
+[5.914935] (-) TimerEvent: {}
+[6.015147] (-) TimerEvent: {}
+[6.115391] (-) TimerEvent: {}
+[6.215612] (-) TimerEvent: {}
+[6.315848] (-) TimerEvent: {}
+[6.416061] (-) TimerEvent: {}
+[6.516236] (-) TimerEvent: {}
+[6.616421] (-) TimerEvent: {}
+[6.716605] (-) TimerEvent: {}
+[6.816808] (-) TimerEvent: {}
+[6.917037] (-) TimerEvent: {}
+[7.017189] (-) TimerEvent: {}
+[7.117328] (-) TimerEvent: {}
+[7.217577] (-) TimerEvent: {}
+[7.317808] (-) TimerEvent: {}
+[7.418017] (-) TimerEvent: {}
+[7.518314] (-) TimerEvent: {}
+[7.618464] (-) TimerEvent: {}
+[7.718630] (-) TimerEvent: {}
+[7.818832] (-) TimerEvent: {}
+[7.919120] (-) TimerEvent: {}
+[8.019415] (-) TimerEvent: {}
+[8.119741] (-) TimerEvent: {}
+[8.219978] (-) TimerEvent: {}
+[8.320174] (-) TimerEvent: {}
+[8.420514] (-) TimerEvent: {}
+[8.520723] (-) TimerEvent: {}
+[8.620922] (-) TimerEvent: {}
+[8.721362] (-) TimerEvent: {}
+[8.821685] (-) TimerEvent: {}
+[8.922013] (-) TimerEvent: {}
+[9.022404] (-) TimerEvent: {}
+[9.122585] (-) TimerEvent: {}
+[9.222894] (-) TimerEvent: {}
+[9.323170] (-) TimerEvent: {}
+[9.423369] (-) TimerEvent: {}
+[9.523568] (-) TimerEvent: {}
+[9.623788] (-) TimerEvent: {}
+[9.724047] (-) TimerEvent: {}
+[9.824391] (-) TimerEvent: {}
+[9.924656] (-) TimerEvent: {}
+[10.024880] (-) TimerEvent: {}
+[10.125177] (-) TimerEvent: {}
+[10.225479] (-) TimerEvent: {}
+[10.325677] (-) TimerEvent: {}
+[10.425880] (-) TimerEvent: {}
+[10.526064] (-) TimerEvent: {}
+[10.626268] (-) TimerEvent: {}
+[10.726451] (-) TimerEvent: {}
+[10.826658] (-) TimerEvent: {}
+[10.926849] (-) TimerEvent: {}
+[11.027099] (-) TimerEvent: {}
+[11.127444] (-) TimerEvent: {}
+[11.227726] (-) TimerEvent: {}
+[11.327907] (-) TimerEvent: {}
+[11.428133] (-) TimerEvent: {}
+[11.528276] (-) TimerEvent: {}
+[11.628447] (-) TimerEvent: {}
+[11.728610] (-) TimerEvent: {}
+[11.828787] (-) TimerEvent: {}
+[11.928994] (-) TimerEvent: {}
+[12.029248] (-) TimerEvent: {}
+[12.129464] (-) TimerEvent: {}
+[12.229648] (-) TimerEvent: {}
+[12.329846] (-) TimerEvent: {}
+[12.429984] (-) TimerEvent: {}
+[12.530267] (-) TimerEvent: {}
+[12.630556] (-) TimerEvent: {}
+[12.730771] (-) TimerEvent: {}
+[12.831056] (-) TimerEvent: {}
+[12.931393] (-) TimerEvent: {}
+[13.031595] (-) TimerEvent: {}
+[13.131796] (-) TimerEvent: {}
+[13.231973] (-) TimerEvent: {}
+[13.332168] (-) TimerEvent: {}
+[13.432354] (-) TimerEvent: {}
+[13.532597] (-) TimerEvent: {}
+[13.632771] (-) TimerEvent: {}
+[13.732981] (-) TimerEvent: {}
+[13.833242] (-) TimerEvent: {}
+[13.933394] (-) TimerEvent: {}
+[14.033599] (-) TimerEvent: {}
+[14.133791] (-) TimerEvent: {}
+[14.234024] (-) TimerEvent: {}
+[14.334240] (-) TimerEvent: {}
+[14.434539] (-) TimerEvent: {}
+[14.534825] (-) TimerEvent: {}
+[14.635025] (-) TimerEvent: {}
+[14.735247] (-) TimerEvent: {}
+[14.835450] (-) TimerEvent: {}
+[14.935632] (-) TimerEvent: {}
+[15.035834] (-) TimerEvent: {}
+[15.136006] (-) TimerEvent: {}
+[15.236305] (-) TimerEvent: {}
+[15.336497] (-) TimerEvent: {}
+[15.436673] (-) TimerEvent: {}
+[15.536890] (-) TimerEvent: {}
+[15.637133] (-) TimerEvent: {}
+[15.737337] (-) TimerEvent: {}
+[15.837519] (-) TimerEvent: {}
+[15.937690] (-) TimerEvent: {}
+[16.037890] (-) TimerEvent: {}
+[16.138057] (-) TimerEvent: {}
+[16.238362] (-) TimerEvent: {}
+[16.338550] (-) TimerEvent: {}
+[16.438731] (-) TimerEvent: {}
+[16.538989] (-) TimerEvent: {}
+[16.639373] (-) TimerEvent: {}
+[16.739577] (-) TimerEvent: {}
+[16.839772] (-) TimerEvent: {}
+[16.939967] (-) TimerEvent: {}
+[17.040218] (-) TimerEvent: {}
+[17.140403] (-) TimerEvent: {}
+[17.240590] (-) TimerEvent: {}
+[17.340806] (-) TimerEvent: {}
+[17.440974] (-) TimerEvent: {}
+[17.541153] (-) TimerEvent: {}
+[17.641441] (-) TimerEvent: {}
+[17.741725] (-) TimerEvent: {}
+[17.841932] (-) TimerEvent: {}
+[17.942274] (-) TimerEvent: {}
+[18.042605] (-) TimerEvent: {}
+[18.142787] (-) TimerEvent: {}
+[18.242996] (-) TimerEvent: {}
+[18.343176] (-) TimerEvent: {}
+[18.443405] (-) TimerEvent: {}
+[18.543621] (-) TimerEvent: {}
+[18.643819] (-) TimerEvent: {}
+[18.744133] (-) TimerEvent: {}
+[18.844482] (-) TimerEvent: {}
+[18.944677] (-) TimerEvent: {}
+[19.044890] (-) TimerEvent: {}
+[19.145188] (-) TimerEvent: {}
+[19.245567] (-) TimerEvent: {}
+[19.345762] (-) TimerEvent: {}
+[19.446124] (-) TimerEvent: {}
+[19.546361] (-) TimerEvent: {}
+[19.646537] (-) TimerEvent: {}
+[19.746714] (-) TimerEvent: {}
+[19.847022] (-) TimerEvent: {}
+[19.947384] (-) TimerEvent: {}
+[20.047571] (-) TimerEvent: {}
+[20.147754] (-) TimerEvent: {}
+[20.247975] (-) TimerEvent: {}
+[20.348310] (-) TimerEvent: {}
+[20.448503] (-) TimerEvent: {}
+[20.548674] (-) TimerEvent: {}
+[20.648878] (-) TimerEvent: {}
+[20.749268] (-) TimerEvent: {}
+[20.849482] (-) TimerEvent: {}
+[20.949659] (-) TimerEvent: {}
+[21.049839] (-) TimerEvent: {}
+[21.150039] (-) TimerEvent: {}
+[21.250266] (-) TimerEvent: {}
+[21.350473] (-) TimerEvent: {}
+[21.450698] (-) TimerEvent: {}
+[21.550884] (-) TimerEvent: {}
+[21.651089] (-) TimerEvent: {}
+[21.751278] (-) TimerEvent: {}
+[21.851458] (-) TimerEvent: {}
+[21.951693] (-) TimerEvent: {}
+[22.051912] (-) TimerEvent: {}
+[22.152181] (-) TimerEvent: {}
+[22.252372] (-) TimerEvent: {}
+[22.352582] (-) TimerEvent: {}
+[22.452788] (-) TimerEvent: {}
+[22.553017] (-) TimerEvent: {}
+[22.653240] (-) TimerEvent: {}
+[22.753394] (-) TimerEvent: {}
+[22.853564] (-) TimerEvent: {}
+[22.953736] (-) TimerEvent: {}
+[23.053935] (-) TimerEvent: {}
+[23.154342] (-) TimerEvent: {}
+[23.254547] (-) TimerEvent: {}
+[23.354721] (-) TimerEvent: {}
+[23.454895] (-) TimerEvent: {}
+[23.555153] (-) TimerEvent: {}
+[23.655292] (-) TimerEvent: {}
+[23.755512] (-) TimerEvent: {}
+[23.855758] (-) TimerEvent: {}
+[23.955943] (-) TimerEvent: {}
+[24.056142] (-) TimerEvent: {}
+[24.156463] (-) TimerEvent: {}
+[24.256714] (-) TimerEvent: {}
+[24.356917] (-) TimerEvent: {}
+[24.457099] (-) TimerEvent: {}
+[24.557305] (-) TimerEvent: {}
+[24.657512] (-) TimerEvent: {}
+[24.757742] (-) TimerEvent: {}
+[24.858071] (-) TimerEvent: {}
+[24.958332] (-) TimerEvent: {}
+[25.058525] (-) TimerEvent: {}
+[25.158681] (-) TimerEvent: {}
+[25.258854] (-) TimerEvent: {}
+[25.359158] (-) TimerEvent: {}
+[25.459382] (-) TimerEvent: {}
+[25.559656] (-) TimerEvent: {}
+[25.659850] (-) TimerEvent: {}
+[25.760024] (-) TimerEvent: {}
+[25.860190] (-) TimerEvent: {}
+[25.960419] (-) TimerEvent: {}
+[26.060616] (-) TimerEvent: {}
+[26.160788] (-) TimerEvent: {}
+[26.261002] (-) TimerEvent: {}
+[26.361218] (-) TimerEvent: {}
+[26.461369] (-) TimerEvent: {}
+[26.561527] (-) TimerEvent: {}
+[26.661677] (-) TimerEvent: {}
+[26.761847] (-) TimerEvent: {}
+[26.862036] (-) TimerEvent: {}
+[26.962233] (-) TimerEvent: {}
+[27.062392] (-) TimerEvent: {}
+[27.162552] (-) TimerEvent: {}
+[27.262753] (-) TimerEvent: {}
+[27.362964] (-) TimerEvent: {}
+[27.463219] (-) TimerEvent: {}
+[27.563422] (-) TimerEvent: {}
+[27.663648] (-) TimerEvent: {}
+[27.763878] (-) TimerEvent: {}
+[27.864184] (-) TimerEvent: {}
+[27.964432] (-) TimerEvent: {}
+[28.064617] (-) TimerEvent: {}
+[28.164829] (-) TimerEvent: {}
+[28.265281] (-) TimerEvent: {}
+[28.365632] (-) TimerEvent: {}
+[28.465835] (-) TimerEvent: {}
+[28.566167] (-) TimerEvent: {}
+[28.666433] (-) TimerEvent: {}
+[28.766598] (-) TimerEvent: {}
+[28.866717] (-) TimerEvent: {}
+[28.966913] (-) TimerEvent: {}
+[29.067067] (-) TimerEvent: {}
+[29.167251] (-) TimerEvent: {}
+[29.267522] (-) TimerEvent: {}
+[29.367724] (-) TimerEvent: {}
+[29.468007] (-) TimerEvent: {}
+[29.568185] (-) TimerEvent: {}
+[29.668429] (-) TimerEvent: {}
+[29.768606] (-) TimerEvent: {}
+[29.868821] (-) TimerEvent: {}
+[29.969016] (-) TimerEvent: {}
+[30.005698] (lsrx_rm75_dual_description) JobProgress: {'identifier': 'lsrx_rm75_dual_description', 'progress': 'cmake'}
+[30.007083] (lsrx_rm75_dual_description) JobProgress: {'identifier': 'lsrx_rm75_dual_description', 'progress': 'build'}
+[30.007162] (lsrx_rm75_dual_description) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description', '--', '-j32', '-l32'], 'cwd': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('CODEX_CI', '1'), ('LANGUAGE', 'en_US:en'), ('USER', 'moyu'), ('LC_TIME', 'zh_CN.UTF-8'), ('CODEX_INTERNAL_ORIGINATOR_OVERRIDE', 'Codex Desktop'), ('CODEX_SHELL', '1'), ('XDG_SESSION_TYPE', 'x11'), ('NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S', '9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df'), ('LOG_FORMAT', 'json'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/moyu'), ('CHROME_DESKTOP', 'chatgpt.desktop'), ('CONDA_SHLVL', '0'), ('DISABLE_AUTO_UPDATE', 'true'), ('DESKTOP_SESSION', 'ubuntu'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/chatgpt.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('PAGER', 'cat'), ('LC_MONETARY', 'zh_CN.UTF-8'), ('MANAGERPID', '1402'), ('LC_CTYPE', 'C.UTF-8'), ('SYSTEMD_EXEC_PID', '1751'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', ''), ('_CE_M', ''), ('_CONDA_ROOT', '/home/moyu/miniconda3'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '16206'), ('IM_CONFIG_PHASE', '1'), ('CODEX_PERMISSION_PROFILE', ':workspace'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'fcitx'), ('ZSH_TMUX_AUTOSTARTED', 'true'), ('LOGNAME', 'moyu'), ('JOURNAL_STREAM', '8:26077'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('RUST_LOG', 'warn'), ('USERNAME', 'moyu'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('_CE_CONDA', ''), ('NODE_REPL_TRUSTED_CODE_PATHS', '/home/moyu/.codex:/usr/lib/chatgpt/resources/cua_node/lib/node_modules'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/moyu/.codex/tmp/arg0/codex-arg0XWLex8:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/moyu/miniconda3/condabin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources'), ('SESSION_MANAGER', 'local/moyu-PC:@/tmp/.ICE-unix/1711,unix/moyu-PC:/tmp/.ICE-unix/1711'), ('CODEX_SESSION_ID', '01a05762-8fdf-7892-8897-6be669983a93'), ('INVOCATION_ID', '463291a1a90e46e5b92d41afdce8a402'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'zh_CN.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':0'), ('CODEX_SANDBOX_NETWORK_DISABLED', '1'), ('BROWSER_USE_AVAILABLE_BACKENDS', 'chrome,iab'), ('LANG', 'C.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'zh_CN.UTF-8'), ('XMODIFIERS', '@im=fcitx'), ('GH_PAGER', 'cat'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('CONDA_PYTHON_EXE', '/home/moyu/miniconda3/bin/python'), ('SHELL', '/bin/bash'), ('LC_NAME', 'zh_CN.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('NO_AT_BRIDGE', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CODEX_THREAD_ID', '01a05762-8fdf-7892-8897-6be669983a93'), ('LC_MEASUREMENT', 'zh_CN.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('_CONDA_EXE', '/home/moyu/miniconda3/bin/conda'), ('LC_IDENTIFICATION', 'zh_CN.UTF-8'), ('GIT_PAGER', 'cat'), ('QT_IM_MODULE', 'fcitx'), ('PWD', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description'), ('LC_ALL', 'C.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('CONDA_EXE', '/home/moyu/miniconda3/bin/conda'), ('ZSH_TMUX_AUTOSTART', 'false'), ('CLUTTER_IM_MODULE', 'fcitx'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'zh_CN.UTF-8'), ('LC_PAPER', 'zh_CN.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[30.069116] (-) TimerEvent: {}
+[30.169425] (-) TimerEvent: {}
+[30.269608] (-) TimerEvent: {}
+[30.369777] (-) TimerEvent: {}
+[30.470006] (-) TimerEvent: {}
+[30.570169] (-) TimerEvent: {}
+[30.670390] (-) TimerEvent: {}
+[30.770589] (-) TimerEvent: {}
+[30.870783] (-) TimerEvent: {}
+[30.971179] (-) TimerEvent: {}
+[31.071473] (-) TimerEvent: {}
+[31.171937] (-) TimerEvent: {}
+[31.272133] (-) TimerEvent: {}
+[31.372496] (-) TimerEvent: {}
+[31.472682] (-) TimerEvent: {}
+[31.572952] (-) TimerEvent: {}
+[31.673209] (-) TimerEvent: {}
+[31.773434] (-) TimerEvent: {}
+[31.873648] (-) TimerEvent: {}
+[31.973978] (-) TimerEvent: {}
+[32.074179] (-) TimerEvent: {}
+[32.174401] (-) TimerEvent: {}
+[32.274741] (-) TimerEvent: {}
+[32.374958] (-) TimerEvent: {}
+[32.475162] (-) TimerEvent: {}
+[32.575374] (-) TimerEvent: {}
+[32.675564] (-) TimerEvent: {}
+[32.775742] (-) TimerEvent: {}
+[32.876019] (-) TimerEvent: {}
+[32.976331] (-) TimerEvent: {}
+[33.076543] (-) TimerEvent: {}
+[33.176747] (-) TimerEvent: {}
+[33.276999] (-) TimerEvent: {}
+[33.377337] (-) TimerEvent: {}
+[33.477512] (-) TimerEvent: {}
+[33.577713] (-) TimerEvent: {}
+[33.677900] (-) TimerEvent: {}
+[33.778129] (-) TimerEvent: {}
+[33.878327] (-) TimerEvent: {}
+[33.978525] (-) TimerEvent: {}
+[34.078702] (-) TimerEvent: {}
+[34.178877] (-) TimerEvent: {}
+[34.279115] (-) TimerEvent: {}
+[34.379464] (-) TimerEvent: {}
+[34.479640] (-) TimerEvent: {}
+[34.579895] (-) TimerEvent: {}
+[34.680091] (-) TimerEvent: {}
+[34.780389] (-) TimerEvent: {}
+[34.880639] (-) TimerEvent: {}
+[34.980912] (-) TimerEvent: {}
+[35.081171] (-) TimerEvent: {}
+[35.181440] (-) TimerEvent: {}
+[35.281631] (-) TimerEvent: {}
+[35.381911] (-) TimerEvent: {}
+[35.482193] (-) TimerEvent: {}
+[35.582548] (-) TimerEvent: {}
+[35.682730] (-) TimerEvent: {}
+[35.783036] (-) TimerEvent: {}
+[35.883298] (-) TimerEvent: {}
+[35.983482] (-) TimerEvent: {}
+[36.083662] (-) TimerEvent: {}
+[36.183947] (-) TimerEvent: {}
+[36.284124] (-) TimerEvent: {}
+[36.384489] (-) TimerEvent: {}
+[36.484783] (-) TimerEvent: {}
+[36.584963] (-) TimerEvent: {}
+[36.685153] (-) TimerEvent: {}
+[36.785435] (-) TimerEvent: {}
+[36.885649] (-) TimerEvent: {}
+[36.985868] (-) TimerEvent: {}
+[37.086083] (-) TimerEvent: {}
+[37.186364] (-) TimerEvent: {}
+[37.286577] (-) TimerEvent: {}
+[37.386765] (-) TimerEvent: {}
+[37.486927] (-) TimerEvent: {}
+[37.587084] (-) TimerEvent: {}
+[37.687284] (-) TimerEvent: {}
+[37.787551] (-) TimerEvent: {}
+[37.887739] (-) TimerEvent: {}
+[37.987947] (-) TimerEvent: {}
+[38.088255] (-) TimerEvent: {}
+[38.188450] (-) TimerEvent: {}
+[38.288669] (-) TimerEvent: {}
+[38.388850] (-) TimerEvent: {}
+[38.489086] (-) TimerEvent: {}
+[38.589375] (-) TimerEvent: {}
+[38.689580] (-) TimerEvent: {}
+[38.789758] (-) TimerEvent: {}
+[38.890058] (-) TimerEvent: {}
+[38.990249] (-) TimerEvent: {}
+[39.090400] (-) TimerEvent: {}
+[39.190673] (-) TimerEvent: {}
+[39.290916] (-) TimerEvent: {}
+[39.391101] (-) TimerEvent: {}
+[39.491315] (-) TimerEvent: {}
+[39.591482] (-) TimerEvent: {}
+[39.691663] (-) TimerEvent: {}
+[39.791866] (-) TimerEvent: {}
+[39.892057] (-) TimerEvent: {}
+[39.992253] (-) TimerEvent: {}
+[40.092445] (-) TimerEvent: {}
+[40.192626] (-) TimerEvent: {}
+[40.292808] (-) TimerEvent: {}
+[40.392982] (-) TimerEvent: {}
+[40.493187] (-) TimerEvent: {}
+[40.593369] (-) TimerEvent: {}
+[40.693551] (-) TimerEvent: {}
+[40.793723] (-) TimerEvent: {}
+[40.893887] (-) TimerEvent: {}
+[40.994097] (-) TimerEvent: {}
+[41.094270] (-) TimerEvent: {}
+[41.194477] (-) TimerEvent: {}
+[41.294687] (-) TimerEvent: {}
+[41.395015] (-) TimerEvent: {}
+[41.495283] (-) TimerEvent: {}
+[41.595487] (-) TimerEvent: {}
+[41.695709] (-) TimerEvent: {}
+[41.795923] (-) TimerEvent: {}
+[41.896149] (-) TimerEvent: {}
+[41.996293] (-) TimerEvent: {}
+[42.096486] (-) TimerEvent: {}
+[42.196671] (-) TimerEvent: {}
+[42.297022] (-) TimerEvent: {}
+[42.397319] (-) TimerEvent: {}
+[42.497507] (-) TimerEvent: {}
+[42.597679] (-) TimerEvent: {}
+[42.697844] (-) TimerEvent: {}
+[42.798058] (-) TimerEvent: {}
+[42.898350] (-) TimerEvent: {}
+[42.998543] (-) TimerEvent: {}
+[43.098779] (-) TimerEvent: {}
+[43.199081] (-) TimerEvent: {}
+[43.299337] (-) TimerEvent: {}
+[43.399510] (-) TimerEvent: {}
+[43.499682] (-) TimerEvent: {}
+[43.599933] (-) TimerEvent: {}
+[43.700246] (-) TimerEvent: {}
+[43.800454] (-) TimerEvent: {}
+[43.900652] (-) TimerEvent: {}
+[44.000835] (-) TimerEvent: {}
+[44.101057] (-) TimerEvent: {}
+[44.201529] (-) TimerEvent: {}
+[44.301718] (-) TimerEvent: {}
+[44.402089] (-) TimerEvent: {}
+[44.502385] (-) TimerEvent: {}
+[44.602576] (-) TimerEvent: {}
+[44.702798] (-) TimerEvent: {}
+[44.803089] (-) TimerEvent: {}
+[44.903361] (-) TimerEvent: {}
+[45.003603] (-) TimerEvent: {}
+[45.103816] (-) TimerEvent: {}
+[45.204130] (-) TimerEvent: {}
+[45.304506] (-) TimerEvent: {}
+[45.404723] (-) TimerEvent: {}
+[45.504969] (-) TimerEvent: {}
+[45.605215] (-) TimerEvent: {}
+[45.705444] (-) TimerEvent: {}
+[45.805620] (-) TimerEvent: {}
+[45.905828] (-) TimerEvent: {}
+[46.006054] (-) TimerEvent: {}
+[46.106279] (-) TimerEvent: {}
+[46.206466] (-) TimerEvent: {}
+[46.306792] (-) TimerEvent: {}
+[46.407155] (-) TimerEvent: {}
+[46.507519] (-) TimerEvent: {}
+[46.607767] (-) TimerEvent: {}
+[46.707978] (-) TimerEvent: {}
+[46.808152] (-) TimerEvent: {}
+[46.908332] (-) TimerEvent: {}
+[47.008517] (-) TimerEvent: {}
+[47.108688] (-) TimerEvent: {}
+[47.208869] (-) TimerEvent: {}
+[47.309134] (-) TimerEvent: {}
+[47.409273] (-) TimerEvent: {}
+[47.509450] (-) TimerEvent: {}
+[47.609657] (-) TimerEvent: {}
+[47.709826] (-) TimerEvent: {}
+[47.809994] (-) TimerEvent: {}
+[47.910203] (-) TimerEvent: {}
+[48.010382] (-) TimerEvent: {}
+[48.110554] (-) TimerEvent: {}
+[48.210744] (-) TimerEvent: {}
+[48.310969] (-) TimerEvent: {}
+[48.411147] (-) TimerEvent: {}
+[48.511405] (-) TimerEvent: {}
+[48.611595] (-) TimerEvent: {}
+[48.711805] (-) TimerEvent: {}
+[48.812015] (-) TimerEvent: {}
+[48.912190] (-) TimerEvent: {}
+[49.012487] (-) TimerEvent: {}
+[49.112673] (-) TimerEvent: {}
+[49.212861] (-) TimerEvent: {}
+[49.313038] (-) TimerEvent: {}
+[49.413252] (-) TimerEvent: {}
+[49.513472] (-) TimerEvent: {}
+[49.613682] (-) TimerEvent: {}
+[49.713861] (-) TimerEvent: {}
+[49.814074] (-) TimerEvent: {}
+[49.914255] (-) TimerEvent: {}
+[50.014465] (-) TimerEvent: {}
+[50.114655] (-) TimerEvent: {}
+[50.214947] (-) TimerEvent: {}
+[50.315201] (-) TimerEvent: {}
+[50.415403] (-) TimerEvent: {}
+[50.515587] (-) TimerEvent: {}
+[50.615760] (-) TimerEvent: {}
+[50.715936] (-) TimerEvent: {}
+[50.816182] (-) TimerEvent: {}
+[50.916490] (-) TimerEvent: {}
+[51.016686] (-) TimerEvent: {}
+[51.116928] (-) TimerEvent: {}
+[51.217147] (-) TimerEvent: {}
+[51.317350] (-) TimerEvent: {}
+[51.417527] (-) TimerEvent: {}
+[51.517740] (-) TimerEvent: {}
+[51.617939] (-) TimerEvent: {}
+[51.718211] (-) TimerEvent: {}
+[51.818413] (-) TimerEvent: {}
+[51.918616] (-) TimerEvent: {}
+[52.018787] (-) TimerEvent: {}
+[52.118917] (-) TimerEvent: {}
+[52.219095] (-) TimerEvent: {}
+[52.319400] (-) TimerEvent: {}
+[52.419574] (-) TimerEvent: {}
+[52.519779] (-) TimerEvent: {}
+[52.619977] (-) TimerEvent: {}
+[52.720274] (-) TimerEvent: {}
+[52.820534] (-) TimerEvent: {}
+[52.920752] (-) TimerEvent: {}
+[53.021001] (-) TimerEvent: {}
+[53.121167] (-) TimerEvent: {}
+[53.221397] (-) TimerEvent: {}
+[53.321582] (-) TimerEvent: {}
+[53.421805] (-) TimerEvent: {}
+[53.521983] (-) TimerEvent: {}
+[53.622199] (-) TimerEvent: {}
+[53.722408] (-) TimerEvent: {}
+[53.822590] (-) TimerEvent: {}
+[53.922878] (-) TimerEvent: {}
+[54.023113] (-) TimerEvent: {}
+[54.123274] (-) TimerEvent: {}
+[54.223433] (-) TimerEvent: {}
+[54.323589] (-) TimerEvent: {}
+[54.423755] (-) TimerEvent: {}
+[54.523928] (-) TimerEvent: {}
+[54.624266] (-) TimerEvent: {}
+[54.724490] (-) TimerEvent: {}
+[54.824687] (-) TimerEvent: {}
+[54.924876] (-) TimerEvent: {}
+[55.025163] (-) TimerEvent: {}
+[55.125340] (-) TimerEvent: {}
+[55.225526] (-) TimerEvent: {}
+[55.325726] (-) TimerEvent: {}
+[55.425928] (-) TimerEvent: {}
+[55.526342] (-) TimerEvent: {}
+[55.626819] (-) TimerEvent: {}
+[55.727207] (-) TimerEvent: {}
+[55.827407] (-) TimerEvent: {}
+[55.927566] (-) TimerEvent: {}
+[56.027708] (-) TimerEvent: {}
+[56.127929] (-) TimerEvent: {}
+[56.228164] (-) TimerEvent: {}
+[56.328496] (-) TimerEvent: {}
+[56.428725] (-) TimerEvent: {}
+[56.529071] (-) TimerEvent: {}
+[56.629483] (-) TimerEvent: {}
+[56.729687] (-) TimerEvent: {}
+[56.829888] (-) TimerEvent: {}
+[56.930125] (-) TimerEvent: {}
+[57.030373] (-) TimerEvent: {}
+[57.130555] (-) TimerEvent: {}
+[57.230715] (-) TimerEvent: {}
+[57.330913] (-) TimerEvent: {}
+[57.431197] (-) TimerEvent: {}
+[57.531388] (-) TimerEvent: {}
+[57.631566] (-) TimerEvent: {}
+[57.731771] (-) TimerEvent: {}
+[57.832043] (-) TimerEvent: {}
+[57.932343] (-) TimerEvent: {}
+[58.032527] (-) TimerEvent: {}
+[58.132741] (-) TimerEvent: {}
+[58.232995] (-) TimerEvent: {}
+[58.333283] (-) TimerEvent: {}
+[58.433496] (-) TimerEvent: {}
+[58.533698] (-) TimerEvent: {}
+[58.633999] (-) TimerEvent: {}
+[58.734409] (-) TimerEvent: {}
+[58.834575] (-) TimerEvent: {}
+[58.934814] (-) TimerEvent: {}
+[59.035065] (-) TimerEvent: {}
+[59.135217] (-) TimerEvent: {}
+[59.235376] (-) TimerEvent: {}
+[59.335619] (-) TimerEvent: {}
+[59.435822] (-) TimerEvent: {}
+[59.536056] (-) TimerEvent: {}
+[59.636323] (-) TimerEvent: {}
+[59.736475] (-) TimerEvent: {}
+[59.836652] (-) TimerEvent: {}
+[59.936915] (-) TimerEvent: {}
+[60.035793] (lsrx_rm75_dual_description) CommandEnded: {'returncode': 0}
+[60.036334] (lsrx_rm75_dual_description) JobProgress: {'identifier': 'lsrx_rm75_dual_description', 'progress': 'install'}
+[60.036991] (-) TimerEvent: {}
+[60.044723] (lsrx_rm75_dual_description) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description'], 'cwd': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('CODEX_CI', '1'), ('LANGUAGE', 'en_US:en'), ('USER', 'moyu'), ('LC_TIME', 'zh_CN.UTF-8'), ('CODEX_INTERNAL_ORIGINATOR_OVERRIDE', 'Codex Desktop'), ('CODEX_SHELL', '1'), ('XDG_SESSION_TYPE', 'x11'), ('NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S', '9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df'), ('LOG_FORMAT', 'json'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/moyu'), ('CHROME_DESKTOP', 'chatgpt.desktop'), ('CONDA_SHLVL', '0'), ('DISABLE_AUTO_UPDATE', 'true'), ('DESKTOP_SESSION', 'ubuntu'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/chatgpt.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('PAGER', 'cat'), ('LC_MONETARY', 'zh_CN.UTF-8'), ('MANAGERPID', '1402'), ('LC_CTYPE', 'C.UTF-8'), ('SYSTEMD_EXEC_PID', '1751'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', ''), ('_CE_M', ''), ('_CONDA_ROOT', '/home/moyu/miniconda3'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '16206'), ('IM_CONFIG_PHASE', '1'), ('CODEX_PERMISSION_PROFILE', ':workspace'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'fcitx'), ('ZSH_TMUX_AUTOSTARTED', 'true'), ('LOGNAME', 'moyu'), ('JOURNAL_STREAM', '8:26077'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('RUST_LOG', 'warn'), ('USERNAME', 'moyu'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('_CE_CONDA', ''), ('NODE_REPL_TRUSTED_CODE_PATHS', '/home/moyu/.codex:/usr/lib/chatgpt/resources/cua_node/lib/node_modules'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/moyu/.codex/tmp/arg0/codex-arg0XWLex8:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/moyu/miniconda3/condabin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources'), ('SESSION_MANAGER', 'local/moyu-PC:@/tmp/.ICE-unix/1711,unix/moyu-PC:/tmp/.ICE-unix/1711'), ('CODEX_SESSION_ID', '01a05762-8fdf-7892-8897-6be669983a93'), ('INVOCATION_ID', '463291a1a90e46e5b92d41afdce8a402'), ('PAPERSIZE', 'a4'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'zh_CN.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':0'), ('CODEX_SANDBOX_NETWORK_DISABLED', '1'), ('BROWSER_USE_AVAILABLE_BACKENDS', 'chrome,iab'), ('LANG', 'C.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'zh_CN.UTF-8'), ('XMODIFIERS', '@im=fcitx'), ('GH_PAGER', 'cat'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('CONDA_PYTHON_EXE', '/home/moyu/miniconda3/bin/python'), ('SHELL', '/bin/bash'), ('LC_NAME', 'zh_CN.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('NO_AT_BRIDGE', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CODEX_THREAD_ID', '01a05762-8fdf-7892-8897-6be669983a93'), ('LC_MEASUREMENT', 'zh_CN.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('_CONDA_EXE', '/home/moyu/miniconda3/bin/conda'), ('LC_IDENTIFICATION', 'zh_CN.UTF-8'), ('GIT_PAGER', 'cat'), ('QT_IM_MODULE', 'fcitx'), ('PWD', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description'), ('LC_ALL', 'C.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('CONDA_EXE', '/home/moyu/miniconda3/bin/conda'), ('ZSH_TMUX_AUTOSTART', 'false'), ('CLUTTER_IM_MODULE', 'fcitx'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'zh_CN.UTF-8'), ('LC_PAPER', 'zh_CN.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[60.052799] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[60.052940] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf\n'}
+[60.052984] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL_zero_pose.png\n'}
+[60.053024] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Installing: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL.urdf\n'}
+[60.053977] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes\n'}
+[60.054509] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link_2.STL\n'}
+[60.054549] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/yb_link.STL\n'}
+[60.054585] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_2_Link.STL\n'}
+[60.054618] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_link.STL\n'}
+[60.054654] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_Support_Link.STL\n'}
+[60.054810] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_Support_Link.STL\n'}
+[60.054845] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_2_Link.STL\n'}
+[60.054880] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_1_Link.STL\n'}
+[60.054914] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_3.STL\n'}
+[60.054946] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_1_Link.STL\n'}
+[60.054979] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wl_link.STL\n'}
+[60.055011] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_base_link.STL\n'}
+[60.055044] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_right_link.STL\n'}
+[60.055075] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_left_link.STL\n'}
+[60.055107] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wr_link.STL\n'}
+[60.055138] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_2.STL\n'}
+[60.055172] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_1.STL\n'}
+[60.055208] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/jb_link.STL\n'}
+[60.055243] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_1_Link.STL\n'}
+[60.055275] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_2_Link.STL\n'}
+[60.055308] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link.STL\n'}
+[60.055342] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_1_Link.STL\n'}
+[60.055378] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_Support_Link.STL\n'}
+[60.055420] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75\n'}
+[60.055458] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_6.STL\n'}
+[60.055492] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_2.STL\n'}
+[60.055525] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_7.STL\n'}
+[60.055558] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_link.STL\n'}
+[60.055591] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_rolink.STL\n'}
+[60.055624] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_5.STL\n'}
+[60.055754] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/base_link.STL\n'}
+[60.055812] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_4.STL\n'}
+[60.055847] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_3.STL\n'}
+[60.055882] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_1.STL\n'}
+[60.055918] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_2.STL\n'}
+[60.055984] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_Support_Link.STL\n'}
+[60.056030] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_1.STL\n'}
+[60.056069] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_2.STL\n'}
+[60.056106] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_camera_link.STL\n'}
+[60.056143] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_base_link.STL\n'}
+[60.056181] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/dt_link.STL\n'}
+[60.056219] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_right_link.STL\n'}
+[60.056310] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_left_link.STL\n'}
+[60.056658] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_2_Link.STL\n'}
+[60.056702] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_link.STL\n'}
+[60.056972] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_1.STL\n'}
+[60.057017] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch\n'}
+[60.057056] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display_dual.launch.py\n'}
+[60.057095] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display.launch\n'}
+[60.057134] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/ament_index/resource_index/package_run_dependencies/lsrx_rm75_dual_description\n'}
+[60.057174] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/ament_index/resource_index/parent_prefix_path/lsrx_rm75_dual_description\n'}
+[60.057273] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.sh\n'}
+[60.057313] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.dsv\n'}
+[60.057353] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.sh\n'}
+[60.057411] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.dsv\n'}
+[60.057452] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.bash\n'}
+[60.057495] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.sh\n'}
+[60.057534] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.zsh\n'}
+[60.057573] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.dsv\n'}
+[60.057618] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Installing: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.dsv\n'}
+[60.057659] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/ament_index/resource_index/packages/lsrx_rm75_dual_description\n'}
+[60.057694] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig.cmake\n'}
+[60.057729] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig-version.cmake\n'}
+[60.057765] (lsrx_rm75_dual_description) StdoutLine: {'line': b'-- Up-to-date: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.xml\n'}
+[60.057806] (lsrx_rm75_dual_description) CommandEnded: {'returncode': 0}
+[60.072126] (lsrx_rm75_dual_description) JobEnded: {'identifier': 'lsrx_rm75_dual_description', 'rc': 0}
+[60.072543] (-) EventReactorShutdown: {}

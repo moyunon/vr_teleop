@@ -41,6 +41,8 @@ from vr_rm75_teleop.target_feasibility import (
     minimum_singular_value,
 )
 
+from std_msgs.msg import Bool
+
 
 class ArmFusionState:
     """
@@ -116,6 +118,16 @@ class ArmFusionState:
 
         self.anchored = False
 
+        # Quest tracking state
+        self.tracking_valid = False
+
+        # tracking 恢复后必须重新建立 VR/robot anchor
+        self.need_reanchor = True
+
+        # 用于检测 VR Pose 数据流是否中断
+        self.last_vr_rx_time = None
+        self.pose_stale = False
+
         # =====================================================
         # Last diagnostics
         # =====================================================
@@ -178,6 +190,11 @@ class QuestDualIKFusion(Node):
                 2.0
             )
         )
+
+        # Quest pose timeout protection.
+        # If no fresh VR pose arrives within 200 ms,
+        # stop updating this arm and require re-anchor.
+        self.vr_pose_timeout_s = 0.20
 
         # =====================================================
         # 2. Feasibility parameters
@@ -261,6 +278,86 @@ class QuestDualIKFusion(Node):
                 1,
             )
         )
+
+        self.left_tracking_sub = (
+            self.create_subscription(
+                Bool,
+                "/meta_quest/left_tracking_valid",
+                self.left_tracking_callback,
+                1,
+            )
+        )
+
+        self.right_tracking_sub = (
+            self.create_subscription(
+                Bool,
+                "/meta_quest/right_tracking_valid",
+                self.right_tracking_callback,
+                1,
+            )
+        )
+
+        def left_tracking_callback(
+            self,
+            msg,
+        ):
+            self.update_tracking_state(
+                side="left",
+                valid=msg.data,
+            )
+
+
+        def right_tracking_callback(
+            self,
+            msg,
+        ):
+            self.update_tracking_state(
+                side="right",
+                valid=msg.data,
+            )
+
+
+        def update_tracking_state(
+            self,
+            side,
+            valid,
+        ):
+
+            state = self.arms[side]
+
+            valid = bool(valid)
+
+            # 状态没变化就不用重复处理
+            if valid == state.tracking_valid:
+                return
+
+            state.tracking_valid = valid
+
+            if not valid:
+
+                # 立即停止使用旧 VR pose
+                state.T_vr_latest = None
+
+                # 旧 anchor 作废
+                state.anchored = False
+                state.need_reanchor = True
+
+                state.last_vr_rx_time = None
+
+                self.get_logger().warning(
+                    f"{side.upper()} Quest tracking LOST."
+                )
+
+            else:
+
+                # 此时不立即 anchor：
+                # 等下一帧有效 Pose 到达再建立。
+                state.need_reanchor = True
+
+                self.get_logger().info(
+                    f"{side.upper()} Quest tracking RECOVERED. "
+                    "Waiting for fresh pose to re-anchor."
+                )
 
         # =====================================================
         # 5. Pose publishers
@@ -360,6 +457,70 @@ class QuestDualIKFusion(Node):
     # Quest callbacks
     # =========================================================
 
+    def left_tracking_callback(
+        self,
+        msg,
+    ):
+        self.update_tracking_state(
+            side="left",
+            valid=msg.data,
+        )
+
+    def right_tracking_callback(
+        self,
+        msg,
+    ):
+        self.update_tracking_state(
+            side="right",
+            valid=msg.data,
+        )
+
+    def update_tracking_state(
+        self,
+        side,
+        valid,
+    ):
+
+        state = self.arms[
+            side
+        ]
+
+        valid = bool(
+            valid
+        )
+
+        # 状态没有发生变化，不重复处理。
+        if valid == state.tracking_valid:
+            return
+
+        state.tracking_valid = valid
+
+        if not valid:
+
+            # 当前 VR pose 不再可信。
+            state.T_vr_latest = None
+
+            # 原来的 anchor 作废。
+            state.anchored = False
+            state.need_reanchor = True
+
+            state.last_vr_rx_time = None
+
+            self.get_logger().warning(
+                f"{side.upper()} Quest tracking LOST."
+            )
+
+        else:
+
+            # tracking 恢复以后，
+            # 等下一帧有效 Pose 到达再重新 anchor。
+            state.need_reanchor = True
+
+            self.get_logger().info(
+                f"{side.upper()} Quest tracking RECOVERED. "
+                "Waiting for fresh pose to re-anchor."
+            )
+
     def left_pose_callback(
         self,
         msg,
@@ -389,6 +550,10 @@ class QuestDualIKFusion(Node):
         state = self.arms[
             side
         ]
+
+        # tracking 无效时，Pose 一律不接受
+        if not state.tracking_valid:
+            return
 
         p = msg.pose.position
         q = msg.pose.orientation
@@ -421,22 +586,38 @@ class QuestDualIKFusion(Node):
 
             return
 
-        state.T_vr_latest = (
-            T_vr
+        state.T_vr_latest = T_vr
+
+        state.last_vr_rx_time = (
+            time.perf_counter()
         )
 
-        # 每条手臂第一次收到自己的 VR Pose 时
-        # 独立建立 anchor。
-        if not state.anchored:
+        state.pose_stale = False
 
+
+        # 首次启动或 tracking 恢复后：
+        # 同时重新建立 VR anchor 和 robot anchor。
+        if (
+            state.need_reanchor
+            or
+            not state.anchored
+        ):
+
+            # 当前 Quest 手柄作为新的 VR 零点
             state.T_vr_anchor = (
                 T_vr.copy()
             )
 
+            # 当前机械臂安全位姿作为新的 robot 零点
+            state.T_ee_anchor = (
+                state.T_safe.copy()
+            )
+
             state.anchored = True
+            state.need_reanchor = False
 
             self.get_logger().info(
-                f"{side.upper()} VR anchor captured."
+                f"{side.upper()} VR/EE anchor captured."
             )
 
     # =========================================================
@@ -517,11 +698,41 @@ class QuestDualIKFusion(Node):
         stamp,
     ):
 
+        if not state.tracking_valid:
+            return
+
         if (
             not state.anchored
             or
             state.T_vr_latest is None
         ):
+            return
+
+
+        # VR data stream timeout protection
+        if (
+            state.last_vr_rx_time is None
+            or
+            (
+                time.perf_counter()
+                - state.last_vr_rx_time
+            )
+            > self.vr_pose_timeout_s
+        ):
+
+            if not state.pose_stale:
+
+                state.pose_stale = True
+
+                # 数据恢复后重新 anchor，
+                # 防止断流期间手柄运动造成跳变。
+                state.anchored = False
+                state.need_reanchor = True
+
+                self.get_logger().warning(
+                    f"{state.side.upper()} Quest pose STALE."
+                )
+
             return
 
         # =====================================================
@@ -1269,13 +1480,13 @@ class QuestDualIKFusion(Node):
 
                     int(
                         result[
-                            "projected"
+                            "raw_ik_success"
                         ]
                     ),
 
                     int(
                         result[
-                            "raw_ik_success"
+                            "projected"
                         ]
                     ),
 

@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'meta_quest_bridge = vr_rm75_teleop.meta_quest_bridge:main',
+            'quest_dual_ik_fusion = vr_rm75_teleop.quest_dual_ik_fusion:main',
         ],
     },
 )

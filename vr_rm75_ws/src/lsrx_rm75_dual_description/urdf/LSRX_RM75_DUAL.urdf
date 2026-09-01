@@ -1277,20 +1277,20 @@
   </link>
   <joint
     name="l_rm75_camera_rojoint"
-    type="revolute">
+    type="fixed">
+    <!--
+      The physical bracket is rigid.  Flip the complete camera assembly by pi
+      about link_7 X (the vertical axis through the bracket pivot in the zero
+      pose), moving the bracket from the body side to the hand side without
+      moving the pivot itself.
+    -->
     <origin
-      xyz="0.033 -0.0085 -0.05388" rpy="1.5708 1.5708 3.1416" />
+      xyz="-0.033 0.0085 -0.05388"
+      rpy="-1.5707963268 -1.5707963268 0" />
     <parent
       link="l_rm75_link_7" />
     <child
       link="l_rm75_camera_rolink" />
-    <axis
-      xyz="0 0 1" />
-    <limit
-      lower="0"
-      upper="1.05"
-      effort="0"
-      velocity="0" />
   </joint>
   <link
     name="l_rm75_camera_link">
@@ -1335,9 +1335,13 @@
   <joint
     name="l_rm75_camera_joint"
     type="fixed">
+    <!--
+      Keep the original camera-to-bracket mounting transform.  The parent
+      bracket is mirrored as one rigid assembly above.
+    -->
     <origin
-      xyz="0.029031 -0.10022 -0.0005"
-      rpy="0 1.5708 0" />
+      xyz="0.029031 -0.10022 0.0005"
+      rpy="0 1.5707963268 0" />
     <parent
       link="l_rm75_camera_rolink" />
     <child

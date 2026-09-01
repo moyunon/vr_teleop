@@ -50,3 +50,9 @@ rviz2 add TF  选择fixed frame为r_rm75_base_link
 source install/setup.bash
 python3 \
 src/vr_rm75_teleop/vr_rm75_teleop/quest_dual_ik_fusion.py
+
+
+source install/setup.bash
+ros2 launch \
+lsrx_rm75_dual_description \
+display_dual.launch.py

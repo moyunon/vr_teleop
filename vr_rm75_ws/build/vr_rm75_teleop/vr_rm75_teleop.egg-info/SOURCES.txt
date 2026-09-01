@@ -15,6 +15,8 @@ vr_rm75_teleop/check_target_feasibility.py
 vr_rm75_teleop/check_urdf_fk.py
 vr_rm75_teleop/check_vr_pose_mapping.py
 vr_rm75_teleop/joint_safety.py
+vr_rm75_teleop/meta_quest_bridge.py
+vr_rm75_teleop/quest_dual_ik_fusion.py
 vr_rm75_teleop/quest_ik_fusion.py
 vr_rm75_teleop/rm75_fk.py
 vr_rm75_teleop/rm75_ik.py

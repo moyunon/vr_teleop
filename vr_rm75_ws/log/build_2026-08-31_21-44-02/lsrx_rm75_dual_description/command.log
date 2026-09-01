@@ -1,0 +1,4 @@
+Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description -- -j32 -l32
+Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description -- -j32 -l32
+Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description
+Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/lsrx_rm75_dual_description
