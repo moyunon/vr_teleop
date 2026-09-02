@@ -25,6 +25,31 @@ def test_default_and_first_motion_profiles_keep_actuation_disabled():
     assert first["enable_robot_motion"] is False
     assert first["require_robot_state"] is True
     assert first["collision_protection_enabled"] is True
+    expected_categories = ["left_self", "right_self", "inter_arm"]
+    assert normal["collision_enabled_categories"] == expected_categories
+    assert first["collision_enabled_categories"] == expected_categories
+
+
+def test_collision_config_is_explicitly_rm75_only():
+    """Lock enabled categories and exact monitored links for commissioning."""
+    with (CONFIG_DIR / "collision_geometry.yaml").open(
+        encoding="utf-8"
+    ) as stream:
+        config = yaml.safe_load(stream)
+
+    assert config["category_enabled"] == {
+        "left_self": True,
+        "right_self": True,
+        "inter_arm": True,
+        "environment": False,
+        "robot_body": False,
+    }
+    assert config["environment"] == []
+    for prefix, group in (("l", "left"), ("r", "right")):
+        assert config["monitored_links"][group] == [
+            f"{prefix}_rm75_base_link",
+            *[f"{prefix}_rm75_link_{index}" for index in range(1, 8)],
+        ]
 
 
 def test_first_motion_profile_uses_requested_conservative_rates():

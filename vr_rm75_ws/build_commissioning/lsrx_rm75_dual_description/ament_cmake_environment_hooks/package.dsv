@@ -1,0 +1,4 @@
+source;share/lsrx_rm75_dual_description/local_setup.bash
+source;share/lsrx_rm75_dual_description/local_setup.dsv
+source;share/lsrx_rm75_dual_description/local_setup.sh
+source;share/lsrx_rm75_dual_description/local_setup.zsh

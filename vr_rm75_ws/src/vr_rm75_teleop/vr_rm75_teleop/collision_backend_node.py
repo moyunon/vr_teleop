@@ -18,9 +18,10 @@ from vr_rm75_teleop.collision_backend import (
     FclDistanceEngine,
     FiveClassCollisionBackend,
     UrdfCollisionModel,
+    collision_category_diagnostics,
+    enabled_sources_from_config,
     environment_geometry_from_config,
 )
-from vr_rm75_teleop.collision_safety import SOURCES
 
 
 class CollisionBackendNode(Node):
@@ -79,6 +80,9 @@ class CollisionBackendNode(Node):
                 config.get("environment", ()),
                 base_directory=os.path.dirname(config_path),
             )
+            enabled_sources = enabled_sources_from_config(
+                config.get("category_enabled")
+            )
             self._configuration_joint_positions = {
                 str(name): float(value)
                 for name, value in config.get(
@@ -92,6 +96,8 @@ class CollisionBackendNode(Node):
                 ignored_pairs=config.get("ignored_collision_pairs", ()),
                 require_complete_geometry=True,
                 require_environment=True,
+                enabled_sources=enabled_sources,
+                monitored_links=config.get("monitored_links"),
             )
             self._last_reason = self._backend.readiness_reason
         except (CollisionBackendError, OSError, TypeError, ValueError) as exc:
@@ -177,9 +183,29 @@ class CollisionBackendNode(Node):
                 if snapshot is None
                 else max(0.0, now - snapshot.measured_monotonic)
             ),
-            "source_order": [source.value for source in SOURCES],
+            "source_order": (
+                []
+                if self._backend is None
+                else [
+                    source.value
+                    for source in self._backend.enabled_sources
+                ]
+            ),
             "distances_m": (
                 None if snapshot is None else list(snapshot.distances_m)
+            ),
+            "categories": (
+                None
+                if self._backend is None
+                else collision_category_diagnostics(
+                    self._backend.enabled_sources,
+                    snapshot,
+                )
+            ),
+            "monitored_links": (
+                None
+                if self._backend is None
+                else self._backend.monitored_links
             ),
             "closest_category": (
                 None

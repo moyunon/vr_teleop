@@ -43,7 +43,8 @@ ros2 launch vr_rm75_teleop commissioning_dry_run.launch.py \
   frequency, jitter, and deadline misses; configuration at 50 Hz is not proof.
 - Inspect the recorded closest collision pair against RViz/physical geometry.
 
-Gate B cannot pass while `collision/backend_ready=false`.
+Gate B requires fresh `collision/backend_ready=true` and all enabled-category
+distances outside the stop region.
 
 ## Gate C — stationary software-stop verification
 
@@ -75,7 +76,7 @@ This gate requires on-site authorization and is not completed by unit tests.
 
 The unified launch records Quest pose/grip/freshness, deadman, per-arm and dual
 measured joints, measured qdot/qddot, safe command joints, following error,
-IK/sigma/limiter diagnostics, five collision distances and backend quality,
+IK/sigma/limiter diagnostics, enabled collision distances and backend quality,
 safety state, stop events/ACK,
 robot command status, and timing diagnostics when
 `enable_bag_recording:=true`.

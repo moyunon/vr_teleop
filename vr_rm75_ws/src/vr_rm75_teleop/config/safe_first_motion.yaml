@@ -24,6 +24,8 @@ quest_dual_ik_fusion:
     max_cartesian_rotation_rate_rad_s: 0.30
 
     collision_protection_enabled: true
+    collision_enabled_categories:
+      [left_self, right_self, inter_arm]
     collision_distance_timeout_s: 0.10
     collision_stop_distance_m: 0.05
     collision_warn_distance_m: 0.15

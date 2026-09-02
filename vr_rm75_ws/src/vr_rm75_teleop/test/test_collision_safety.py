@@ -31,6 +31,16 @@ def monitor():
     )
 
 
+def rm75_only_monitor():
+    """Enable only the two arm self checks and the inter-arm check."""
+    return CollisionSafetyMonitor(
+        d_stop_m=0.05,
+        d_warn_m=0.15,
+        timeout_s=0.10,
+        enabled_sources=("left_self", "right_self", "inter_arm"),
+    )
+
+
 def test_missing_snapshot_fails_closed():
     decision = monitor().evaluate(1.0)
 
@@ -161,3 +171,46 @@ def test_disabled_decision_is_explicit_and_does_not_hold():
     assert not decision.hold_required
     assert decision.speed_scale == 1.0
     assert "disabled" in decision.reason
+
+
+def test_rm75_only_consumer_requires_only_enabled_categories():
+    """Absent disabled categories do not participate in validity or limiting."""
+    checker = rm75_only_monitor()
+    checker.update_snapshot(
+        {
+            "left_self": 0.30,
+            "right_self": 0.20,
+            "inter_arm": 0.10,
+        },
+        8.0,
+    )
+
+    decision = checker.evaluate(8.01)
+    assert decision.region == CollisionRegion.WARNING
+    assert decision.limiting_source == CollisionSource.INTER_ARM
+
+
+def test_rm75_only_consumer_ignores_disabled_category_values():
+    """A disabled category is neither required nor validity-checked."""
+    checker = rm75_only_monitor()
+    checker.update_snapshot(
+        {
+            "left_self": 0.30,
+            "right_self": 0.30,
+            "inter_arm": 0.30,
+            "environment": "not-consumed",
+        },
+        9.0,
+    )
+    assert checker.evaluate(9.01).region == CollisionRegion.SAFE
+
+
+def test_rm75_only_consumer_fails_closed_for_missing_enabled_category():
+    """The narrowed scope remains atomic and fail-closed for all three checks."""
+    checker = rm75_only_monitor()
+    with pytest.raises(ValueError, match="inter_arm"):
+        checker.update_snapshot(
+            {"left_self": 0.30, "right_self": 0.30},
+            10.0,
+        )
+    assert checker.evaluate(10.01).region == CollisionRegion.UNKNOWN

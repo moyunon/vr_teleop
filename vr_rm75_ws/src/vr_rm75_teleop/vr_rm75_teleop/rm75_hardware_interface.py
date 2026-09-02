@@ -244,16 +244,28 @@ def _parse_optional_joint_speed(
     )
 
 
-def _parse_udp_error(value: Any) -> int:
-    """Accept documented scalar and single-element Gen-4 error forms."""
+def _parse_error_code(value: Any, field: str) -> int:
+    """Accept scalar or documented single-element error-code arrays."""
     if (
         isinstance(value, Sequence)
         and not isinstance(value, (str, bytes, bytearray))
     ):
         if len(value) != 1:
-            raise RM75ProtocolError("err array must contain exactly one value")
+            raise RM75ProtocolError(
+                f"{field} array must contain exactly one value"
+            )
         value = value[0]
-    return _integer(value, "err")
+    return _integer(value, field)
+
+def _parse_brake_released(value: Any) -> Tuple[bool, ...]:
+    """Convert RM75 brake_state to whether each brake is released.
+
+    Gen-4 JSON semantics:
+    0 -> brake opened/released
+    1 -> brake not opened
+    """
+    brake_state = _parse_bool_flags(value, "brake_state")
+    return tuple(not engaged for engaged in brake_state)
 
 
 def _matches_response(message: Mapping[str, Any], expected: str) -> bool:
@@ -312,7 +324,7 @@ def parse_realtime_udp_state(
         "joint_status.joint_speed",
         joint_speed_scale_rad_s,
     )
-    arm_error = _parse_udp_error(message.get("err", 0))
+    arm_error = _parse_error_code(message.get("err", 0), "err")
     motion_state = message.get("arm_current_status")
     if motion_state is not None and not isinstance(motion_state, str):
         raise RM75ProtocolError("arm_current_status must be a string")
@@ -498,7 +510,10 @@ class RM75ReadOnlyClient:
         q = _parse_joint_angles(
             arm_state.get("joint"), side, "arm_state.joint"
         )
-        arm_error = _integer(arm_state.get("err", 0), "arm_state.err")
+        arm_error = _parse_error_code(
+            arm_state.get("err", 0),
+            "arm_state.err",
+        )
 
         if include_diagnostics:
             enable = self._query(GET_JOINT_ENABLE_STATE)
@@ -510,8 +525,8 @@ class RM75ReadOnlyClient:
             self._joint_errors = _parse_int_flags(
                 errors.get("err_flag"), "err_flag"
             )
-            self._brake_released = _parse_bool_flags(
-                errors.get("brake_state"), "brake_state"
+            self._brake_released = _parse_brake_released(
+                errors.get("brake_state")
             )
 
             controller = self._query(GET_CONTROLLER_STATE)

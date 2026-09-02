@@ -1,0 +1,1 @@
+/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/STOP_POLICY.md

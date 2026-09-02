@@ -1,9 +1,10 @@
-"""URDF/FCL five-class collision-distance backend.
+"""
+URDF/FCL five-class collision-distance backend.
 
-The module has no debug sphere fallback.  Missing required URDF geometry,
-missing environment geometry, an unavailable transform, or an unavailable
-FCL dependency keeps the backend not ready so the existing consumer fails
-closed.
+The module has no debug sphere fallback. Missing required monitored geometry,
+missing geometry for an enabled category, an unavailable required transform,
+or an unavailable FCL dependency keeps the backend not ready so the existing
+consumer fails closed.
 """
 
 from __future__ import annotations
@@ -19,7 +20,11 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
-from vr_rm75_teleop.collision_safety import CollisionSource, SOURCES
+from vr_rm75_teleop.collision_safety import (
+    CollisionSource,
+    SOURCES,
+    normalize_collision_sources,
+)
 
 
 ARM_GROUPS = ("left", "right")
@@ -75,11 +80,12 @@ class PairDistance:
 
 @dataclass(frozen=True)
 class CollisionBackendSnapshot:
-    """One time-coherent five-class result with quality and timing."""
+    """One time-coherent enabled-category result with quality and timing."""
 
     measured_monotonic: float
     valid: bool
     ready: bool
+    sources: Tuple[CollisionSource, ...]
     distances_m: Tuple[float, ...]
     closest_category: Optional[CollisionSource]
     closest_pair: Optional[Tuple[str, str]]
@@ -188,9 +194,16 @@ class UrdfCollisionModel:
                 f"URDF must have exactly one root link, found {sorted(roots)}"
             )
         self.root_link = roots.pop()
+        self.links = frozenset(links)
         self._children = {}
+        self._parent_joint = {}
         for joint in self.joints:
             self._children.setdefault(joint.parent, []).append(joint)
+            if joint.child in self._parent_joint:
+                raise CollisionBackendError(
+                    f"URDF link has multiple parents: {joint.child}"
+                )
+            self._parent_joint[joint.child] = joint
         self.structural_pairs = frozenset(
             frozenset((joint.parent, joint.child)) for joint in self.joints
         )
@@ -283,57 +296,127 @@ class UrdfCollisionModel:
             )
         return tuple(joints)
 
-    def world_transforms(self, joint_positions):
-        """Evaluate link poses using actual URDF fixed mount transforms."""
-        values = {
-            str(name): float(value) for name, value in joint_positions.items()
-        }
-        if any(not math.isfinite(value) for value in values.values()):
-            raise CollisionBackendError("joint positions must be finite")
+    @staticmethod
+    def _joint_motion(joint, values):
+        """Return one URDF joint motion, validating only that used joint."""
+        motion = np.eye(4)
+        if joint.joint_type in ("revolute", "continuous"):
+            if joint.name not in values:
+                raise CollisionBackendError(
+                    f"joint transform unavailable: {joint.name}"
+                )
+            try:
+                angle = float(values[joint.name])
+            except (TypeError, ValueError) as exc:
+                raise CollisionBackendError(
+                    f"joint position invalid: {joint.name}"
+                ) from exc
+            if not math.isfinite(angle):
+                raise CollisionBackendError(
+                    f"joint position must be finite: {joint.name}"
+                )
+            axis = np.asarray(joint.axis, dtype=float)
+            norm = np.linalg.norm(axis)
+            if norm <= 0.0:
+                raise CollisionBackendError(
+                    f"joint axis invalid: {joint.name}"
+                )
+            axis /= norm
+            skew = np.asarray(
+                [
+                    [0.0, -axis[2], axis[1]],
+                    [axis[2], 0.0, -axis[0]],
+                    [-axis[1], axis[0], 0.0],
+                ]
+            )
+            motion[:3, :3] = np.add(
+                np.add(np.eye(3), math.sin(angle) * skew),
+                (1.0 - math.cos(angle)) * (skew @ skew),
+            )
+        elif joint.joint_type == "prismatic":
+            if joint.name not in values:
+                raise CollisionBackendError(
+                    f"joint transform unavailable: {joint.name}"
+                )
+            try:
+                displacement = float(values[joint.name])
+            except (TypeError, ValueError) as exc:
+                raise CollisionBackendError(
+                    f"joint position invalid: {joint.name}"
+                ) from exc
+            if not math.isfinite(displacement):
+                raise CollisionBackendError(
+                    f"joint position must be finite: {joint.name}"
+                )
+            motion[:3, 3] = np.asarray(joint.axis) * displacement
+        elif joint.joint_type != "fixed":
+            raise CollisionBackendError(
+                f"unsupported joint type {joint.joint_type}"
+            )
+        return motion
+
+    def _lowest_common_ancestor(self, links):
+        """Find a local fixed frame shared by all requested links."""
+        chains = []
+        for link in links:
+            chain = [link]
+            while chain[-1] != self.root_link:
+                joint = self._parent_joint.get(chain[-1])
+                if joint is None:
+                    raise CollisionBackendError(
+                        f"link is disconnected from URDF root: {link}"
+                    )
+                chain.append(joint.parent)
+            chains.append(chain)
+        common = set(chains[0]).intersection(*(set(chain) for chain in chains[1:]))
+        return next(link for link in chains[0] if link in common)
+
+    def world_transforms(self, joint_positions, required_links=None):
+        """
+        Evaluate all poses, or only paths needed by monitored links.
+
+        A requested subset is expressed in its lowest common ancestor frame.
+        Pairwise robot distances are invariant to that common transform, so
+        unrelated mobile-base, body, camera, and tool joints are not required.
+        """
+        values = {str(name): value for name, value in joint_positions.items()}
+        if required_links is not None:
+            requested = tuple(dict.fromkeys(str(link) for link in required_links))
+            if not requested:
+                return {}
+            unknown = sorted(set(requested) - self.links)
+            if unknown:
+                raise CollisionBackendError(
+                    "unknown required links: " + ", ".join(unknown)
+                )
+            local_root = self._lowest_common_ancestor(requested)
+            transforms = {local_root: np.eye(4)}
+
+            def evaluate_link(link):
+                if link in transforms:
+                    return transforms[link]
+                joint = self._parent_joint[link]
+                parent_transform = evaluate_link(joint.parent)
+                transforms[link] = (
+                    parent_transform
+                    @ joint.origin
+                    @ self._joint_motion(joint, values)
+                )
+                return transforms[link]
+
+            for link in requested:
+                evaluate_link(link)
+            return transforms
+
         transforms = {self.root_link: np.eye(4)}
         queue = [self.root_link]
         while queue:
             parent = queue.pop(0)
             for joint in self._children.get(parent, ()):
-                motion = np.eye(4)
-                if joint.joint_type in ("revolute", "continuous"):
-                    if joint.name not in values:
-                        raise CollisionBackendError(
-                            f"joint transform unavailable: {joint.name}"
-                        )
-                    axis = np.asarray(joint.axis, dtype=float)
-                    norm = np.linalg.norm(axis)
-                    if norm <= 0.0:
-                        raise CollisionBackendError(
-                            f"joint axis invalid: {joint.name}"
-                        )
-                    axis /= norm
-                    angle = values[joint.name]
-                    skew = np.asarray(
-                        [
-                            [0.0, -axis[2], axis[1]],
-                            [axis[2], 0.0, -axis[0]],
-                            [-axis[1], axis[0], 0.0],
-                        ]
-                    )
-                    motion[:3, :3] = np.add(
-                        np.add(np.eye(3), math.sin(angle) * skew),
-                        (1.0 - math.cos(angle)) * (skew @ skew),
-                    )
-                elif joint.joint_type == "prismatic":
-                    if joint.name not in values:
-                        raise CollisionBackendError(
-                            f"joint transform unavailable: {joint.name}"
-                        )
-                    motion[:3, 3] = (
-                        np.asarray(joint.axis) * values[joint.name]
-                    )
-                elif joint.joint_type != "fixed":
-                    raise CollisionBackendError(
-                        f"unsupported joint type {joint.joint_type}"
-                    )
                 transforms[joint.child] = (
-                    transforms[parent] @ joint.origin @ motion
+                    transforms[parent]
+                    @ joint.origin
+                    @ self._joint_motion(joint, values)
                 )
                 queue.append(joint.child)
         return transforms
@@ -517,8 +600,51 @@ class FclDistanceEngine:
         return PairDistance(distance, closest)
 
 
+def enabled_sources_from_config(category_enabled):
+    """Parse an explicit five-category boolean configuration mapping."""
+    if not isinstance(category_enabled, Mapping):
+        raise TypeError("category_enabled must be a mapping")
+    known = {source.value for source in SOURCES}
+    unknown = sorted(set(category_enabled) - known)
+    missing = sorted(known - set(category_enabled))
+    if unknown:
+        raise ValueError(
+            "unknown collision categories: " + ", ".join(unknown)
+        )
+    if missing:
+        raise ValueError(
+            "category_enabled missing categories: " + ", ".join(missing)
+        )
+    for name, enabled in category_enabled.items():
+        if not isinstance(enabled, bool):
+            raise TypeError(f"category_enabled.{name} must be boolean")
+    return normalize_collision_sources(
+        source for source in SOURCES if category_enabled[source.value]
+    )
+
+
+def collision_category_diagnostics(enabled_sources, snapshot=None):
+    """Describe every category without inventing disabled distances."""
+    enabled_sources = normalize_collision_sources(enabled_sources)
+    enabled = set(enabled_sources)
+    distances = {}
+    if snapshot is not None:
+        distances = dict(zip(snapshot.sources, snapshot.distances_m))
+    return {
+        source.value: {
+            "status": (
+                "ENABLED"
+                if source in enabled
+                else "DISABLED_BY_CONFIGURATION"
+            ),
+            "distance_m": distances.get(source) if source in enabled else None,
+        }
+        for source in SOURCES
+    }
+
+
 class FiveClassCollisionBackend:
-    """Compute all five required minima from one joint-state snapshot."""
+    """Compute the configured subset while retaining all five categories."""
 
     def __init__(
         self,
@@ -528,37 +654,159 @@ class FiveClassCollisionBackend:
         ignored_pairs=(),
         require_complete_geometry=True,
         require_environment=True,
+        enabled_sources=None,
+        monitored_links=None,
     ):
         """Configure explicit readiness gates and allowed collision pairs."""
         self.model = model
         self.engine = engine
         self.environment = tuple(environment)
+        self.enabled_sources = normalize_collision_sources(enabled_sources)
         self.ignored_pairs = set(model.structural_pairs)
         self.ignored_pairs.update(
             frozenset((str(first), str(second)))
             for first, second in ignored_pairs
         )
-        reasons = []
-        if require_complete_geometry and model.missing_collision_links:
-            reasons.append(
-                "links with visual but no collision: {}".format(
-                    ", ".join(model.missing_collision_links)
+        self.monitored_links = self._normalize_monitored_links(monitored_links)
+        if self.monitored_links is None:
+            self._groups = {
+                name: tuple(
+                    geometry
+                    for geometry in model.geometries
+                    if geometry.group == name
                 )
-            )
-        if require_environment and not self.environment:
+                for name in ("left", "right", "body")
+            }
+        else:
+            self._groups = {
+                name: tuple(
+                    geometry
+                    for geometry in model.geometries
+                    if geometry.link in self.monitored_links[name]
+                )
+                for name in ("left", "right", "body")
+            }
+
+        reasons = []
+        if require_complete_geometry:
+            if self.monitored_links is None:
+                missing_geometry = model.missing_collision_links
+            else:
+                geometry_links = {
+                    geometry.link for geometry in model.geometries
+                }
+                missing_geometry = tuple(
+                    link
+                    for group in ("left", "right", "body")
+                    for link in self.monitored_links[group]
+                    if link not in geometry_links
+                )
+            if missing_geometry:
+                reasons.append(
+                    "monitored links with no collision: "
+                    + ", ".join(missing_geometry)
+                )
+        if (
+            CollisionSource.ENVIRONMENT in self.enabled_sources
+            and require_environment
+            and not self.environment
+        ):
             reasons.append("environment geometry is not configured")
         if not engine.available:
             reasons.append(engine.unavailable_reason)
+
+        self._pairs = {
+            source: self._candidate_pairs(source)
+            for source in self.enabled_sources
+        }
+        for source, pairs in self._pairs.items():
+            if not pairs and not (
+                source == CollisionSource.ENVIRONMENT
+                and require_environment
+                and not self.environment
+            ):
+                reasons.append(f"no eligible pairs for {source.value}")
+
+        required_links = {
+            geometry.link
+            for pairs in self._pairs.values()
+            for pair in pairs
+            for geometry in pair
+            if geometry.link is not None
+        }
+        if CollisionSource.ENVIRONMENT in self.enabled_sources:
+            # World/environment distance needs the monitored robot geometry
+            # expressed relative to the URDF root, but unrelated branches are
+            # still excluded from traversal.
+            required_links.add(model.root_link)
+        self._required_links = tuple(sorted(required_links))
         self.readiness_reason = "; ".join(reasons) or "collision backend ready"
         self.ready = not reasons
         self._solve_count = 0
         self._solve_total_ms = 0.0
         self._solve_max_ms = 0.0
 
+    def _normalize_monitored_links(self, monitored_links):
+        if monitored_links is None:
+            return None
+        if not isinstance(monitored_links, Mapping):
+            raise TypeError("monitored_links must be a mapping")
+        valid_groups = {"left", "right", "body"}
+        unknown_groups = sorted(set(monitored_links) - valid_groups)
+        if unknown_groups:
+            raise ValueError(
+                "unknown monitored link groups: "
+                + ", ".join(unknown_groups)
+            )
+        result = {}
+        assigned = {}
+        for group in ("left", "right", "body"):
+            links = monitored_links.get(group, ())
+            if isinstance(links, (str, bytes)):
+                raise TypeError(f"monitored_links.{group} must be a sequence")
+            normalized = tuple(dict.fromkeys(str(link) for link in links))
+            for link in normalized:
+                if link not in self.model.links:
+                    raise ValueError(f"unknown monitored link: {link}")
+                if link in assigned:
+                    raise ValueError(
+                        f"monitored link {link} appears in both "
+                        f"{assigned[link]} and {group}"
+                    )
+                actual_group = _classify_link(link)
+                if actual_group != group:
+                    raise ValueError(
+                        f"monitored link {link} belongs to {actual_group}, "
+                        f"not {group}"
+                    )
+                assigned[link] = group
+            result[group] = normalized
+        return result
+
     def _ignored(self, first, second):
         if first.link == second.link:
             return True
         return frozenset((first.link, second.link)) in self.ignored_pairs
+
+    def _candidate_pairs(self, source):
+        left = self._groups["left"]
+        right = self._groups["right"]
+        body = self._groups["body"]
+        if source == CollisionSource.LEFT_SELF:
+            pairs = combinations(left, 2)
+        elif source == CollisionSource.RIGHT_SELF:
+            pairs = combinations(right, 2)
+        elif source == CollisionSource.INTER_ARM:
+            pairs = product(left, right)
+        elif source == CollisionSource.ENVIRONMENT:
+            pairs = product(left + right + body, self.environment)
+        elif source == CollisionSource.ROBOT_BODY:
+            pairs = product(left + right, body)
+        else:  # pragma: no cover - the enum is exhaustive
+            raise CollisionBackendError(f"unsupported source {source}")
+        return tuple(
+            pair for pair in pairs if not self._ignored(*pair)
+        )
 
     def evaluate(self, joint_positions, measured_monotonic=None):
         """Evaluate one joint sample or fail without a partial result."""
@@ -570,11 +818,10 @@ class FiveClassCollisionBackend:
         if not math.isfinite(measured_monotonic):
             raise CollisionBackendError("measurement timestamp is not finite")
         started = time.perf_counter()
-        links = self.model.world_transforms(joint_positions)
-        groups = {
-            name: [g for g in self.model.geometries if g.group == name]
-            for name in ("left", "right", "body")
-        }
+        links = self.model.world_transforms(
+            joint_positions,
+            required_links=self._required_links,
+        )
 
         def transform_for(geometry):
             if geometry.link is None:
@@ -585,36 +832,10 @@ class FiveClassCollisionBackend:
                 )
             return links[geometry.link] @ geometry.transform
 
-        pair_sets = {
-            CollisionSource.LEFT_SELF: (
-                pair for pair in combinations(groups["left"], 2)
-                if not self._ignored(*pair)
-            ),
-            CollisionSource.RIGHT_SELF: (
-                pair for pair in combinations(groups["right"], 2)
-                if not self._ignored(*pair)
-            ),
-            CollisionSource.INTER_ARM: product(
-                groups["left"], groups["right"]
-            ),
-            CollisionSource.ENVIRONMENT: product(
-                groups["left"] + groups["right"] + groups["body"],
-                self.environment,
-            ),
-            CollisionSource.ROBOT_BODY: (
-                pair
-                for pair in product(
-                    groups["left"] + groups["right"], groups["body"]
-                )
-                if not self._ignored(*pair)
-            ),
-        }
         minima = {}
         detail = {}
-        for source in SOURCES:
-            found = False
-            for first, second in pair_sets[source]:
-                found = True
+        for source in self.enabled_sources:
+            for first, second in self._pairs[source]:
                 pair_result = self.engine.distance(
                     first,
                     transform_for(first),
@@ -632,26 +853,25 @@ class FiveClassCollisionBackend:
                         (first.name, second.name),
                         pair_result.closest_points,
                     )
-            if not found:
-                raise CollisionBackendError(
-                    f"no eligible pairs for {source.value}"
-                )
         solve_ms = (time.perf_counter() - started) * 1000.0
         self._solve_count += 1
         self._solve_total_ms += solve_ms
         self._solve_max_ms = max(self._solve_max_ms, solve_ms)
-        closest = min(SOURCES, key=minima.__getitem__)
+        closest = min(self.enabled_sources, key=minima.__getitem__)
         pair, points = detail[closest]
         return CollisionBackendSnapshot(
             measured_monotonic=measured_monotonic,
             valid=True,
             ready=True,
-            distances_m=tuple(minima[source] for source in SOURCES),
+            sources=self.enabled_sources,
+            distances_m=tuple(
+                minima[source] for source in self.enabled_sources
+            ),
             closest_category=closest,
             closest_pair=pair,
             closest_points=points,
             solve_ms=solve_ms,
             mean_solve_ms=self._solve_total_ms / self._solve_count,
             max_solve_ms=self._solve_max_ms,
-            reason="complete five-class FCL snapshot",
+            reason="complete enabled-category FCL snapshot",
         )

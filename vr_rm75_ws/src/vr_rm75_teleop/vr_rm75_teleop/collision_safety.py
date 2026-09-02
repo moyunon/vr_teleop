@@ -2,9 +2,11 @@
 Backend-independent collision-distance safety boundary.
 
 The geometry backend is deliberately outside this module.  It must evaluate
-one complete dual-arm candidate and provide all entries in ``SOURCES`` as one
-atomic snapshot.  This keeps mesh/FCL/MoveIt choices out of the IK solver and
-gives the control layer one deterministic safe/warning/stop contract.
+one complete dual-arm candidate and provide every *enabled* entry in
+``SOURCES`` as one atomic snapshot.  This keeps mesh/FCL/MoveIt choices out of
+the IK solver and gives the control layer one deterministic
+safe/warning/stop contract while preserving all five categories for later
+commissioning.
 """
 
 from __future__ import annotations
@@ -37,6 +39,29 @@ class CollisionSource(str, Enum):
 
 
 SOURCES: Tuple[CollisionSource, ...] = tuple(CollisionSource)
+
+
+def normalize_collision_sources(sources):
+    """Validate a configured subset and return canonical five-class order."""
+    if sources is None:
+        return SOURCES
+    if isinstance(sources, (str, bytes)):
+        raise TypeError("collision sources must be a sequence")
+
+    normalized = []
+    seen = set()
+    for value in sources:
+        try:
+            source = CollisionSource(value)
+        except ValueError as exc:
+            raise ValueError(f"unknown collision source {value!r}") from exc
+        if source in seen:
+            raise ValueError(f"duplicate collision source {source.value}")
+        seen.add(source)
+        normalized.append(source)
+    if not normalized:
+        raise ValueError("at least one collision source must be enabled")
+    return tuple(source for source in SOURCES if source in seen)
 
 
 @dataclass(frozen=True)
@@ -84,6 +109,7 @@ class CollisionSafetyMonitor:
         d_warn_m,
         timeout_s,
         monotonic=time.monotonic,
+        enabled_sources=None,
     ):
         """Configure positive stop/warning thresholds and report timeout."""
         self.d_stop_m = self._positive_finite("d_stop_m", d_stop_m)
@@ -91,6 +117,7 @@ class CollisionSafetyMonitor:
         self.timeout_s = self._positive_finite("timeout_s", timeout_s)
         if self.d_stop_m >= self.d_warn_m:
             raise ValueError("d_stop_m must be strictly smaller than d_warn_m")
+        self.enabled_sources = normalize_collision_sources(enabled_sources)
         self._monotonic = monotonic
         self._snapshot: Optional[CollisionSnapshot] = None
         self._invalid_reason: Optional[str] = None
@@ -146,11 +173,11 @@ class CollisionSafetyMonitor:
             )
 
         min_index = min(
-            range(len(SOURCES)),
+            range(len(self.enabled_sources)),
             key=self._snapshot.distances_m.__getitem__,
         )
         min_distance_m = self._snapshot.distances_m[min_index]
-        limiting_source = SOURCES[min_index]
+        limiting_source = self.enabled_sources[min_index]
 
         if min_distance_m <= self.d_stop_m:
             return CollisionSafetyDecision(
@@ -208,8 +235,7 @@ class CollisionSafetyMonitor:
             raise ValueError(f"{name} must be finite and positive")
         return value
 
-    @staticmethod
-    def _normalize_distances(distances_m):
+    def _normalize_distances(self, distances_m):
         if not isinstance(distances_m, Mapping):
             raise TypeError("distances_m must be a mapping")
 
@@ -221,6 +247,10 @@ class CollisionSafetyMonitor:
                 raise ValueError(f"unknown collision source {key!r}") from exc
             if source in normalized:
                 raise ValueError(f"duplicate collision source {source.value}")
+            if source not in self.enabled_sources:
+                # Disabled categories are deliberately outside this safety
+                # decision.  Do not require, validate, or substitute a value.
+                continue
             value = float(value)
             if not math.isfinite(value):
                 raise ValueError(
@@ -228,12 +258,16 @@ class CollisionSafetyMonitor:
                 )
             normalized[source] = value
 
-        missing = [source.value for source in SOURCES if source not in normalized]
+        missing = [
+            source.value
+            for source in self.enabled_sources
+            if source not in normalized
+        ]
         if missing:
             raise ValueError(
                 "collision snapshot missing sources: " + ", ".join(missing)
             )
-        return tuple(normalized[source] for source in SOURCES)
+        return tuple(normalized[source] for source in self.enabled_sources)
 
     @staticmethod
     def _unknown_decision(reason, age_s=None):

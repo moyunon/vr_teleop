@@ -24,12 +24,13 @@ quest_dual_ik_fusion:
     command_timeout_s: 0.10
     max_consecutive_ik_failures: 3
 
-    # Collision safety is fail-closed. An external geometry backend must
-    # publish one atomic Float64MultiArray on
-    # /vr_rm75/collision/min_distances_m in this fixed order:
-    # [left_self, right_self, inter_arm, environment, robot_body].
-    # Distances are signed metres; missing, malformed, or stale input HOLDs.
+    # Collision safety is fail-closed for the explicitly enabled RM75-only
+    # categories. The array order matches this list. Disabled body/environment
+    # categories carry no placeholder distance and do not participate in the
+    # watchdog or validity decision.
     collision_protection_enabled: true
+    collision_enabled_categories:
+      [left_self, right_self, inter_arm]
     collision_distance_timeout_s: 0.10
     collision_stop_distance_m: 0.05
     collision_warn_distance_m: 0.15

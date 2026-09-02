@@ -1,0 +1,84 @@
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description
+-- Install configuration: ""
+-- Execute custom install script
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL.urdf
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL_zero_pose.png
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_1.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_2.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link_2.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/dt_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/jb_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_1_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_2_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_Support_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_1_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_2_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_Support_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_base_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/base_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_rolink.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_1.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_2.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_3.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_4.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_5.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_6.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_7.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_1_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_2_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_Support_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_1_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_2_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_Support_Link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_base_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_camera_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_left_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_right_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_left_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_right_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wl_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wr_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_1.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_2.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_3.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_1.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_2.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/yb_link.STL
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display.launch
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display_dual.launch.py
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/package_run_dependencies/lsrx_rm75_dual_description
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/parent_prefix_path/lsrx_rm75_dual_description
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.sh
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.dsv
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.sh
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.dsv
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.bash
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.sh
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.zsh
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.dsv
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.dsv
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/packages/lsrx_rm75_dual_description
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig.cmake
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig-version.cmake
+-- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.xml

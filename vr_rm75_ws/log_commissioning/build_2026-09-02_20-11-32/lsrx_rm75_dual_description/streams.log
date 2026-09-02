@@ -1,0 +1,90 @@
+[0.012s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/moyu/workspace/vr_teleop/vr_rm75_ws/src/lsrx_rm75_dual_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description
+[0.092s] -- The C compiler identification is GNU 11.4.0
+[0.156s] -- The CXX compiler identification is GNU 11.4.0
+[0.165s] -- Detecting C compiler ABI info
+[0.228s] -- Detecting C compiler ABI info - done
+[0.235s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.236s] -- Detecting C compile features
+[0.236s] -- Detecting C compile features - done
+[0.241s] -- Detecting CXX compiler ABI info
+[0.302s] -- Detecting CXX compiler ABI info - done
+[0.308s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.308s] -- Detecting CXX compile features
+[0.308s] -- Detecting CXX compile features - done
+[0.310s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.428s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.471s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.538s] -- Configuring done
+[0.540s] -- Generating done
+[0.541s] -- Build files have been written to: /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description
+[0.544s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/moyu/workspace/vr_teleop/vr_rm75_ws/src/lsrx_rm75_dual_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description
+[0.545s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description -- -j32 -l32
+[0.578s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description -- -j32 -l32
+[0.585s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description
+[0.591s] -- Install configuration: ""
+[0.591s] -- Execute custom install script
+[0.591s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL.urdf
+[0.598s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/urdf/LSRX_RM75_DUAL_zero_pose.png
+[0.605s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_1.STL
+[0.612s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_camera_link_2.STL
+[0.618s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link.STL
+[0.626s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/base_link_2.STL
+[0.632s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/dt_link.STL
+[0.639s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/jb_link.STL
+[0.644s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_1_Link.STL
+[0.650s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_2_Link.STL
+[0.657s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Left_Support_Link.STL
+[0.663s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_1_Link.STL
+[0.670s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_2_Link.STL
+[0.675s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_Right_Support_Link.STL
+[0.681s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/ltool_base_link.STL
+[0.688s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/base_link.STL
+[0.694s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_link.STL
+[0.700s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/camera_rolink.STL
+[0.706s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_1.STL
+[0.711s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_2.STL
+[0.719s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_3.STL
+[0.724s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_4.STL
+[0.730s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_5.STL
+[0.738s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_6.STL
+[0.748s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rm75/link_7.STL
+[0.758s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_1_Link.STL
+[0.765s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_2_Link.STL
+[0.771s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Left_Support_Link.STL
+[0.779s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_1_Link.STL
+[0.785s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_2_Link.STL
+[0.792s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_Right_Support_Link.STL
+[0.800s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/rtool_base_link.STL
+[0.810s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_camera_link.STL
+[0.817s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/tb_link.STL
+[0.825s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_left_link.STL
+[0.832s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_front_right_link.STL
+[0.839s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_left_link.STL
+[0.848s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wc_rear_right_link.STL
+[0.856s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wl_link.STL
+[0.863s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/wr_link.STL
+[0.871s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_1.STL
+[0.878s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_2.STL
+[0.884s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_camera_link_3.STL
+[0.893s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xb_link.STL
+[0.903s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_1.STL
+[0.912s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/xt_link_2.STL
+[0.918s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/meshes/yb_link.STL
+[0.924s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display.launch
+[0.932s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/launch/display_dual.launch.py
+[0.939s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/package_run_dependencies/lsrx_rm75_dual_description
+[0.946s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/parent_prefix_path/lsrx_rm75_dual_description
+[0.953s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.sh
+[0.962s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/ament_prefix_path.dsv
+[0.968s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.sh
+[0.976s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/environment/path.dsv
+[0.983s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.bash
+[0.990s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.sh
+[0.999s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.zsh
+[1.007s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/local_setup.dsv
+[1.015s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.dsv
+[1.021s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/ament_index/resource_index/packages/lsrx_rm75_dual_description
+[1.029s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig.cmake
+[1.036s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/cmake/lsrx_rm75_dual_descriptionConfig-version.cmake
+[1.043s] -- Symlinking: /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/lsrx_rm75_dual_description/share/lsrx_rm75_dual_description/package.xml
+[1.052s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/lsrx_rm75_dual_description

@@ -232,10 +232,10 @@ def test_collision_stop_holds_both_arms_and_invalidates_anchors(fusion_node):
     """Propagate any global collision stop through the dual-arm gate."""
     node = fusion_node
     node.collision_protection_enabled = True
-    collision_snapshot(node, [0.30, 0.30, 0.30, 0.30, 0.30])
+    collision_snapshot(node, [0.30, 0.30, 0.30])
     engage_and_anchor(node)
 
-    collision_snapshot(node, [0.30, 0.30, 0.04, 0.30, 0.30])
+    collision_snapshot(node, [0.30, 0.30, 0.04])
 
     assert node.safety_supervisor.state == SafetyState.HOLD
     assert not node.safety_supervisor.evaluate(
@@ -249,13 +249,13 @@ def test_malformed_collision_snapshot_holds_both_arms(fusion_node):
     """Never reuse an old clear snapshot after a partial ROS report."""
     node = fusion_node
     node.collision_protection_enabled = True
-    collision_snapshot(node, [0.30, 0.30, 0.30, 0.30, 0.30])
+    collision_snapshot(node, [0.30, 0.30, 0.30])
     engage_and_anchor(node)
 
     collision_snapshot(node, [0.30, 0.30])
 
     assert node.safety_supervisor.state == SafetyState.HOLD
-    assert "exactly 5 values" in node.safety_supervisor.last_reason
+    assert "exactly 3 values" in node.safety_supervisor.last_reason
     assert not any(state.anchored for state in node.arms.values())
 
 
@@ -266,7 +266,7 @@ def test_collision_warning_scales_cartesian_and_joint_rates(
     """Apply one collision warning scale before both command limiters."""
     node = fusion_node
     node.collision_protection_enabled = True
-    collision_snapshot(node, [0.30, 0.30, 0.10, 0.30, 0.30])
+    collision_snapshot(node, [0.30, 0.30, 0.10])
     engage_and_anchor(node)
     state = node.arms["left"]
     captured = {}

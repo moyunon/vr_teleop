@@ -1,0 +1,42 @@
+[0.350s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/build --no-deps symlink_data
+[0.502s] running develop
+[0.584s] running egg_info
+[0.584s] creating vr_rm75_teleop.egg-info
+[0.585s] writing vr_rm75_teleop.egg-info/PKG-INFO
+[0.585s] writing dependency_links to vr_rm75_teleop.egg-info/dependency_links.txt
+[0.585s] writing entry points to vr_rm75_teleop.egg-info/entry_points.txt
+[0.585s] writing requirements to vr_rm75_teleop.egg-info/requires.txt
+[0.585s] writing top-level names to vr_rm75_teleop.egg-info/top_level.txt
+[0.585s] writing manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'
+[0.586s] reading manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'
+[0.587s] writing manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'
+[0.588s] running build_ext
+[0.588s] Creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/python3.10/site-packages/vr-rm75-teleop.egg-link (link to .)
+[0.589s] Installing collision_backend script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/vr_rm75_teleop
+[0.589s] Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/vr_rm75_teleop
+[0.589s] Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/vr_rm75_teleop
+[0.589s] Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/vr_rm75_teleop
+[0.589s] 
+[0.589s] Installed /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop
+[0.589s] running symlink_data
+[0.590s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/ament_index
+[0.590s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/ament_index/resource_index
+[0.590s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/ament_index/resource_index/packages
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/resource/vr_rm75_teleop -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/ament_index/resource_index/packages
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/package.xml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop
+[0.590s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/config/quest_dual_ik_fusion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/config/rm75_state.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/config/meta_quest_bridge.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/config/collision_geometry.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/config
+[0.590s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/launch
+[0.590s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/launch/rm75_state.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/launch
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/launch/commissioning_dry_run.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/launch
+[0.591s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/docs/COLLISION_GEOMETRY_AUDIT.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/docs/COMMISSIONING_STATUS.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/docs/COMMISSIONING_CHECKLIST.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/docs/rm75_command_interface.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.591s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/docs/STOP_POLICY.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[0.606s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop' returned '0': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install_commissioning/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build_commissioning/vr_rm75_teleop/build --no-deps symlink_data

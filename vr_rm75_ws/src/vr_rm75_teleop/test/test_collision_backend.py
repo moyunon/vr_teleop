@@ -1,4 +1,6 @@
-"""Tests for URDF geometry readiness and coherent five-class distances."""
+"""Tests for URDF geometry readiness and collision category distances."""
+
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -9,6 +11,8 @@ from vr_rm75_teleop.collision_backend import (
     PairDistance,
     UrdfCollisionModel,
     audit_urdf_collision,
+    collision_category_diagnostics,
+    enabled_sources_from_config,
     environment_geometry_from_config,
 )
 from vr_rm75_teleop.collision_safety import (
@@ -16,6 +20,26 @@ from vr_rm75_teleop.collision_safety import (
     CollisionSafetyMonitor,
     CollisionSource,
 )
+
+
+RM75_ONLY_SOURCES = (
+    CollisionSource.LEFT_SELF,
+    CollisionSource.RIGHT_SELF,
+    CollisionSource.INTER_ARM,
+)
+RM75_MONITORED_LINKS = {
+    "left": ["l_rm75_base_link"]
+    + [f"l_rm75_link_{index}" for index in range(1, 8)],
+    "right": ["r_rm75_base_link"]
+    + [f"r_rm75_link_{index}" for index in range(1, 8)],
+}
+RM75_CATEGORY_CONFIG = {
+    "left_self": True,
+    "right_self": True,
+    "inter_arm": True,
+    "environment": False,
+    "robot_body": False,
+}
 
 
 URDF = """<?xml version="1.0"?>
@@ -217,3 +241,54 @@ def test_missing_transform_or_nan_invalidates_whole_snapshot(
     backend = build_backend(tmp_path)
     with pytest.raises(CollisionBackendError, match=expected):
         backend.evaluate(joints)
+
+
+def test_rm75_only_real_urdf_ignores_out_of_scope_camera_geometry():
+    """Six missing camera collisions and empty environment do not block arms."""
+    source_root = Path(__file__).resolve().parents[2]
+    description = source_root / "lsrx_rm75_dual_description"
+    model = UrdfCollisionModel(
+        description / "urdf" / "LSRX_RM75_DUAL.urdf",
+        package_roots={"lsrx_rm75_dual_description": description},
+    )
+    assert model.missing_collision_links == (
+        "tb_camera_link",
+        "xb_camera_link_1",
+        "xb_camera_link_2",
+        "xb_camera_link_3",
+        "base_camera_link_1",
+        "base_camera_link_2",
+    )
+
+    backend = FiveClassCollisionBackend(
+        model,
+        FakeDistanceEngine(),
+        environment=(),
+        enabled_sources=enabled_sources_from_config(RM75_CATEGORY_CONFIG),
+        monitored_links=RM75_MONITORED_LINKS,
+    )
+    assert backend.ready, backend.readiness_reason
+
+    joints = {
+        f"{side}_rm75_joint_{index}": 0.0
+        for side in ("l", "r")
+        for index in range(1, 8)
+    }
+    # None of the other movable URDF joints, including the right camera and
+    # modeled tools, is supplied. Only the fourteen RM75 states are required.
+    snapshot = backend.evaluate(joints)
+    assert snapshot.sources == RM75_ONLY_SOURCES
+    assert snapshot.distances_m == pytest.approx((0.2, 0.3, 0.4))
+
+
+def test_disabled_categories_have_no_placeholder_distance():
+    """Diagnostics state configuration explicitly, without synthetic inf."""
+    enabled = enabled_sources_from_config(RM75_CATEGORY_CONFIG)
+    diagnostics = collision_category_diagnostics(enabled)
+
+    assert diagnostics["left_self"]["status"] == "ENABLED"
+    for name in ("environment", "robot_body"):
+        assert diagnostics[name] == {
+            "status": "DISABLED_BY_CONFIGURATION",
+            "distance_m": None,
+        }

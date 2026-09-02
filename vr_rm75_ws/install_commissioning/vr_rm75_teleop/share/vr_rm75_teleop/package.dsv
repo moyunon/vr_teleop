@@ -1,0 +1,9 @@
+source;share/vr_rm75_teleop/hook/pythonpath.ps1
+source;share/vr_rm75_teleop/hook/pythonpath.dsv
+source;share/vr_rm75_teleop/hook/pythonpath.sh
+source;share/vr_rm75_teleop/hook/ament_prefix_path.ps1
+source;share/vr_rm75_teleop/hook/ament_prefix_path.dsv
+source;share/vr_rm75_teleop/hook/ament_prefix_path.sh
+source;../../build_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/hook/pythonpath_develop.ps1
+source;../../build_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/hook/pythonpath_develop.dsv
+source;../../build_commissioning/vr_rm75_teleop/share/vr_rm75_teleop/hook/pythonpath_develop.sh

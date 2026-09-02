@@ -1,15 +1,44 @@
-# No on-site environment or missing camera dimensions have been verified yet.
-# This intentionally leaves collision_geometry_ready=false and makes the
-# Safety Supervisor fail closed. Add only surveyed geometry in the xb_link/
-# configured world frame; do not estimate dimensions from photographs.
+# Current commissioning scope: the two bare RM75 arms only. Keep all five
+# categories explicit so robot-body/environment checks can be recommissioned
+# later without changing the collision interface.
+category_enabled:
+  left_self: true
+  right_self: true
+  inter_arm: true
+  environment: false
+  robot_body: false
+
+# Only these links participate in readiness, transforms, and distance pairs.
+# Cameras, tools/grippers, chassis, waist/head, wheels, and the external world
+# are deliberately outside the current RM75-only safety claim.
+monitored_links:
+  left:
+    - l_rm75_base_link
+    - l_rm75_link_1
+    - l_rm75_link_2
+    - l_rm75_link_3
+    - l_rm75_link_4
+    - l_rm75_link_5
+    - l_rm75_link_6
+    - l_rm75_link_7
+  right:
+    - r_rm75_base_link
+    - r_rm75_link_1
+    - r_rm75_link_2
+    - r_rm75_link_3
+    - r_rm75_link_4
+    - r_rm75_link_5
+    - r_rm75_link_6
+    - r_rm75_link_7
+
+# Empty is valid while category_enabled.environment=false. Add only surveyed
+# world-frame geometry before re-enabling that category.
 environment: []
 
 # Parent-child URDF pairs are excluded automatically. Add only pairs whose
 # permanent contact has been verified against the assembled hardware.
 ignored_collision_pairs: []
 
-# The dual RM75 JointState supplies only 14 arm joints. Any other non-fixed
-# URDF joint that influences collision transforms must be supplied from a
-# measured topic in a future integration or explicitly verified here. Empty
-# is the safe commissioning default.
+# RM75-only transforms are evaluated in the arms' common xb_link frame and
+# therefore require only the fourteen l/r_rm75_joint_1..7 values.
 fixed_or_externally_verified_joint_positions: {}

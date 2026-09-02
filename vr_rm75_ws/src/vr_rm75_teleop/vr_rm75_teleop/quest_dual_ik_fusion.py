@@ -34,7 +34,6 @@ from vr_rm75_teleop.deadman_clutch import (
 )
 from vr_rm75_teleop.collision_safety import (
     CollisionSafetyMonitor,
-    SOURCES as COLLISION_SOURCES,
     disabled_collision_decision,
 )
 from vr_rm75_teleop.rm75_command_interface import (
@@ -152,6 +151,10 @@ class QuestDualIKFusion(Node):
         self.declare_parameter(
             "collision_protection_enabled",
             True,
+        )
+        self.declare_parameter(
+            "collision_enabled_categories",
+            ["left_self", "right_self", "inter_arm"],
         )
         self.declare_parameter(
             "collision_distance_timeout_s",
@@ -301,6 +304,12 @@ class QuestDualIKFusion(Node):
         self.collision_protection_enabled = bool(
             self.get_parameter(
                 "collision_protection_enabled"
+            ).value
+        )
+        self.collision_enabled_categories = tuple(
+            str(value)
+            for value in self.get_parameter(
+                "collision_enabled_categories"
             ).value
         )
         self.collision_distance_timeout_s = float(
@@ -633,7 +642,9 @@ class QuestDualIKFusion(Node):
             d_stop_m=self.collision_stop_distance_m,
             d_warn_m=self.collision_warn_distance_m,
             timeout_s=self.collision_distance_timeout_s,
+            enabled_sources=self.collision_enabled_categories,
         )
+        self.collision_sources = self.collision_monitor.enabled_sources
         if self.collision_protection_enabled:
             self.last_collision_decision = self.collision_monitor.evaluate()
         else:
@@ -808,8 +819,8 @@ class QuestDualIKFusion(Node):
                 )
             )
 
-        # One complete collision snapshot is atomic and ordered according to
-        # collision_safety.SOURCES.  A partial array invalidates the snapshot.
+        # One enabled-category collision snapshot is atomic and ordered by
+        # self.collision_sources. A partial array invalidates the snapshot.
         self.collision_distance_sub = self.create_subscription(
             Float64MultiArray,
             "/vr_rm75/collision/min_distances_m",
@@ -1031,7 +1042,7 @@ class QuestDualIKFusion(Node):
 
         if self.collision_protection_enabled:
             source_order = ", ".join(
-                source.value for source in COLLISION_SOURCES
+                source.value for source in self.collision_sources
             )
             self.get_logger().info(
                 "Collision protection enabled; waiting for atomic "
@@ -1259,19 +1270,19 @@ class QuestDualIKFusion(Node):
         self,
         msg,
     ):
-        """Accept one atomic five-class minimum-distance snapshot."""
+        """Accept one atomic enabled-category minimum-distance snapshot."""
         values = list(msg.data)
-        if len(values) != len(COLLISION_SOURCES):
+        if len(values) != len(self.collision_sources):
             reason = (
                 "collision distance array must contain exactly "
-                f"{len(COLLISION_SOURCES)} values, got {len(values)}"
+                f"{len(self.collision_sources)} values, got {len(values)}"
             )
             self.collision_monitor.reject_snapshot(reason)
             self.get_logger().error(reason)
         else:
             distances_m = {
                 source: value
-                for source, value in zip(COLLISION_SOURCES, values)
+                for source, value in zip(self.collision_sources, values)
             }
             try:
                 self.collision_monitor.update_snapshot(

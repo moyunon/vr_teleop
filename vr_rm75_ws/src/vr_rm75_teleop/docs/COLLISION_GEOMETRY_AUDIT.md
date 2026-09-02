@@ -13,9 +13,9 @@ approximation.
 | `xt_link_1` | STL | 0.135 × 0.144 × 0.255 m box | Simplified primitive |
 | `xt_link_2` | STL | 0.13 × 0.023 × 0.3 m box | Simplified primitive |
 | `dt_link`, `yb_link`, `xb_link`, `jb_link`, `tb_link` | STL | mesh reused | Present; dimensional survey pending |
-| `tb_camera_link` | repository camera STL | **missing** | NOT READY; do not assume visual mesh is collision-certified |
-| `xb_camera_link_1..3` | repository camera STLs | **missing** | NOT READY |
-| `base_camera_link_1..2` | repository camera STLs | **missing** | NOT READY |
+| `tb_camera_link` | repository camera STL | **missing** | Out of current RM75-only scope |
+| `xb_camera_link_1..3` | repository camera STLs | **missing** | Out of current RM75-only scope |
+| `base_camera_link_1..2` | repository camera STLs | **missing** | Out of current RM75-only scope |
 | `l_rm75_base_link`, `r_rm75_base_link` | RM75 base STL | mesh reused | Present |
 | `l_rm75_link_1`, `r_rm75_link_1` | link 1 STL | mesh reused | Shoulder present |
 | `l_rm75_link_2`, `r_rm75_link_2` | link 2 STL | mesh reused | Upper arm present |
@@ -37,17 +37,28 @@ The left/right arm mounts have explicit fixed transforms from the common
 using a guessed arm separation. Agreement with the physical side mounts is
 `HARDWARE_PENDING`.
 
-Current readiness blockers:
+## Current RM75-only commissioning scope
 
-1. Six chassis camera links have visual meshes but no collision elements.
-2. No surveyed table, wall, pedestal, or other environment geometry is
-   configured in `collision_geometry.yaml`.
-3. Non-arm movable body/gripper joints lack a measured state source or an
-   externally verified fixed value.
-4. `python-fcl` is not installed in the audited environment.
+`collision_geometry.yaml` explicitly enables `left_self`, `right_self`, and
+`inter_arm`. It explicitly disables `environment` and `robot_body`. The only
+monitored links are `l_rm75_base_link`, `l_rm75_link_1..7`,
+`r_rm75_base_link`, and `r_rm75_link_1..7`.
 
-Therefore the collision backend intentionally publishes no distance snapshot
-and `backend_ready=false`; the existing collision watchdog keeps the Safety
-Supervisor closed. Do not set readiness manually. Resolve the four blockers,
-then visually compare closest link pairs/points with the assembled system.
+Accordingly, geometry readiness applies only to those 16 links. The six
+missing chassis-camera collision elements, empty environment, body/head/base,
+end cameras, and modeled tool/gripper branches do not block this narrowed
+backend. Online transforms use the arms' common `xb_link` frame and require
+only `l_rm75_joint_1..7` and `r_rm75_joint_1..7`. Parent-child and explicitly
+ignored pair filtering remains active.
 
+The audited runtime imports `python-fcl`, parses 56 existing collision
+geometries with no load failure, and reports the narrowed backend geometry
+ready. Disabled categories have no numerical placeholder; diagnostics report
+`DISABLED_BY_CONFIGURATION`.
+
+This readiness is not a motion-clearance result. A 2026-09-02 read-only static
+state sample produced `left_self=0.053036446 m`,
+`right_self=0.053015256 m`, and `inter_arm=0.000000000 m`; the limiting pair was
+`l_rm75_base_link:0` ↔ `r_rm75_base_link:0`. Under the configured 0.05 m stop
+threshold this is STOP. Do not ignore that pair unless its permanent overlap
+and structural relationship are verified against the assembled hardware.

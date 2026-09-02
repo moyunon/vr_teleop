@@ -47,7 +47,7 @@ def response_for(command):
         return {
             "command": command,
             "err_flag": [0] * 7,
-            "brake_state": [1] * 7,
+            "brake_state": [0] * 7,
         }
     raise AssertionError(f"unexpected test command: {command}")
 
@@ -139,6 +139,36 @@ def test_normal_tcp_state_is_scaled_validated_and_read_only():
     assert all(command.startswith("get_") for command in READ_ONLY_COMMANDS)
     assert all(payload.endswith(b"\r\n") for payload in sock.sent)
 
+
+def test_tcp_accepts_single_element_arm_error_array():
+    """Accept the documented Gen-4 seven-axis arm-state error form."""
+    def override(command):
+        response = response_for(command)
+        if command == GET_CURRENT_ARM_STATE:
+            response["arm_state"]["err"] = [0]
+        return response
+
+    client = client_for(ResponsiveSocket(override=override))
+    client.connect()
+    state = client.read_state("left")
+
+    assert state.arm_error == 0
+    assert state.has_fault is False
+
+@pytest.mark.parametrize("bad_err", [[], [0, 1]])
+def test_tcp_rejects_invalid_arm_error_arrays(bad_err):
+    """Reject malformed arm-state error arrays."""
+    def override(command):
+        response = response_for(command)
+        if command == GET_CURRENT_ARM_STATE:
+            response["arm_state"]["err"] = bad_err
+        return response
+
+    client = client_for(ResponsiveSocket(override=override))
+    client.connect()
+
+    with pytest.raises(RM75ProtocolError):
+        client.read_state("left")
 
 def test_non_read_only_command_is_rejected_before_send():
     """Reject a motion command before it reaches the socket."""
