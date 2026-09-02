@@ -1,0 +1,509 @@
+"""Tests for the default-disabled RM75 low-follow command boundary."""
+
+import json
+import socket
+
+import numpy as np
+import pytest
+
+from vr_rm75_teleop.rm75_command_interface import (
+    DualArmCommandDispatcher,
+    RM75CommandConnectionError,
+    RM75CommandRejectedError,
+    RM75ControllerCommandError,
+    RM75LowFollowCommandClient,
+    RM75MotionDisabledError,
+    decode_movej_canfd_response,
+    encode_low_follow_movej_canfd,
+)
+
+
+Q_DEG = {
+    "left": [-40.0, -25.0, 15.0, -55.0, 10.0, -35.0, 80.0],
+    "right": [20.0, 35.0, 25.0, 60.0, 15.0, 40.0, -120.0],
+}
+Q = {side: np.deg2rad(values) for side, values in Q_DEG.items()}
+
+
+class FakeSocket:
+    """Record socket operations without touching the network."""
+
+    def __init__(self, fail_send=False, response=None):
+        """Configure an optional synthetic send failure."""
+        self.fail_send = fail_send
+        self.timeout = None
+        self.payloads = []
+        self.closed = False
+        if response is None:
+            response = {
+                "state": "joint_state",
+                "joint": [0] * 7,
+                "arm_err": 0,
+            }
+        self.receive_chunks = [
+            json.dumps(response).encode("ascii") + b"\r\n"
+        ]
+
+    def settimeout(self, timeout_s):
+        """Record the requested timeout."""
+        self.timeout = timeout_s
+
+    def sendall(self, payload):
+        """Record a full payload or raise the configured failure."""
+        if self.fail_send:
+            raise OSError("synthetic send failure")
+        self.payloads.append(payload)
+
+    def recv(self, _size):
+        """Return one synthetic response or time out."""
+        if not self.receive_chunks:
+            raise socket.timeout("synthetic response timeout")
+        return self.receive_chunks.pop(0)
+
+    def close(self):
+        """Record transport closure."""
+        self.closed = True
+
+
+def client(side, fake_socket, enabled=True):
+    """Build one client around a network-free socket factory."""
+    return RM75LowFollowCommandClient(
+        side,
+        f"{side}.invalid",
+        enable_robot_motion=enabled,
+        socket_factory=lambda _address, _timeout: fake_socket,
+    )
+
+
+def connected_dispatcher(
+    *,
+    left_socket=None,
+    right_socket=None,
+    velocity_limit_deg_s=18.0,
+    acceleration_limit_deg_s2=10000.0,
+    max_delta_deg=0.5,
+):
+    """Build and connect an enabled dispatcher using fake transports."""
+    sockets = {
+        "left": left_socket or FakeSocket(),
+        "right": right_socket or FakeSocket(),
+    }
+    clients = {
+        side: client(side, sockets[side]) for side in ("left", "right")
+    }
+    dispatcher = DualArmCommandDispatcher(
+        clients,
+        {
+            side: np.deg2rad(np.full(7, velocity_limit_deg_s))
+            for side in ("left", "right")
+        },
+        joint_acceleration_limits={
+            side: np.deg2rad(
+                np.full(7, acceleration_limit_deg_s2)
+            )
+            for side in ("left", "right")
+        },
+        enable_robot_motion=True,
+        max_command_delta_rad=np.deg2rad(max_delta_deg),
+        command_timeout_s=0.1,
+        nominal_period_s=0.02,
+        monotonic=lambda: 1.01,
+    )
+    dispatcher.connect()
+    return dispatcher, sockets
+
+
+def test_encoder_uses_integer_millidegrees_and_forces_low_follow():
+    """Make high-follow mode impossible at the current 20 ms period."""
+    q_deg = [1.0, -2.0, 0.001, 4.25, -5.5, 6.0, -7.0]
+
+    payload = encode_low_follow_movej_canfd(
+        np.deg2rad(q_deg),
+        "left",
+    )
+    message = json.loads(payload.decode("ascii"))
+
+    assert payload.endswith(b"\r\n")
+    assert message["command"] == "movej_canfd"
+    assert message["joint"] == [1000, -2000, 1, 4250, -5500, 6000, -7000]
+    assert message["follow"] is False
+    assert message["trajectory_mode"] == 0
+
+
+def test_controller_response_requires_zero_arm_error_and_valid_joints():
+    """Accept only the documented successful seven-axis response."""
+    response = decode_movej_canfd_response(
+        json.dumps(
+            {
+                "state": "joint_state",
+                "joint": [1000, 0, 0, 0, 0, 0, 0],
+                "arm_err": 0,
+            }
+        ),
+        "left",
+    )
+
+    assert response.arm_error == 0
+    assert np.rad2deg(response.q_reported[0]) == pytest.approx(1.0)
+
+    with pytest.raises(RM75ControllerCommandError, match="arm_err=7"):
+        decode_movej_canfd_response(
+            json.dumps(
+                {
+                    "state": "joint_state",
+                    "joint": [0] * 7,
+                    "arm_err": 7,
+                }
+            ),
+            "right",
+        )
+
+
+@pytest.mark.parametrize(
+    "q, expected",
+    [
+        (np.zeros(6), "7 values"),
+        (np.full(7, np.nan), "NaN or Infinity"),
+        (np.deg2rad([179.0, 0, 0, 0, 0, 0, 0]), "hard limits"),
+    ],
+)
+def test_encoder_rejects_malformed_nonfinite_and_hard_limit_commands(
+    q,
+    expected,
+):
+    """Reject every target that cannot safely represent an RM75 joint set."""
+    with pytest.raises(RM75CommandRejectedError, match=expected):
+        encode_low_follow_movej_canfd(q, "right")
+
+
+def test_disabled_client_cannot_open_a_socket_or_send():
+    """Prove the default gate closes before the network factory is called."""
+    factory_calls = []
+    command_client = RM75LowFollowCommandClient(
+        "left",
+        "192.0.2.1",
+        socket_factory=lambda *args: factory_calls.append(args),
+    )
+
+    with pytest.raises(RM75MotionDisabledError):
+        command_client.connect()
+    with pytest.raises(RM75MotionDisabledError):
+        command_client.send_joint_target(Q["left"])
+
+    assert factory_calls == []
+    assert not command_client.connected
+
+
+def test_disabled_dispatcher_returns_dry_run_before_validating_or_sending():
+    """Keep malformed upstream data away from transports by default."""
+    sockets = {side: FakeSocket() for side in ("left", "right")}
+    clients = {
+        side: client(side, sockets[side], enabled=False)
+        for side in ("left", "right")
+    }
+    dispatcher = DualArmCommandDispatcher(
+        clients,
+        {side: np.ones(7) for side in ("left", "right")},
+    )
+
+    result = dispatcher.dispatch(
+        {"bad": np.full(7, np.nan)},
+        {},
+        generated_monotonic=None,
+        safety_command_allowed=True,
+    )
+
+    assert not result.sent
+    assert "dry-run" in result.reason
+    assert all(
+        not command_client.connected
+        for command_client in clients.values()
+    )
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+def test_valid_fresh_dual_command_is_sent_once_to_each_arm():
+    """Send one fresh low-follow point per arm and never replay it."""
+    dispatcher, sockets = connected_dispatcher()
+
+    result = dispatcher.dispatch(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        safety_command_allowed=True,
+        now_monotonic=1.001,
+    )
+
+    assert result.sent
+    assert all(
+        len(fake_socket.payloads) == 1
+        for fake_socket in sockets.values()
+    )
+    for side in ("left", "right"):
+        message = json.loads(sockets[side].payloads[0].decode("ascii"))
+        assert message["follow"] is False
+        assert message["joint"] == [
+            int(round(value * 1000)) for value in Q_DEG[side]
+        ]
+
+    repeated = dispatcher.dispatch(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        safety_command_allowed=True,
+        now_monotonic=1.002,
+    )
+    assert not repeated.sent
+    assert "already dispatched" in repeated.reason
+    assert all(
+        len(fake_socket.payloads) == 1
+        for fake_socket in sockets.values()
+    )
+
+
+def test_closed_safety_gate_disarms_without_sending():
+    """Require the independent Supervisor command gate for every dispatch."""
+    dispatcher, sockets = connected_dispatcher()
+
+    result = dispatcher.dispatch(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        safety_command_allowed=False,
+        now_monotonic=1.0,
+    )
+
+    assert not result.sent
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+@pytest.mark.parametrize(
+    "generated, now, expected",
+    [
+        (None, 1.0, "timestamp is unavailable"),
+        (1.0, 1.101, "stale"),
+        (float("nan"), 1.0, "timestamp must be finite"),
+    ],
+)
+def test_missing_stale_or_nonfinite_command_timestamp_is_rejected(
+    generated,
+    now,
+    expected,
+):
+    """Reject output that is missing or older than its watchdog budget."""
+    dispatcher, sockets = connected_dispatcher()
+
+    with pytest.raises(RM75CommandRejectedError, match=expected):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=generated,
+            safety_command_allowed=True,
+            now_monotonic=now,
+        )
+
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+def test_dual_numeric_validation_finishes_before_either_write():
+    """Reject a bad peer target before writing the otherwise valid arm."""
+    dispatcher, sockets = connected_dispatcher()
+    invalid = {side: values.copy() for side, values in Q.items()}
+    invalid["right"][0] = np.nan
+
+    with pytest.raises(RM75CommandRejectedError):
+        dispatcher.dispatch(
+            invalid,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+def test_abnormal_command_jump_is_rejected_instead_of_clipped():
+    """Treat a discontinuous branch jump as HOLD-worthy rejection."""
+    dispatcher, sockets = connected_dispatcher(
+        velocity_limit_deg_s=100.0,
+        max_delta_deg=0.5,
+    )
+    jumped = {side: values.copy() for side, values in Q.items()}
+    jumped["left"][0] += np.deg2rad(0.6)
+
+    with pytest.raises(RM75CommandRejectedError, match="jump"):
+        dispatcher.dispatch(
+            jumped,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+def test_command_velocity_is_checked_independently_of_jump_limit():
+    """Enforce qdot even when a point passes the absolute-delta guard."""
+    dispatcher, sockets = connected_dispatcher(
+        velocity_limit_deg_s=1.0,
+        max_delta_deg=1.0,
+    )
+    too_fast = {side: values.copy() for side, values in Q.items()}
+    too_fast["right"][2] += np.deg2rad(0.2)
+
+    with pytest.raises(RM75CommandRejectedError, match="velocity"):
+        dispatcher.dispatch(
+            too_fast,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+def test_command_acceleration_is_checked_at_final_send_boundary():
+    """Reject qdd that bypasses the online trajectory limiter."""
+    dispatcher, sockets = connected_dispatcher(
+        velocity_limit_deg_s=100.0,
+        acceleration_limit_deg_s2=100.0,
+        max_delta_deg=1.0,
+    )
+    dispatcher.dispatch(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        safety_command_allowed=True,
+        now_monotonic=1.0,
+    )
+    accelerated = {side: values.copy() for side, values in Q.items()}
+    accelerated["left"][1] += np.deg2rad(0.1)
+
+    with pytest.raises(RM75CommandRejectedError, match="acceleration"):
+        dispatcher.dispatch(
+            accelerated,
+            Q,
+            generated_monotonic=1.02,
+            safety_command_allowed=True,
+            now_monotonic=1.02,
+        )
+
+    assert all(
+        len(fake_socket.payloads) == 1
+        for fake_socket in sockets.values()
+    )
+
+
+def test_partial_transport_failure_closes_both_and_latches_fault():
+    """Latch the unavoidable asymmetric network failure as a hard fault."""
+    left_socket = FakeSocket()
+    right_socket = FakeSocket(fail_send=True)
+    dispatcher, _sockets = connected_dispatcher(
+        left_socket=left_socket,
+        right_socket=right_socket,
+    )
+
+    with pytest.raises(RM75CommandConnectionError, match="failed sending"):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert dispatcher.faulted
+    assert not dispatcher.connected
+    assert left_socket.closed
+    assert right_socket.closed
+    assert len(left_socket.payloads) == 1
+
+
+def test_controller_error_response_closes_both_and_latches_fault():
+    """Reject a nonzero arm_err even when both TCP writes succeeded."""
+    right_socket = FakeSocket(
+        response={
+            "state": "joint_state",
+            "joint": [0] * 7,
+            "arm_err": 23,
+        }
+    )
+    dispatcher, sockets = connected_dispatcher(
+        right_socket=right_socket,
+    )
+
+    with pytest.raises(RM75ControllerCommandError, match="arm_err=23"):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(fake_socket.closed for fake_socket in sockets.values())
+    assert dispatcher.faulted
+
+
+def test_missing_controller_response_closes_both_and_latches_fault():
+    """Treat a response timeout as a dual-arm command transport fault."""
+    left_socket = FakeSocket()
+    left_socket.receive_chunks.clear()
+    dispatcher, sockets = connected_dispatcher(
+        left_socket=left_socket,
+    )
+
+    with pytest.raises(RM75CommandConnectionError, match="receiving left"):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(fake_socket.closed for fake_socket in sockets.values())
+    assert dispatcher.faulted
+
+    with pytest.raises(RM75CommandConnectionError, match="latched"):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.02,
+            safety_command_allowed=True,
+            now_monotonic=1.02,
+        )
+
+
+def test_connect_failure_closes_an_already_connected_peer():
+    """Close the first arm when the second command channel cannot connect."""
+    left_socket = FakeSocket()
+    left_client = client("left", left_socket)
+
+    def fail_connect(_address, _timeout):
+        raise OSError("synthetic connect failure")
+
+    right_client = RM75LowFollowCommandClient(
+        "right",
+        "right.invalid",
+        enable_robot_motion=True,
+        socket_factory=fail_connect,
+    )
+    dispatcher = DualArmCommandDispatcher(
+        {"left": left_client, "right": right_client},
+        {side: np.ones(7) for side in ("left", "right")},
+        joint_acceleration_limits={
+            side: np.ones(7) for side in ("left", "right")
+        },
+        enable_robot_motion=True,
+    )
+
+    with pytest.raises(RM75CommandConnectionError):
+        dispatcher.connect()
+
+    assert dispatcher.faulted
+    assert left_socket.closed
+    assert not dispatcher.connected

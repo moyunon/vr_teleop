@@ -1,0 +1,46 @@
+quest_dual_ik_fusion:
+  ros__parameters:
+    # Loading this profile alone never authorizes motion. After all dry-run
+    # checks and on-site controller/API confirmation, motion still requires
+    # an explicit enable_robot_motion:=true override from the operator.
+    enable_robot_motion: false
+
+    require_robot_state: true
+    robot_state_timeout_s: 0.25
+    command_timeout_s: 0.10
+
+    left_command_ip: 192.168.127.18
+    right_command_ip: 192.168.127.19
+    robot_command_port: 8080
+    robot_command_transport_timeout_s: 0.01
+    max_robot_command_delta_deg: 0.25
+
+    control_frequency_hz: 50.0
+    joint_velocity_scale: 0.10
+    joint_acceleration_limit_deg_s2:
+      [30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
+
+    max_cartesian_translation_rate_m_s: 0.05
+    max_cartesian_rotation_rate_rad_s: 0.30
+
+    collision_protection_enabled: true
+    collision_distance_timeout_s: 0.10
+    collision_stop_distance_m: 0.05
+    collision_warn_distance_m: 0.15
+
+    sigma_stop: 0.010
+    sigma_warn: 0.020
+    joint_soft_limit_margin_deg: 5.0
+    elbow_singularity_margin_deg: 15.0
+
+    max_consecutive_ik_failures: 3
+    deadman_grip_on_threshold: 0.65
+    deadman_grip_off_threshold: 0.35
+    deadman_input_timeout_s: 0.20
+
+    # Present only for parameter completeness. require_robot_state=true means
+    # these values cannot initialize a real command.
+    left_rviz_fallback_q_deg:
+      [-64.143, -33.259, -0.044, -80.671, 8.438, -47.101, 111.349]
+    right_rviz_fallback_q_deg:
+      [21.180, 48.282, 32.467, 74.971, 21.508, 54.389, -158.273]

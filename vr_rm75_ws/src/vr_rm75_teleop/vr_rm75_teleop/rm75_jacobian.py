@@ -1,6 +1,5 @@
 import numpy as np
 
-from vr_rm75_teleop.rm75_model import RM75Model
 from vr_rm75_teleop.rm75_fk import forward_kinematics
 
 
@@ -16,8 +15,11 @@ def geometric_jacobian(q, model=None):
         [ Jw ]
 
     其中：
-        Jv: 3x7 线速度 Jacobian
-        Jw: 3x7 角速度 Jacobian
+        Jv: 3x7 线速度 Jacobian，长度采用模型的 m
+        Jw: 3x7 角速度 Jacobian，角度采用 rad
+
+    注意：直接对 [Jv; Jw] 做 SVD 会混合平移和旋转尺度，得到的
+    sigma 只应与使用相同 m/rad 单位和相同堆叠定义的阈值比较。
     """
 
     if model is None:

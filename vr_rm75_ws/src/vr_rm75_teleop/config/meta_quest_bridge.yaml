@@ -1,0 +1,4 @@
+meta_quest_bridge:
+  ros__parameters:
+    # Fail tracking and grip freshness closed when APK/logcat samples stop.
+    quest_source_timeout_s: 0.20

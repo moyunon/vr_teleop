@@ -1,0 +1,79 @@
+quest_dual_ik_fusion:
+  ros__parameters:
+    # Safe default: q_safe/T_safe cannot exist until fresh actual state from
+    # both read-only RM75 state streams has been validated.
+    require_robot_state: true
+    robot_state_timeout_s: 0.25
+
+    # Master actuator gate. The safe default opens no command socket and
+    # sends no packet; IK, safety checks, RViz and diagnostics remain active.
+    # Do not set true until the controller/API version and all commissioning
+    # prerequisites have been confirmed on site.
+    enable_robot_motion: false
+    left_command_ip: 192.168.127.18
+    right_command_ip: 192.168.127.19
+    robot_command_port: 8080
+    robot_command_transport_timeout_s: 0.01
+
+    # An unexpected discontinuity is rejected into HOLD, never clipped into
+    # a different trajectory. The independent qdot limit below is also
+    # enforced again immediately before network transmission.
+    max_robot_command_delta_deg: 0.5
+
+    # Safety Supervisor watchdogs.
+    command_timeout_s: 0.10
+    max_consecutive_ik_failures: 3
+
+    # Collision safety is fail-closed. An external geometry backend must
+    # publish one atomic Float64MultiArray on
+    # /vr_rm75/collision/min_distances_m in this fixed order:
+    # [left_self, right_self, inter_arm, environment, robot_body].
+    # Distances are signed metres; missing, malformed, or stale input HOLDs.
+    collision_protection_enabled: true
+    collision_distance_timeout_s: 0.10
+    collision_stop_distance_m: 0.05
+    collision_warn_distance_m: 0.15
+
+    # Online joint command rate. qd_max is never used directly: the first
+    # hardware-motion profile permits only 10% of each model velocity limit.
+    control_frequency_hz: 50.0
+    joint_velocity_scale: 0.10
+
+    # Project-level commanded acceleration budget. This is not claimed to be
+    # the controller hardware maximum; it shapes normal teleoperation qdot
+    # changes and is checked again by the Safety Supervisor/command boundary.
+    joint_acceleration_limit_deg_s2:
+      [90.0, 90.0, 90.0, 90.0, 90.0, 90.0, 90.0]
+
+    # Nominal Cartesian rates. In the sigma warning region both rates are
+    # multiplied by one continuous smoothstep factor; at sigma_stop the
+    # factor is zero and binary projection/final hold remain active.
+    max_cartesian_translation_rate_m_s: 0.25
+    max_cartesian_rotation_rate_rad_s: 1.7453292519943295
+
+    # Initial empirical thresholds for this implementation's unweighted
+    # [Jv(m); Jw(rad)] geometric-Jacobian SVD. They are model-specific ROS
+    # parameters, not assumed to transfer to differently scaled Jacobians.
+    sigma_stop: 0.010
+    sigma_warn: 0.020
+
+    # Every teleoperation limit stays inside the model hard stop. J4 uses a
+    # side-specific branch boundary: LEFT <= -15 deg, RIGHT >= +15 deg.
+    # The 15 deg first-pass value was selected from the current ready-posture
+    # sigma scan and remains a tunable commissioning parameter.
+    joint_soft_limit_margin_deg: 5.0
+    elbow_singularity_margin_deg: 15.0
+
+    # Both physical Quest GripTrigger values must be continuously pressed.
+    # Hysteresis prevents threshold chatter. Any source/topic timeout releases
+    # the deadman and requires both grips to be released before re-engaging.
+    deadman_grip_on_threshold: 0.65
+    deadman_grip_off_threshold: 0.35
+    deadman_input_timeout_s: 0.20
+
+    # Used only when require_robot_state is explicitly set false for RViz.
+    # These values are never used as a real-robot startup command.
+    left_rviz_fallback_q_deg:
+      [-64.143, -33.259, -0.044, -80.671, 8.438, -47.101, 111.349]
+    right_rviz_fallback_q_deg:
+      [21.180, 48.282, 32.467, 74.971, 21.508, 54.389, -158.273]

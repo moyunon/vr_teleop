@@ -18,9 +18,30 @@ from tf2_ros import TransformBroadcaster
 
 from scipy.spatial.transform import Rotation
 
-from vr_rm75_teleop.rm75_model import RM75Model
 from vr_rm75_teleop.rm75_fk import (
     forward_kinematics,
+)
+from vr_rm75_teleop.arm_fusion_state import (
+    ArmFusionState,
+)
+from vr_rm75_teleop.safety_supervisor import (
+    SafetyState,
+    SafetySupervisor,
+)
+from vr_rm75_teleop.deadman_clutch import (
+    DualGripDeadman,
+)
+from vr_rm75_teleop.collision_safety import (
+    CollisionSafetyMonitor,
+    SOURCES as COLLISION_SOURCES,
+    disabled_collision_decision,
+)
+from vr_rm75_teleop.rm75_command_interface import (
+    DualArmCommandDispatcher,
+    RM75CommandConnectionError,
+    RM75CommandRejectedError,
+    RM75ControllerCommandError,
+    RM75LowFollowCommandClient,
 )
 
 from vr_rm75_teleop.vr_pose_mapping import (
@@ -32,6 +53,13 @@ from vr_rm75_teleop.se3_rate_limiter import (
     limit_pose_step,
 )
 
+from vr_rm75_teleop.joint_safety import (
+    limit_joint_acceleration,
+    limit_joint_soft_position,
+    limit_joint_velocity,
+    make_teleop_soft_limits,
+)
+
 from vr_rm75_teleop.rm75_ik import (
     solve_ik,
 )
@@ -39,102 +67,13 @@ from vr_rm75_teleop.rm75_ik import (
 from vr_rm75_teleop.target_feasibility import (
     project_target_to_feasible,
     minimum_singular_value,
+    singularity_region,
+    singularity_speed_scale,
+    validate_singularity_thresholds,
 )
 
-from std_msgs.msg import Bool
-
-
-class ArmFusionState:
-    """
-    保存单条机械臂在 VR 遥操过程中自己的状态。
-
-    LEFT / RIGHT 使用完全相同的算法，
-    只有 model、VR anchor、q_safe、T_safe 等状态独立。
-    """
-
-    def __init__(
-        self,
-        side,
-        q_start,
-    ):
-
-        self.side = side
-
-        if side == "left":
-            self.prefix = "l"
-        elif side == "right":
-            self.prefix = "r"
-        else:
-            raise ValueError(
-                "side must be 'left' or 'right'"
-            )
-
-        self.base_frame = (
-            f"{self.prefix}_rm75_base_link"
-        )
-
-        # =====================================================
-        # Robot model
-        # =====================================================
-
-        self.model = RM75Model(
-            side=side,
-        )
-
-        # =====================================================
-        # Robot configuration state
-        # =====================================================
-
-        self.q_start = np.asarray(
-            q_start,
-            dtype=float,
-        ).copy()
-
-        self.q_preferred = (
-            self.q_start.copy()
-        )
-
-        self.q_safe = (
-            self.q_start.copy()
-        )
-
-        self.T_ee_anchor = (
-            forward_kinematics(
-                self.q_start,
-                model=self.model,
-            )
-        )
-
-        self.T_safe = (
-            self.T_ee_anchor.copy()
-        )
-
-        # =====================================================
-        # VR state
-        # =====================================================
-
-        self.T_vr_latest = None
-        self.T_vr_anchor = None
-
-        self.anchored = False
-
-        # Quest tracking state
-        self.tracking_valid = False
-
-        # tracking 恢复后必须重新建立 VR/robot anchor
-        self.need_reanchor = True
-
-        # 用于检测 VR Pose 数据流是否中断
-        self.last_vr_rx_time = None
-        self.pose_stale = False
-
-        # =====================================================
-        # Last diagnostics
-        # =====================================================
-
-        self.last_solve_ms = 0.0
-        self.last_result = None
-        self.last_limit_result = None
+from std_msgs.msg import Bool, Float32, Float64MultiArray, String
+from std_srvs.srv import Trigger
 
 
 class QuestDualIKFusion(Node):
@@ -157,6 +96,7 @@ class QuestDualIKFusion(Node):
         #   VR Pose 1:1 映射
         #   不做 Cartesian rate limit
         #   不做 feasibility / singularity projection
+        #   最终 joint velocity 与 command sigma 检查仍然保留
         #
         # False:
         #   以后真实机械臂使用安全链
@@ -164,6 +104,345 @@ class QuestDualIKFusion(Node):
 
         self.unrestricted_simulation = False
 
+        # Real-robot startup is the safe default.  Setting this false is an
+        # explicit RViz-only compatibility mode and never enables actuation.
+        self.declare_parameter(
+            "require_robot_state",
+            True,
+        )
+        self.declare_parameter(
+            "robot_state_timeout_s",
+            0.25,
+        )
+        self.declare_parameter(
+            "command_timeout_s",
+            0.10,
+        )
+        self.declare_parameter(
+            "enable_robot_motion",
+            False,
+        )
+        self.declare_parameter(
+            "left_command_ip",
+            "192.168.127.18",
+        )
+        self.declare_parameter(
+            "right_command_ip",
+            "192.168.127.19",
+        )
+        self.declare_parameter(
+            "robot_command_port",
+            8080,
+        )
+        self.declare_parameter(
+            "robot_command_transport_timeout_s",
+            0.01,
+        )
+        self.declare_parameter(
+            "max_robot_command_delta_deg",
+            0.5,
+        )
+        self.declare_parameter(
+            "collision_protection_enabled",
+            True,
+        )
+        self.declare_parameter(
+            "collision_distance_timeout_s",
+            0.10,
+        )
+        self.declare_parameter(
+            "collision_stop_distance_m",
+            0.05,
+        )
+        self.declare_parameter(
+            "collision_warn_distance_m",
+            0.15,
+        )
+        self.declare_parameter(
+            "max_consecutive_ik_failures",
+            3,
+        )
+        self.declare_parameter(
+            "control_frequency_hz",
+            50.0,
+        )
+        self.declare_parameter(
+            "joint_velocity_scale",
+            0.10,
+        )
+        self.declare_parameter(
+            "joint_acceleration_limit_deg_s2",
+            [90.0] * 7,
+        )
+        self.declare_parameter(
+            "max_cartesian_translation_rate_m_s",
+            0.25,
+        )
+        self.declare_parameter(
+            "max_cartesian_rotation_rate_rad_s",
+            float(np.deg2rad(100.0)),
+        )
+        self.declare_parameter(
+            "sigma_stop",
+            0.010,
+        )
+        self.declare_parameter(
+            "sigma_warn",
+            0.020,
+        )
+        self.declare_parameter(
+            "joint_soft_limit_margin_deg",
+            5.0,
+        )
+        self.declare_parameter(
+            "elbow_singularity_margin_deg",
+            15.0,
+        )
+        self.declare_parameter(
+            "deadman_grip_on_threshold",
+            0.65,
+        )
+        self.declare_parameter(
+            "deadman_grip_off_threshold",
+            0.35,
+        )
+        self.declare_parameter(
+            "deadman_input_timeout_s",
+            0.20,
+        )
+        self.declare_parameter(
+            "left_rviz_fallback_q_deg",
+            [
+                -64.143,
+                -33.259,
+                -0.044,
+                -80.671,
+                8.438,
+                -47.101,
+                111.349,
+            ],
+        )
+        self.declare_parameter(
+            "right_rviz_fallback_q_deg",
+            [
+                21.180,
+                48.282,
+                32.467,
+                74.971,
+                21.508,
+                54.389,
+                -158.273,
+            ],
+        )
+
+        self.require_robot_state = bool(
+            self.get_parameter(
+                "require_robot_state"
+            ).value
+        )
+        self.robot_state_timeout_s = float(
+            self.get_parameter(
+                "robot_state_timeout_s"
+            ).value
+        )
+        self.command_timeout_s = float(
+            self.get_parameter(
+                "command_timeout_s"
+            ).value
+        )
+        self.enable_robot_motion = bool(
+            self.get_parameter(
+                "enable_robot_motion"
+            ).value
+        )
+        self.command_hosts = {
+            "left": str(
+                self.get_parameter(
+                    "left_command_ip"
+                ).value
+            ),
+            "right": str(
+                self.get_parameter(
+                    "right_command_ip"
+                ).value
+            ),
+        }
+        self.robot_command_port = int(
+            self.get_parameter(
+                "robot_command_port"
+            ).value
+        )
+        self.robot_command_transport_timeout_s = float(
+            self.get_parameter(
+                "robot_command_transport_timeout_s"
+            ).value
+        )
+        self.max_robot_command_delta_rad = np.deg2rad(
+            float(
+                self.get_parameter(
+                    "max_robot_command_delta_deg"
+                ).value
+            )
+        )
+        self.collision_protection_enabled = bool(
+            self.get_parameter(
+                "collision_protection_enabled"
+            ).value
+        )
+        self.collision_distance_timeout_s = float(
+            self.get_parameter(
+                "collision_distance_timeout_s"
+            ).value
+        )
+        self.collision_stop_distance_m = float(
+            self.get_parameter(
+                "collision_stop_distance_m"
+            ).value
+        )
+        self.collision_warn_distance_m = float(
+            self.get_parameter(
+                "collision_warn_distance_m"
+            ).value
+        )
+        self.max_consecutive_ik_failures = int(
+            self.get_parameter(
+                "max_consecutive_ik_failures"
+            ).value
+        )
+        self.control_frequency_hz = float(
+            self.get_parameter(
+                "control_frequency_hz"
+            ).value
+        )
+        self.joint_velocity_scale = float(
+            self.get_parameter(
+                "joint_velocity_scale"
+            ).value
+        )
+        self.joint_acceleration_limit = np.deg2rad(
+            np.asarray(
+                self.get_parameter(
+                    "joint_acceleration_limit_deg_s2"
+                ).value,
+                dtype=float,
+            )
+        )
+        self.max_cartesian_translation_rate = float(
+            self.get_parameter(
+                "max_cartesian_translation_rate_m_s"
+            ).value
+        )
+        self.max_cartesian_rotation_rate = float(
+            self.get_parameter(
+                "max_cartesian_rotation_rate_rad_s"
+            ).value
+        )
+        self.sigma_stop = float(
+            self.get_parameter(
+                "sigma_stop"
+            ).value
+        )
+        self.sigma_warn = float(
+            self.get_parameter(
+                "sigma_warn"
+            ).value
+        )
+        self.joint_soft_limit_margin = np.deg2rad(
+            float(
+                self.get_parameter(
+                    "joint_soft_limit_margin_deg"
+                ).value
+            )
+        )
+        self.elbow_singularity_margin = np.deg2rad(
+            float(
+                self.get_parameter(
+                    "elbow_singularity_margin_deg"
+                ).value
+            )
+        )
+        if (
+            not np.isfinite(self.control_frequency_hz)
+            or self.control_frequency_hz <= 0.0
+        ):
+            raise ValueError(
+                "control_frequency_hz must be finite and positive"
+            )
+        if (
+            not np.isfinite(self.joint_velocity_scale)
+            or not 0.0 < self.joint_velocity_scale <= 1.0
+        ):
+            raise ValueError(
+                "joint_velocity_scale must be in the interval (0, 1]"
+            )
+        if (
+            self.joint_acceleration_limit.shape != (7,)
+            or not np.all(np.isfinite(self.joint_acceleration_limit))
+            or np.any(self.joint_acceleration_limit <= 0.0)
+        ):
+            raise ValueError(
+                "joint_acceleration_limit_deg_s2 must contain 7 finite "
+                "positive values"
+            )
+        if (
+            not np.isfinite(self.max_cartesian_translation_rate)
+            or self.max_cartesian_translation_rate <= 0.0
+        ):
+            raise ValueError(
+                "max_cartesian_translation_rate_m_s must be finite "
+                "and positive"
+            )
+        if (
+            not np.isfinite(self.max_cartesian_rotation_rate)
+            or self.max_cartesian_rotation_rate <= 0.0
+        ):
+            raise ValueError(
+                "max_cartesian_rotation_rate_rad_s must be finite "
+                "and positive"
+            )
+        self.sigma_stop, self.sigma_warn = (
+            validate_singularity_thresholds(
+                self.sigma_stop,
+                self.sigma_warn,
+            )
+        )
+        self.control_period_s = 1.0 / self.control_frequency_hz
+        if self.enable_robot_motion:
+            if not self.require_robot_state:
+                raise ValueError(
+                    "enable_robot_motion requires require_robot_state=true"
+                )
+            if not self.collision_protection_enabled:
+                raise ValueError(
+                    "enable_robot_motion requires collision protection"
+                )
+            if self.joint_velocity_scale > 0.10:
+                raise ValueError(
+                    "real motion requires joint_velocity_scale <= 0.10"
+                )
+            if self.control_period_s > 0.020 + 1e-12:
+                raise ValueError(
+                    "real motion requires control_frequency_hz >= 50"
+                )
+        self.last_control_cycle_time = None
+        self.deadman_grip_on_threshold = float(
+            self.get_parameter(
+                "deadman_grip_on_threshold"
+            ).value
+        )
+        self.deadman_grip_off_threshold = float(
+            self.get_parameter(
+                "deadman_grip_off_threshold"
+            ).value
+        )
+        self.deadman_input_timeout_s = float(
+            self.get_parameter(
+                "deadman_input_timeout_s"
+            ).value
+        )
+        self.robot_system_ready = (
+            not self.require_robot_state
+        )
 
         if self.unrestricted_simulation:
 
@@ -175,22 +454,6 @@ class QuestDualIKFusion(Node):
             self.position_scale = 1.0
             self.orientation_scale = 1.0
 
-        # 50 Hz:
-        #
-        # 5 mm/frame
-        # ~= 0.25 m/s
-        self.max_translation_step = (
-            0.005
-        )
-
-        # 2 deg/frame
-        # ~= 100 deg/s
-        self.max_rotation_step = (
-            np.deg2rad(
-                2.0
-            )
-        )
-
         # Quest pose timeout protection.
         # If no fresh VR pose arrives within 200 ms,
         # stop updating this arm and require re-anchor.
@@ -200,62 +463,150 @@ class QuestDualIKFusion(Node):
         # 2. Feasibility parameters
         # =====================================================
 
-        self.sigma_stop = 0.010
-
         self.binary_iterations = 6
 
         # =====================================================
-        # RealBot teleoperation ready pose
+        # RViz-only fallback poses
         #
-        # 直接来自两台真实 RM75 控制器
-        # get_current_arm_state 的关节角。
-        #
-        # 单位：
-        # controller -> deg -> rad
-        #
-        # 注意：
-        # LEFT J7 不要额外 +/- 180 deg。
-        # RM75Model(side="left") 已经在内部处理
-        # theta_offset[6] = pi。
+        # require_robot_state=True（默认）时完全忽略这些值；
+        # q_safe/T_safe 只能由实时 q_measured 初始化。
         # =====================================================
 
-        q_start_left = np.deg2rad(
-            [
-                -64.143,
-                -33.259,
-                -0.044,
-                -80.671,
-                8.438,
-                -47.101,
-                111.349,
-            ]
+        q_fallback_left = np.deg2rad(
+            self.get_parameter(
+                "left_rviz_fallback_q_deg"
+            ).value
         )
 
-        q_start_right = np.deg2rad(
-            [
-                21.180,
-                48.282,
-                32.467,
-                74.971,
-                21.508,
-                54.389,
-            -158.273,
-            ]
+        q_fallback_right = np.deg2rad(
+            self.get_parameter(
+                "right_rviz_fallback_q_deg"
+            ).value
         )
+
+        if self.require_robot_state:
+            q_fallback_left = None
+            q_fallback_right = None
 
         self.arms = {
             "left":
                 ArmFusionState(
                     side="left",
-                    q_start=q_start_left,
+                    fallback_q=q_fallback_left,
                 ),
 
             "right":
                 ArmFusionState(
                     side="right",
-                    q_start=q_start_right,
+                    fallback_q=q_fallback_right,
                 ),
         }
+
+        for state in self.arms.values():
+            state.joint_velocity_limit = (
+                self.joint_velocity_scale
+                * state.model.qd_max
+            )
+            state.joint_acceleration_limit = (
+                self.joint_acceleration_limit.copy()
+            )
+            elbow_branch = -1 if state.side == "left" else 1
+            (
+                q_soft_min,
+                q_soft_max,
+            ) = make_teleop_soft_limits(
+                hard_min=state.model.q_min,
+                hard_max=state.model.q_max,
+                joint_margin=self.joint_soft_limit_margin,
+                elbow_index=3,
+                elbow_branch=elbow_branch,
+                elbow_margin=self.elbow_singularity_margin,
+            )
+            state.configure_teleop_soft_limits(
+                q_soft_min,
+                q_soft_max,
+                elbow_branch,
+            )
+
+        joint_soft_limits = {
+            side: (state.q_soft_min, state.q_soft_max)
+            for side, state in self.arms.items()
+        }
+
+        command_clients = {
+            side: RM75LowFollowCommandClient(
+                side=side,
+                host=self.command_hosts[side],
+                port=self.robot_command_port,
+                timeout_s=self.robot_command_transport_timeout_s,
+                enable_robot_motion=self.enable_robot_motion,
+            )
+            for side in ("left", "right")
+        }
+        self.robot_command_dispatcher = DualArmCommandDispatcher(
+            command_clients,
+            {
+                side: state.joint_velocity_limit
+                for side, state in self.arms.items()
+            },
+            enable_robot_motion=self.enable_robot_motion,
+            joint_acceleration_limits={
+                side: state.joint_acceleration_limit
+                for side, state in self.arms.items()
+            },
+            max_command_delta_rad=self.max_robot_command_delta_rad,
+            command_timeout_s=self.command_timeout_s,
+            nominal_period_s=self.control_period_s,
+            monotonic=time.perf_counter,
+        )
+        self.robot_command_hold_required = False
+        self.robot_command_transport_fault = False
+        self.robot_command_hold_reason = "command output healthy"
+        self.robot_command_gate_open_since = None
+
+        if self.enable_robot_motion:
+            try:
+                self.robot_command_dispatcher.connect()
+            except RM75CommandConnectionError as exc:
+                self.robot_command_transport_fault = True
+                self.get_logger().error(
+                    f"RM75 command interface connection failed: {exc}"
+                )
+
+        self.collision_monitor = CollisionSafetyMonitor(
+            d_stop_m=self.collision_stop_distance_m,
+            d_warn_m=self.collision_warn_distance_m,
+            timeout_s=self.collision_distance_timeout_s,
+        )
+        if self.collision_protection_enabled:
+            self.last_collision_decision = self.collision_monitor.evaluate()
+        else:
+            self.last_collision_decision = disabled_collision_decision()
+
+        self.safety_supervisor = SafetySupervisor(
+            command_timeout_s=self.command_timeout_s,
+            max_consecutive_ik_failures=(
+                self.max_consecutive_ik_failures
+            ),
+            joint_velocity_scale=self.joint_velocity_scale,
+            joint_acceleration_limits={
+                side: state.joint_acceleration_limit
+                for side, state in self.arms.items()
+            },
+            joint_soft_limits=joint_soft_limits,
+            require_collision_safety=self.collision_protection_enabled,
+            require_actuator_safety=self.enable_robot_motion,
+        )
+
+        self.deadman_clutch = DualGripDeadman(
+            on_threshold=self.deadman_grip_on_threshold,
+            off_threshold=self.deadman_grip_off_threshold,
+            input_timeout_s=self.deadman_input_timeout_s,
+        )
+        self.deadman_active = False
+        self.quest_input_fresh_reported = False
+        self.last_quest_input_status_time = None
+        self.refresh_actuator_safety(time.perf_counter())
 
         # =====================================================
         # 4. Quest subscribers
@@ -297,67 +648,117 @@ class QuestDualIKFusion(Node):
             )
         )
 
-        def left_tracking_callback(
-            self,
-            msg,
+        self.left_grip_sub = self.create_subscription(
+            Float32,
+            "/meta_quest/left_grip",
+            lambda msg: self.grip_callback(
+                "left",
+                msg,
+            ),
+            5,
+        )
+
+        self.right_grip_sub = self.create_subscription(
+            Float32,
+            "/meta_quest/right_grip",
+            lambda msg: self.grip_callback(
+                "right",
+                msg,
+            ),
+            5,
+        )
+
+        self.quest_input_fresh_sub = self.create_subscription(
+            Bool,
+            "/meta_quest/input_fresh",
+            self.quest_input_fresh_callback,
+            5,
+        )
+
+        # =====================================================
+        # 4b. Read-only actual robot state subscribers
+        # =====================================================
+
+        self.robot_state_subscriptions = []
+
+        for side in (
+            "left",
+            "right",
         ):
-            self.update_tracking_state(
-                side="left",
-                valid=msg.data,
+
+            self.robot_state_subscriptions.append(
+                self.create_subscription(
+                    JointState,
+                    f"/rm75/{side}/actual_joint_states",
+                    lambda msg, arm_side=side:
+                        self.robot_joint_state_callback(
+                            arm_side,
+                            msg,
+                        ),
+                    10,
+                )
             )
 
-
-        def right_tracking_callback(
-            self,
-            msg,
-        ):
-            self.update_tracking_state(
-                side="right",
-                valid=msg.data,
+            self.robot_state_subscriptions.append(
+                self.create_subscription(
+                    Bool,
+                    f"/rm75/{side}/connected",
+                    lambda msg, arm_side=side:
+                        self.robot_connected_callback(
+                            arm_side,
+                            msg,
+                        ),
+                    10,
+                )
             )
 
-
-        def update_tracking_state(
-            self,
-            side,
-            valid,
-        ):
-
-            state = self.arms[side]
-
-            valid = bool(valid)
-
-            # 状态没变化就不用重复处理
-            if valid == state.tracking_valid:
-                return
-
-            state.tracking_valid = valid
-
-            if not valid:
-
-                # 立即停止使用旧 VR pose
-                state.T_vr_latest = None
-
-                # 旧 anchor 作废
-                state.anchored = False
-                state.need_reanchor = True
-
-                state.last_vr_rx_time = None
-
-                self.get_logger().warning(
-                    f"{side.upper()} Quest tracking LOST."
+            self.robot_state_subscriptions.append(
+                self.create_subscription(
+                    Bool,
+                    f"/rm75/{side}/state_stale",
+                    lambda msg, arm_side=side:
+                        self.robot_stale_callback(
+                            arm_side,
+                            msg,
+                        ),
+                    10,
                 )
+            )
 
-            else:
-
-                # 此时不立即 anchor：
-                # 等下一帧有效 Pose 到达再建立。
-                state.need_reanchor = True
-
-                self.get_logger().info(
-                    f"{side.upper()} Quest tracking RECOVERED. "
-                    "Waiting for fresh pose to re-anchor."
+            self.robot_state_subscriptions.append(
+                self.create_subscription(
+                    Bool,
+                    f"/rm75/{side}/joints_enabled",
+                    lambda msg, arm_side=side:
+                        self.robot_enabled_callback(
+                            arm_side,
+                            msg,
+                        ),
+                    10,
                 )
+            )
+
+            self.robot_state_subscriptions.append(
+                self.create_subscription(
+                    Bool,
+                    f"/rm75/{side}/fault",
+                    lambda msg, arm_side=side:
+                        self.robot_fault_callback(
+                            arm_side,
+                            msg,
+                        ),
+                    10,
+                )
+            )
+
+        # One complete collision snapshot is atomic and ordered according to
+        # collision_safety.SOURCES.  A partial array invalidates the snapshot.
+        self.collision_distance_sub = self.create_subscription(
+            Float64MultiArray,
+            "/vr_rm75/collision/min_distances_m",
+            self.collision_distance_callback,
+            10,
+        )
 
         # =====================================================
         # 5. Pose publishers
@@ -417,6 +818,54 @@ class QuestDualIKFusion(Node):
             )
         )
 
+        self.safety_state_pub = self.create_publisher(
+            String,
+            "/vr_rm75/safety_state",
+            10,
+        )
+
+        self.command_allowed_pub = self.create_publisher(
+            Bool,
+            "/vr_rm75/command_allowed",
+            10,
+        )
+
+        self.deadman_state_pub = self.create_publisher(
+            Bool,
+            "/vr_rm75/deadman_active",
+            10,
+        )
+
+        self.collision_state_pub = self.create_publisher(
+            String,
+            "/vr_rm75/collision/state",
+            10,
+        )
+
+        self.collision_speed_scale_pub = self.create_publisher(
+            Float32,
+            "/vr_rm75/collision/speed_scale",
+            10,
+        )
+
+        self.robot_command_sent_pub = self.create_publisher(
+            Bool,
+            "/vr_rm75/robot_command_sent",
+            10,
+        )
+
+        self.robot_command_status_pub = self.create_publisher(
+            String,
+            "/vr_rm75/robot_command_status",
+            10,
+        )
+
+        self.fault_reset_service = self.create_service(
+            Trigger,
+            "/vr_rm75/reset_safety_fault",
+            self.reset_safety_fault_callback,
+        )
+
         # =====================================================
         # 7. TF broadcaster
         # =====================================================
@@ -433,7 +882,7 @@ class QuestDualIKFusion(Node):
 
         self.timer = (
             self.create_timer(
-                0.02,
+                self.control_period_s,
                 self.control_update,
             )
         )
@@ -444,14 +893,833 @@ class QuestDualIKFusion(Node):
             "Quest dual-arm IK fusion started."
         )
 
-        self.get_logger().info(
-            "Simulation / visualization only. "
-            "NO command is sent to the real robot."
-        )
+        if self.enable_robot_motion:
+            self.get_logger().warning(
+                "REAL ROBOT MOTION GATE ENABLED. Low-follow movej_canfd "
+                "remains blocked until every Safety Supervisor guard is "
+                "ENGAGED."
+            )
+        else:
+            self.get_logger().info(
+                "Dry-run mode: enable_robot_motion=false; command sockets "
+                "are not opened and NO robot command can be sent."
+            )
 
         self.get_logger().info(
             "Waiting for LEFT and RIGHT Quest poses..."
         )
+
+        if self.require_robot_state:
+
+            self.get_logger().info(
+                "Waiting for fresh LEFT and RIGHT RM75 actual state "
+                "before initializing IK."
+            )
+
+        else:
+
+            self.get_logger().warning(
+                "RViz-only fallback enabled: real robot state is not "
+                "required. Static validation prevents enabling real "
+                "motion in this mode."
+            )
+
+        if self.collision_protection_enabled:
+            source_order = ", ".join(
+                source.value for source in COLLISION_SOURCES
+            )
+            self.get_logger().info(
+                "Collision protection enabled; waiting for atomic "
+                f"distance snapshots ordered as [{source_order}]."
+            )
+        else:
+            self.get_logger().warning(
+                "Collision protection explicitly disabled. This is only "
+                "acceptable for offline/RViz commissioning."
+            )
+
+    # =========================================================
+    # Read-only robot state callbacks
+    # =========================================================
+
+    @staticmethod
+    def expected_robot_joint_names(
+        side,
+    ):
+
+        prefix = (
+            "l"
+            if side == "left"
+            else "r"
+        )
+
+        return [
+            f"{prefix}_rm75_joint_{index}"
+            for index in range(
+                1,
+                8,
+            )
+        ]
+
+    def robot_joint_state_callback(
+        self,
+        side,
+        msg,
+    ):
+
+        state = self.arms[
+            side
+        ]
+
+        expected_names = (
+            self.expected_robot_joint_names(
+                side
+            )
+        )
+
+        try:
+
+            if len(msg.name) != len(msg.position):
+                raise ValueError(
+                    "JointState name/position lengths differ"
+                )
+
+            if len(set(msg.name)) != len(msg.name):
+                raise ValueError(
+                    "JointState contains duplicate names"
+                )
+
+            position_by_name = dict(
+                zip(
+                    msg.name,
+                    msg.position,
+                )
+            )
+
+            missing = [
+                name
+                for name in expected_names
+                if name not in position_by_name
+            ]
+
+            if missing:
+                raise ValueError(
+                    "JointState missing joints: "
+                    + ", ".join(
+                        missing
+                    )
+                )
+
+            q_measured = [
+                position_by_name[
+                    name
+                ]
+                for name in expected_names
+            ]
+
+            state.update_measured_q(
+                q_measured,
+                received_monotonic=
+                    time.perf_counter(),
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
+
+            state.reject_measured_q(
+                exc
+            )
+
+            self.get_logger().error(
+                f"{side.upper()} invalid measured JointState: "
+                f"{exc}"
+            )
+
+            self.robot_system_ready = (
+                self.refresh_robot_system_readiness()
+            )
+
+            return
+
+        self.robot_system_ready = (
+            self.refresh_robot_system_readiness()
+        )
+
+    def robot_connected_callback(
+        self,
+        side,
+        msg,
+    ):
+
+        state = self.arms[
+            side
+        ]
+
+        connected = bool(
+            msg.data
+        )
+
+        if connected == state.robot_connected:
+            return
+
+        state.robot_connected = connected
+
+        if not connected:
+
+            state.invalidate_anchor()
+
+            self.get_logger().warning(
+                f"{side.upper()} RM75 state connection LOST."
+            )
+
+        self.robot_system_ready = (
+            self.refresh_robot_system_readiness()
+        )
+
+    def robot_stale_callback(
+        self,
+        side,
+        msg,
+    ):
+
+        state = self.arms[
+            side
+        ]
+
+        stale = bool(
+            msg.data
+        )
+
+        if stale == state.robot_reported_stale:
+            return
+
+        state.robot_reported_stale = stale
+
+        if stale:
+
+            state.invalidate_anchor()
+
+            self.get_logger().warning(
+                f"{side.upper()} RM75 state STALE."
+            )
+
+        self.robot_system_ready = (
+            self.refresh_robot_system_readiness()
+        )
+
+    def robot_enabled_callback(
+        self,
+        side,
+        msg,
+    ):
+
+        state = self.arms[
+            side
+        ]
+        state.robot_joints_enabled = bool(
+            msg.data
+        )
+        state.robot_enable_known = True
+
+    def robot_fault_callback(
+        self,
+        side,
+        msg,
+    ):
+
+        state = self.arms[
+            side
+        ]
+        state.robot_fault = bool(
+            msg.data
+        )
+        state.robot_fault_known = True
+
+    def collision_distance_callback(
+        self,
+        msg,
+    ):
+        """Accept one atomic five-class minimum-distance snapshot."""
+        values = list(msg.data)
+        if len(values) != len(COLLISION_SOURCES):
+            reason = (
+                "collision distance array must contain exactly "
+                f"{len(COLLISION_SOURCES)} values, got {len(values)}"
+            )
+            self.collision_monitor.reject_snapshot(reason)
+            self.get_logger().error(reason)
+        else:
+            distances_m = {
+                source: value
+                for source, value in zip(COLLISION_SOURCES, values)
+            }
+            try:
+                self.collision_monitor.update_snapshot(
+                    distances_m,
+                    received_monotonic=time.perf_counter(),
+                )
+            except (TypeError, ValueError) as exc:
+                self.get_logger().error(
+                    f"invalid collision distance snapshot: {exc}"
+                )
+
+        self.update_safety_supervisor(
+            time.perf_counter()
+        )
+
+    def refresh_collision_safety(
+        self,
+        now_monotonic,
+    ):
+        """Refresh the collision watchdog and global dual-arm safety guard."""
+        if self.collision_protection_enabled:
+            decision = self.collision_monitor.evaluate(now_monotonic)
+        else:
+            decision = disabled_collision_decision()
+
+        self.last_collision_decision = decision
+        self.safety_supervisor.update_collision(
+            ready=decision.ready,
+            hold_required=decision.hold_required,
+            speed_scale=decision.speed_scale,
+            reason=decision.reason,
+        )
+        self.collision_state_pub.publish(
+            String(
+                data=f"{decision.region.value}: {decision.reason}"
+            )
+        )
+        self.collision_speed_scale_pub.publish(
+            Float32(data=decision.speed_scale)
+        )
+        return decision
+
+    def refresh_actuator_safety(
+        self,
+        now_monotonic,
+    ):
+        """Refresh command-channel state and the output-side watchdog."""
+        if not self.enable_robot_motion:
+            self.safety_supervisor.update_actuator(
+                ready=True,
+                hold_required=False,
+                fault=False,
+                reason="robot motion explicitly disabled; dry-run only",
+            )
+            return
+
+        if (
+            self.robot_command_hold_required
+            and not self.deadman_active
+            and not self.robot_command_transport_fault
+        ):
+            self.robot_command_hold_required = False
+            self.robot_command_hold_reason = (
+                "command rejection cleared after deadman release"
+            )
+            self.robot_command_dispatcher.disarm()
+
+        if self.safety_supervisor.state == SafetyState.ENGAGED:
+            watchdog_reference = (
+                self.robot_command_dispatcher.last_send_monotonic
+            )
+            if watchdog_reference is None:
+                watchdog_reference = self.robot_command_gate_open_since
+            if (
+                watchdog_reference is not None
+                and now_monotonic - watchdog_reference
+                > self.command_timeout_s
+            ):
+                self.robot_command_hold_required = True
+                self.robot_command_hold_reason = (
+                    "real-robot command output watchdog expired"
+                )
+
+        fault = bool(
+            self.robot_command_transport_fault
+            or self.robot_command_dispatcher.faulted
+        )
+        ready = bool(
+            self.robot_command_dispatcher.connected
+            and not fault
+        )
+        if fault:
+            reason = self.robot_command_dispatcher.last_reason
+        elif self.robot_command_hold_required:
+            reason = self.robot_command_hold_reason
+        elif ready:
+            reason = "dual-arm low-follow command channels connected"
+        else:
+            reason = "dual-arm command channels are not connected"
+
+        self.safety_supervisor.update_actuator(
+            ready=ready,
+            hold_required=self.robot_command_hold_required,
+            fault=fault,
+            reason=reason,
+        )
+
+    def publish_robot_command_status(
+        self,
+        sent,
+        reason,
+    ):
+        """Publish whether this cycle crossed the actuator boundary."""
+        self.robot_command_sent_pub.publish(
+            Bool(data=bool(sent))
+        )
+        self.robot_command_status_pub.publish(
+            String(data=str(reason))
+        )
+
+    def dispatch_robot_commands(
+        self,
+        safety_decision,
+        now_monotonic,
+    ):
+        """Dispatch one fully guarded dual-arm target, or remain dry-run."""
+        if not self.enable_robot_motion:
+            reason = "enable_robot_motion=false; dry-run only"
+            self.publish_robot_command_status(False, reason)
+            return None
+
+        if not safety_decision.command_allowed:
+            self.robot_command_dispatcher.disarm()
+            reason = (
+                "Safety Supervisor command gate closed: "
+                f"{safety_decision.reason}"
+            )
+            self.publish_robot_command_status(False, reason)
+            return None
+
+        q_commands = {
+            side: state.q_safe
+            for side, state in self.arms.items()
+        }
+        q_measured = {
+            side: state.q_measured
+            for side, state in self.arms.items()
+        }
+        generated_times = [
+            state.last_safe_command_time
+            for state in self.arms.values()
+        ]
+        if any(value is None for value in generated_times):
+            self.robot_command_hold_required = True
+            self.robot_command_hold_reason = (
+                "safe dual-arm command timestamp unavailable"
+            )
+            self.update_safety_supervisor(now_monotonic)
+            self.publish_robot_command_status(
+                False,
+                self.robot_command_hold_reason,
+            )
+            return None
+
+        generated_monotonic = min(generated_times)
+        try:
+            result = self.robot_command_dispatcher.dispatch(
+                q_commands,
+                q_measured,
+                generated_monotonic=generated_monotonic,
+                safety_command_allowed=safety_decision.command_allowed,
+                now_monotonic=now_monotonic,
+            )
+        except RM75CommandRejectedError as exc:
+            self.robot_command_hold_required = True
+            self.robot_command_hold_reason = str(exc)
+            self.update_safety_supervisor(now_monotonic)
+            self.publish_robot_command_status(False, exc)
+            return None
+        except (
+            RM75CommandConnectionError,
+            RM75ControllerCommandError,
+        ) as exc:
+            reason = f"real-robot command transport fault: {exc}"
+            self.robot_command_transport_fault = True
+            self.robot_command_dispatcher.latch_transport_fault(reason)
+            self.update_safety_supervisor(now_monotonic)
+            self.publish_robot_command_status(False, reason)
+            return None
+
+        self.publish_robot_command_status(result.sent, result.reason)
+        return result
+
+    def quest_input_source_is_fresh(
+        self,
+        now_monotonic,
+    ):
+        """Require a recent positive freshness report from the Quest bridge."""
+        if (
+            not self.quest_input_fresh_reported
+            or self.last_quest_input_status_time is None
+        ):
+            return False
+        age_s = max(
+            0.0,
+            now_monotonic - self.last_quest_input_status_time,
+        )
+        return age_s <= self.deadman_input_timeout_s
+
+    def apply_deadman_decision(
+        self,
+        decision,
+    ):
+        """Propagate only deadman edges into the Safety Supervisor."""
+        self.deadman_state_pub.publish(
+            Bool(data=decision.active)
+        )
+        if decision.active == self.deadman_active:
+            return
+        if decision.active:
+            self.get_logger().info(
+                "Dual-grip deadman ENGAGED."
+            )
+        else:
+            self.get_logger().warning(
+                "Dual-grip deadman RELEASED: "
+                f"{decision.reason}"
+            )
+        self.set_deadman_active(
+            decision.active
+        )
+
+    def grip_callback(
+        self,
+        side,
+        msg,
+    ):
+        """Consume one verified Quest analog grip sample."""
+        now_monotonic = time.perf_counter()
+        decision = self.deadman_clutch.update_grip(
+            side,
+            msg.data,
+            now_monotonic=now_monotonic,
+            source_fresh=self.quest_input_source_is_fresh(
+                now_monotonic
+            ),
+        )
+        self.apply_deadman_decision(
+            decision
+        )
+
+    def quest_input_fresh_callback(
+        self,
+        msg,
+    ):
+        """Fail closed when the bridge reports an APK/logcat source gap."""
+        now_monotonic = time.perf_counter()
+        self.quest_input_fresh_reported = bool(
+            msg.data
+        )
+        self.last_quest_input_status_time = now_monotonic
+        decision = self.deadman_clutch.evaluate(
+            now_monotonic,
+            source_fresh=self.quest_input_fresh_reported,
+        )
+        self.apply_deadman_decision(
+            decision
+        )
+
+    def refresh_deadman(
+        self,
+        now_monotonic,
+    ):
+        """Apply local topic and per-hand watchdogs every control cycle."""
+        decision = self.deadman_clutch.evaluate(
+            now_monotonic,
+            source_fresh=self.quest_input_source_is_fresh(
+                now_monotonic
+            ),
+        )
+        self.apply_deadman_decision(
+            decision
+        )
+        return decision
+
+    def set_deadman_active(
+        self,
+        active,
+    ):
+        """Apply a verified physical deadman decision to safety state."""
+        self.deadman_active = bool(
+            active
+        )
+        self.update_safety_supervisor(
+            time.perf_counter()
+        )
+
+    def reset_safety_fault_callback(
+        self,
+        _request,
+        response,
+    ):
+        """Request reset of only the software latch, never robot faults."""
+        for state in self.arms.values():
+            if state.q_safe is not None:
+                state.q_candidate = state.q_safe.copy()
+                state.q_command = state.q_safe.copy()
+                state.command_numeric_valid = True
+        requested = self.safety_supervisor.request_fault_reset()
+        if not requested:
+            response.success = False
+            response.message = "safety state is not FAULT"
+            return response
+
+        if (
+            self.enable_robot_motion
+            and not self.deadman_active
+            and (
+                self.robot_command_transport_fault
+                or self.robot_command_dispatcher.faulted
+            )
+        ):
+            self.robot_command_dispatcher.reset_fault()
+            self.robot_command_transport_fault = False
+            self.robot_command_hold_required = False
+            try:
+                self.robot_command_dispatcher.connect()
+            except RM75CommandConnectionError as exc:
+                reason = f"command reconnect failed: {exc}"
+                self.robot_command_transport_fault = True
+                self.robot_command_dispatcher.latch_transport_fault(
+                    reason
+                )
+
+        decision = self.update_safety_supervisor(
+            time.perf_counter()
+        )
+        response.success = decision.state != SafetyState.FAULT
+        response.message = decision.reason
+        return response
+
+    def refresh_robot_readiness(
+        self,
+        state,
+    ):
+
+        if not self.require_robot_state:
+            return True
+
+        ready = state.robot_state_ready(
+            self.robot_state_timeout_s,
+            time.perf_counter(),
+        )
+
+        if (
+            ready
+            and
+            not state.initialized_from_robot
+        ):
+
+            ready = state.initialize_from_measured(
+                self.robot_state_timeout_s,
+                time.perf_counter(),
+            )
+
+            if ready:
+
+                self.get_logger().info(
+                    f"{state.side.upper()} IK initialized from "
+                    "fresh q_measured. Waiting for VR anchor."
+                )
+
+        if (
+            state.robot_ready_previous
+            and
+            not ready
+        ):
+
+            state.invalidate_anchor()
+
+            self.get_logger().warning(
+                f"{state.side.upper()} robot state unavailable; "
+                "IK target update is HOLD."
+            )
+
+        state.robot_ready_previous = ready
+
+        return (
+            ready
+            and
+            state.initialized_from_robot
+        )
+
+    def refresh_robot_system_readiness(
+        self,
+    ):
+
+        if not self.require_robot_state:
+            self.robot_system_ready = True
+            return True
+
+        readiness = [
+            self.refresh_robot_readiness(
+                state,
+            )
+            for state in self.arms.values()
+        ]
+
+        ready = all(
+            readiness
+        )
+
+        if (
+            self.robot_system_ready
+            and
+            not ready
+        ):
+
+            for state in self.arms.values():
+                state.invalidate_anchor()
+
+            self.get_logger().warning(
+                "Dual-arm robot state unavailable; both VR anchors "
+                "invalidated and IK target updates are HOLD."
+            )
+
+        self.robot_system_ready = ready
+
+        return ready
+
+    def vr_state_is_stale(
+        self,
+        state,
+        now_monotonic,
+    ):
+        """Return local VR freshness without trusting message timestamps."""
+        if state.last_vr_rx_time is None:
+            return True
+        age_s = max(
+            0.0,
+            now_monotonic - state.last_vr_rx_time,
+        )
+        return (
+            state.pose_stale
+            or age_s > self.vr_pose_timeout_s
+        )
+
+    def update_safety_supervisor(
+        self,
+        now_monotonic,
+    ):
+        """Refresh both arm observations and evaluate one explicit state."""
+        self.refresh_collision_safety(
+            now_monotonic
+        )
+        self.refresh_actuator_safety(
+            now_monotonic
+        )
+
+        for side, state in self.arms.items():
+            if self.require_robot_state:
+                robot_initialized = (
+                    state.initialized_from_robot
+                    and state.robot_fault_known
+                    and state.robot_enable_known
+                )
+                robot_connected = state.robot_connected
+                robot_stale = (
+                    state.robot_reported_stale
+                    or not state.robot_state_ready(
+                        self.robot_state_timeout_s,
+                        now_monotonic,
+                    )
+                )
+                robot_enabled = state.robot_joints_enabled
+                robot_fault = state.robot_fault
+                q_measured = state.q_measured
+                measured_numeric_valid = (
+                    not state.initialized_from_robot
+                    or state.robot_data_valid
+                )
+            else:
+                robot_initialized = state.q_safe is not None
+                robot_connected = True
+                robot_stale = False
+                robot_enabled = True
+                robot_fault = False
+                q_measured = state.q_safe
+                measured_numeric_valid = True
+
+            self.safety_supervisor.update_arm(
+                side,
+                q_measured=q_measured,
+                q_candidate=state.q_candidate,
+                q_command=state.q_command,
+                joint_velocity=state.joint_velocity,
+                joint_acceleration=state.joint_acceleration,
+                sigma_min=state.last_sigma_min,
+                robot_initialized=robot_initialized,
+                robot_connected=robot_connected,
+                robot_stale=robot_stale,
+                robot_enabled=robot_enabled,
+                robot_fault=robot_fault,
+                vr_tracking_valid=state.tracking_valid,
+                vr_stale=self.vr_state_is_stale(
+                    state,
+                    now_monotonic,
+                ),
+                last_command_monotonic=(
+                    state.last_safe_command_time
+                ),
+                consecutive_ik_failures=(
+                    state.consecutive_ik_failures
+                ),
+                upstream_numeric_valid=(
+                    measured_numeric_valid
+                    and state.vr_numeric_valid
+                    and state.command_numeric_valid
+                ),
+            )
+
+        decision = self.safety_supervisor.evaluate(
+            deadman_active=self.deadman_active,
+            now_monotonic=now_monotonic,
+        )
+
+        if (
+            decision.state == SafetyState.ENGAGED
+            and decision.previous_state != SafetyState.ENGAGED
+        ):
+            self.robot_command_gate_open_since = now_monotonic
+        elif decision.state != SafetyState.ENGAGED:
+            self.robot_command_gate_open_since = None
+
+        if decision.changed:
+            message = (
+                f"Safety {decision.previous_state.value} -> "
+                f"{decision.state.value}: {decision.reason}"
+            )
+            if decision.state in (
+                SafetyState.HOLD,
+                SafetyState.FAULT,
+            ):
+                self.get_logger().warning(
+                    message
+                )
+            else:
+                self.get_logger().info(
+                    message
+                )
+
+            if decision.state in (
+                SafetyState.INIT,
+                SafetyState.HOLD,
+                SafetyState.FAULT,
+            ):
+                for state in self.arms.values():
+                    state.invalidate_anchor()
+
+        self.safety_state_pub.publish(
+            String(data=decision.state.value)
+        )
+        self.command_allowed_pub.publish(
+            Bool(data=decision.command_allowed)
+        )
+        return decision
 
     # =========================================================
     # Quest callbacks
@@ -497,14 +1765,8 @@ class QuestDualIKFusion(Node):
 
         if not valid:
 
-            # 当前 VR pose 不再可信。
-            state.T_vr_latest = None
-
-            # 原来的 anchor 作废。
-            state.anchored = False
-            state.need_reanchor = True
-
-            state.last_vr_rx_time = None
+            # 当前 VR pose 不再可信，旧相对位移全部作废。
+            state.invalidate_anchor()
 
             self.get_logger().warning(
                 f"{side.upper()} Quest tracking LOST."
@@ -555,6 +1817,15 @@ class QuestDualIKFusion(Node):
         if not state.tracking_valid:
             return
 
+        # 真实状态未初始化、通信断开或反馈 stale 时，
+        # 不允许 capture anchor，更不允许 IK 更新目标。
+        if (
+            self.require_robot_state
+            and
+            not self.refresh_robot_system_readiness()
+        ):
+            return
+
         p = msg.pose.position
         q = msg.pose.orientation
 
@@ -579,6 +1850,8 @@ class QuestDualIKFusion(Node):
 
         except ValueError as exc:
 
+            state.vr_numeric_valid = False
+
             self.get_logger().warning(
                 f"{side.upper()} invalid Quest pose: "
                 f"{exc}"
@@ -586,14 +1859,25 @@ class QuestDualIKFusion(Node):
 
             return
 
+        state.vr_numeric_valid = True
+
+        vr_rx_time = (
+            time.perf_counter()
+        )
+
         state.T_vr_latest = T_vr
 
         state.last_vr_rx_time = (
-            time.perf_counter()
+            vr_rx_time
         )
 
         state.pose_stale = False
 
+        # READY/HOLD only observe freshness.  They never consume relative VR
+        # displacement.  After ENGAGED, the next fresh sample becomes the new
+        # coincident controller/robot anchor.
+        if self.safety_supervisor.state != SafetyState.ENGAGED:
+            return
 
         # 首次启动或 tracking 恢复后：
         # 同时重新建立 VR anchor 和 robot anchor。
@@ -603,18 +1887,22 @@ class QuestDualIKFusion(Node):
             not state.anchored
         ):
 
-            # 当前 Quest 手柄作为新的 VR 零点
-            state.T_vr_anchor = (
-                T_vr.copy()
+            captured = state.capture_vr_anchor(
+                T_vr=T_vr,
+                require_robot_state=
+                    self.require_robot_state,
+                robot_timeout_s=
+                    self.robot_state_timeout_s,
+                now_monotonic=
+                    vr_rx_time,
             )
 
-            # 当前机械臂安全位姿作为新的 robot 零点
-            state.T_ee_anchor = (
-                state.T_safe.copy()
-            )
+            if not captured:
+                return
 
-            state.anchored = True
-            state.need_reanchor = False
+            state.last_vr_rx_time = (
+                vr_rx_time
+            )
 
             self.get_logger().info(
                 f"{side.upper()} VR/EE anchor captured."
@@ -624,6 +1912,27 @@ class QuestDualIKFusion(Node):
     # 50 Hz main loop
     # =========================================================
 
+    def next_joint_limit_dt(
+        self,
+        now_monotonic,
+    ):
+        """Return a conservative measured period for joint rate limiting."""
+        now_monotonic = float(now_monotonic)
+        if not np.isfinite(now_monotonic):
+            raise ValueError("control clock must be finite")
+
+        previous = self.last_control_cycle_time
+        self.last_control_cycle_time = now_monotonic
+        if previous is None:
+            return self.control_period_s
+
+        elapsed_s = now_monotonic - previous
+        if not np.isfinite(elapsed_s) or elapsed_s <= 0.0:
+            return 0.0
+
+        # A late callback must not accumulate a larger one-frame joint jump.
+        return min(elapsed_s, self.control_period_s)
+
     def control_update(
         self,
     ):
@@ -632,10 +1941,26 @@ class QuestDualIKFusion(Node):
             time.perf_counter()
         )
 
+        joint_limit_dt_s = self.next_joint_limit_dt(
+            cycle_start
+        )
+
         now = (
             self.get_clock()
             .now()
             .to_msg()
+        )
+
+        self.robot_system_ready = (
+            self.refresh_robot_system_readiness()
+        )
+
+        self.refresh_deadman(
+            cycle_start
+        )
+
+        self.update_safety_supervisor(
+            cycle_start
         )
 
         # =====================================================
@@ -651,16 +1976,43 @@ class QuestDualIKFusion(Node):
                 side
             ]
 
-            self.update_arm(
-                state=state,
-                stamp=now,
-            )
+            try:
+                self.update_arm(
+                    state=state,
+                    stamp=now,
+                    joint_limit_dt_s=joint_limit_dt_s,
+                )
+            except (
+                FloatingPointError,
+                KeyError,
+                TypeError,
+                ValueError,
+                np.linalg.LinAlgError,
+            ) as exc:
+                state.command_numeric_valid = False
+                self.get_logger().error(
+                    f"{side.upper()} rejected invalid numeric control "
+                    f"result: {exc}"
+                )
+                self.update_safety_supervisor(
+                    time.perf_counter()
+                )
+
+        # Re-evaluate after IK so malformed candidates and repeated failures
+        # are visible before any actuator dispatch or dry-run publication.
+        command_evaluation_time = time.perf_counter()
+        safety_decision = self.update_safety_supervisor(
+            command_evaluation_time
+        )
+
+        self.dispatch_robot_commands(
+            safety_decision,
+            time.perf_counter(),
+        )
 
         # =====================================================
-        # 每周期发布一次完整双臂 q。
-        #
-        # 即使某一只手还没建立 VR anchor，
-        # 该臂也会保持 q_start。
+        # 两臂都完成 measured-state 初始化后，
+        # 每周期发布一次完整双臂安全 q。
         # =====================================================
 
         self.publish_dual_joint_state(
@@ -696,7 +2048,28 @@ class QuestDualIKFusion(Node):
         self,
         state,
         stamp,
+        joint_limit_dt_s,
     ):
+
+        if self.safety_supervisor.state != SafetyState.ENGAGED:
+            return
+
+        if (
+            self.require_robot_state
+            and
+            not self.robot_system_ready
+        ):
+            return
+
+        if (
+            state.q_safe is None
+            or
+            state.T_safe is None
+        ):
+            return
+
+        if joint_limit_dt_s <= 0.0:
+            return
 
         if not state.tracking_valid:
             return
@@ -707,7 +2080,6 @@ class QuestDualIKFusion(Node):
             state.T_vr_latest is None
         ):
             return
-
 
         # VR data stream timeout protection
         if (
@@ -726,8 +2098,7 @@ class QuestDualIKFusion(Node):
 
                 # 数据恢复后重新 anchor，
                 # 防止断流期间手柄运动造成跳变。
-                state.anchored = False
-                state.need_reanchor = True
+                state.invalidate_anchor()
 
                 self.get_logger().warning(
                     f"{state.side.upper()} Quest pose STALE."
@@ -759,6 +2130,33 @@ class QuestDualIKFusion(Node):
                 orientation_scale=
                     self.orientation_scale,
             )
+        )
+
+        current_sigma_min = minimum_singular_value(
+            state.q_safe,
+            state.model,
+        )
+        singularity_rate_scale = singularity_speed_scale(
+            current_sigma_min,
+            sigma_stop=self.sigma_stop,
+            sigma_warn=self.sigma_warn,
+        )
+        current_singularity_region = singularity_region(
+            current_sigma_min,
+            sigma_stop=self.sigma_stop,
+            sigma_warn=self.sigma_warn,
+        )
+        state.last_current_sigma_min = float(current_sigma_min)
+        state.last_singularity_speed_scale = float(
+            singularity_rate_scale
+        )
+        state.last_singularity_region = current_singularity_region
+        collision_rate_scale = float(
+            self.safety_supervisor.collision_speed_scale
+        )
+        combined_rate_scale = (
+            singularity_rate_scale
+            * collision_rate_scale
         )
 
         # =====================================================
@@ -845,22 +2243,30 @@ class QuestDualIKFusion(Node):
         else:
 
             # -------------------------------------------------
-            # Safe mode:
+            # Safe mode.  The nominal Cartesian rates are converted to this
+            # cycle's step budget.  Smoothstep scaling is 1 in the safe
+            # region, continuously decreases through warning, and is 0 at
+            # or below sigma_stop.  Projection and final-command hold remain
+            # independent hard barriers.
             # -------------------------------------------------
+
+            max_translation_step = (
+                self.max_cartesian_translation_rate
+                * joint_limit_dt_s
+                * combined_rate_scale
+            )
+            max_rotation_step = (
+                self.max_cartesian_rotation_rate
+                * joint_limit_dt_s
+                * combined_rate_scale
+            )
 
             limit_result = (
                 limit_pose_step(
-                    T_current=
-                        state.T_safe,
-
-                    T_desired=
-                        T_raw,
-
-                    max_translation_step=
-                        self.max_translation_step,
-
-                    max_rotation_step=
-                        self.max_rotation_step,
+                    T_current=state.T_safe,
+                    T_desired=T_raw,
+                    max_translation_step=max_translation_step,
+                    max_rotation_step=max_rotation_step,
                 )
             )
 
@@ -924,11 +2330,12 @@ class QuestDualIKFusion(Node):
             #       ↓
             # direct IK
             #
-            # 完全绕过：
+            # 绕过 Cartesian target 级别的：
             #
-            # sigma_stop
             # target feasibility
             # binary projection
+            #
+            # 但最终 q_command 的限速、FK 和 sigma 检查不会绕过。
             # -------------------------------------------------
 
             ik_result = (
@@ -1051,6 +2458,14 @@ class QuestDualIKFusion(Node):
                 )
             )
 
+        result = dict(result)
+        result["current_sigma_min"] = float(current_sigma_min)
+        result["singularity_region"] = current_singularity_region
+        result["singularity_speed_scale"] = float(
+            singularity_rate_scale
+        )
+        result["collision_speed_scale"] = collision_rate_scale
+        result["combined_speed_scale"] = combined_rate_scale
 
         solve_ms = (
             time.perf_counter()
@@ -1060,6 +2475,41 @@ class QuestDualIKFusion(Node):
         if not result[
             "success"
         ]:
+
+            try:
+                state.q_candidate = np.asarray(
+                    result[
+                        "q_safe"
+                    ],
+                    dtype=float,
+                ).copy()
+                state.last_sigma_min = float(
+                    result[
+                        "sigma_min"
+                    ]
+                )
+                failed_result_numeric_valid = (
+                    state.q_candidate.shape == (state.model.DOF,)
+                    and np.all(np.isfinite(state.q_candidate))
+                    and np.isfinite(state.last_sigma_min)
+                    and state.last_sigma_min >= 0.0
+                )
+            except (
+                KeyError,
+                TypeError,
+                ValueError,
+            ):
+                state.q_candidate = np.full(
+                    state.model.DOF,
+                    np.nan,
+                )
+                state.last_sigma_min = np.nan
+                failed_result_numeric_valid = False
+
+            state.command_numeric_valid = bool(
+                failed_result_numeric_valid
+            )
+            state.consecutive_ik_failures += 1
 
             state.last_solve_ms = (
                 solve_ms
@@ -1073,39 +2523,237 @@ class QuestDualIKFusion(Node):
                 limit_result
             )
 
+            self.update_safety_supervisor(
+                time.perf_counter()
+            )
+
             return
 
         # =====================================================
-        # 5. Advance safe state
-        #
-        # T_safe 与 q_safe 必须一起更新。
+        # 5. Validate the projected IK candidate before rate limiting
         # =====================================================
 
+        try:
+            q_candidate = np.asarray(
+                result[
+                    "q_safe"
+                ],
+                dtype=float,
+            )
+            T_candidate = np.asarray(
+                result[
+                    "T_safe"
+                ],
+                dtype=float,
+            )
+            sigma_min = float(
+                result[
+                    "sigma_min"
+                ]
+            )
+            candidate_numeric_valid = (
+                q_candidate.shape == (state.model.DOF,)
+                and T_candidate.shape == (4, 4)
+                and np.all(np.isfinite(q_candidate))
+                and np.all(np.isfinite(T_candidate))
+                and np.all(q_candidate >= state.model.q_min)
+                and np.all(q_candidate <= state.model.q_max)
+                and np.isfinite(sigma_min)
+                and sigma_min >= 0.0
+            )
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+        ):
+            q_candidate = np.full(
+                state.model.DOF,
+                np.nan,
+            )
+            T_candidate = state.T_safe.copy()
+            sigma_min = np.nan
+            candidate_numeric_valid = False
+
+        state.q_candidate = q_candidate.copy()
+        state.last_sigma_min = sigma_min
+        state.command_numeric_valid = bool(
+            candidate_numeric_valid
+        )
+
+        decision = self.update_safety_supervisor(
+            time.perf_counter()
+        )
+        if not decision.command_allowed:
+            return
+
+        # =====================================================
+        # 6. q_candidate -> soft target -> qddot/qdot -> q_command
+        # =====================================================
+
+        q_current = state.q_safe.copy()
+        active_joint_velocity_limit = (
+            state.joint_velocity_limit
+            * collision_rate_scale
+        )
+        q_soft_target, joint_soft_limited = limit_joint_soft_position(
+            q_current=q_current,
+            q_target=q_candidate,
+            soft_min=state.q_soft_min,
+            soft_max=state.q_soft_max,
+        )
+
+        previous_joint_velocity = state.joint_velocity.copy()
+        (
+            q_command,
+            _acceleration_limited_velocity,
+            joint_acceleration_limited,
+        ) = limit_joint_acceleration(
+            q_current=q_current,
+            q_target=q_soft_target,
+            qd_current=previous_joint_velocity,
+            qdd_limit=state.joint_acceleration_limit,
+            dt=joint_limit_dt_s,
+        )
+
+        q_command, joint_rate_limited = limit_joint_velocity(
+            q_current=q_current,
+            q_target=q_command,
+            qd_limit=active_joint_velocity_limit,
+            dt=joint_limit_dt_s,
+        )
+
+        q_command, final_soft_limited = limit_joint_soft_position(
+            q_current=q_current,
+            q_target=q_command,
+            soft_min=state.q_soft_min,
+            soft_max=state.q_soft_max,
+        )
+        joint_soft_limited = bool(
+            joint_soft_limited or final_soft_limited
+        )
+
+        limited_sigma_min = minimum_singular_value(
+            q_command,
+            state.model,
+        )
+        singularity_hold = limited_sigma_min <= self.sigma_stop
+        if singularity_hold:
+            q_command = q_current.copy()
+
+        # The final Cartesian safe state and singular value must describe
+        # the actual rate-limited joint command, never the IK candidate.
+        T_joint_command = forward_kinematics(
+            q_command,
+            model=state.model,
+        )
+        command_sigma_min = minimum_singular_value(
+            q_command,
+            state.model,
+        )
+        joint_velocity = (
+            q_command - q_current
+        ) / joint_limit_dt_s
+        joint_acceleration = (
+            joint_velocity - previous_joint_velocity
+        ) / joint_limit_dt_s
+
+        command_numeric_valid = (
+            q_command.shape == (state.model.DOF,)
+            and T_joint_command.shape == (4, 4)
+            and joint_velocity.shape == (state.model.DOF,)
+            and joint_acceleration.shape == (state.model.DOF,)
+            and np.all(np.isfinite(q_command))
+            and np.all(np.isfinite(T_joint_command))
+            and np.all(np.isfinite(joint_velocity))
+            and np.all(np.isfinite(joint_acceleration))
+            and np.all(q_command >= state.model.q_min)
+            and np.all(q_command <= state.model.q_max)
+            and np.all(q_command >= state.q_soft_min)
+            and np.all(q_command <= state.q_soft_max)
+            and np.isfinite(command_sigma_min)
+            and command_sigma_min >= self.sigma_stop
+        )
+
+        state.last_candidate_sigma_min = sigma_min
+        state.last_joint_rate_limited = bool(joint_rate_limited)
+        state.last_joint_acceleration_limited = bool(
+            joint_acceleration_limited
+        )
+        state.last_joint_soft_limited = bool(joint_soft_limited)
+        state.last_joint_limit_dt_s = float(joint_limit_dt_s)
+        state.singularity_hold = bool(singularity_hold)
+        state.last_sigma_min = float(command_sigma_min)
+        state.command_numeric_valid = bool(command_numeric_valid)
+
+        if not command_numeric_valid:
+            self.update_safety_supervisor(
+                time.perf_counter()
+            )
+            return
+
+        previous_q_command = state.q_command.copy()
+        previous_joint_acceleration = state.joint_acceleration.copy()
+        state.q_command = q_command.copy()
+        state.joint_velocity = joint_velocity.copy()
+        state.joint_acceleration = joint_acceleration.copy()
+
+        decision = self.update_safety_supervisor(
+            time.perf_counter()
+        )
+        if not decision.command_allowed:
+            state.q_command = previous_q_command
+            state.joint_velocity = previous_joint_velocity
+            state.joint_acceleration = previous_joint_acceleration
+            return
+
         state.T_safe = (
-            result[
-                "T_safe"
-            ].copy()
+            T_joint_command.copy()
         )
 
         state.q_safe = (
-            result[
-                "q_safe"
-            ].copy()
+            state.q_command.copy()
         )
+        state.consecutive_ik_failures = 0
+        state.last_safe_command_time = time.perf_counter()
+
+        result = dict(result)
+        result["candidate_sigma_min"] = sigma_min
+        result["limited_sigma_min"] = limited_sigma_min
+        result["sigma_min"] = command_sigma_min
+        result["joint_rate_limited"] = bool(joint_rate_limited)
+        result["joint_acceleration_limited"] = bool(
+            joint_acceleration_limited
+        )
+        result["joint_acceleration"] = joint_acceleration.copy()
+        result["joint_soft_limited"] = bool(joint_soft_limited)
+        result["joint_limit_dt_s"] = float(joint_limit_dt_s)
+        result["singularity_hold"] = bool(singularity_hold)
 
         # =====================================================
-        # 6. Independent FK verification
+        # 7. Independent actual-pose reporting
         # =====================================================
 
-        T_actual = (
-            forward_kinematics(
-                state.q_safe,
-                model=state.model,
+        if (
+            self.require_robot_state
+            and
+            state.T_measured is not None
+        ):
+
+            T_actual = (
+                state.T_measured.copy()
             )
-        )
+
+        else:
+
+            T_actual = (
+                forward_kinematics(
+                    state.q_safe,
+                    model=state.model,
+                )
+            )
 
         # =====================================================
-        # 7. Publish Pose topics
+        # 8. Publish Pose topics
         # =====================================================
 
         pubs = (
@@ -1143,7 +2791,7 @@ class QuestDualIKFusion(Node):
         )
 
         # =====================================================
-        # 8. Publish TF
+        # 9. Publish TF
         # =====================================================
 
         self.publish_tf(
@@ -1183,7 +2831,7 @@ class QuestDualIKFusion(Node):
         )
 
         # =====================================================
-        # 9. Save diagnostics
+        # 10. Save diagnostics
         # =====================================================
 
         state.last_solve_ms = (
@@ -1215,6 +2863,13 @@ class QuestDualIKFusion(Node):
             "right"
         ]
 
+        if (
+            left.q_command is None
+            or
+            right.q_command is None
+        ):
+            return
+
         msg = JointState()
 
         msg.header.stamp = (
@@ -1240,9 +2895,9 @@ class QuestDualIKFusion(Node):
         )
 
         msg.position = (
-            left.q_safe.tolist()
+            left.q_command.tolist()
             +
-            right.q_safe.tolist()
+            right.q_command.tolist()
         )
 
         self.joint_pub.publish(
@@ -1403,6 +3058,21 @@ class QuestDualIKFusion(Node):
                 else "R"
             )
 
+            if (
+                self.require_robot_state
+                and
+                not state.robot_state_ready(
+                    self.robot_state_timeout_s,
+                    time.perf_counter(),
+                )
+            ):
+
+                pieces.append(
+                    f"{label}:ROBOT_WAIT"
+                )
+
+                continue
+
             if not state.anchored:
 
                 pieces.append(
@@ -1441,6 +3111,11 @@ class QuestDualIKFusion(Node):
                     "proj={} "
                     "a={:.3f} "
                     "s={:.4f} "
+                    "sg={}:x{:.2f} "
+                    "jlim={} "
+                    "slim={} "
+                    "qd={:.1f}deg/s "
+                    "shold={} "
                     "ik={:.1f}ms"
                 ).format(
 
@@ -1498,6 +3173,30 @@ class QuestDualIKFusion(Node):
                         "sigma_min"
                     ],
 
+                    state.last_singularity_region,
+
+                    state.last_singularity_speed_scale,
+
+                    int(
+                        state.last_joint_rate_limited
+                    ),
+
+                    int(
+                        state.last_joint_soft_limited
+                    ),
+
+                    np.rad2deg(
+                        np.max(
+                            np.abs(
+                                state.joint_velocity
+                            )
+                        )
+                    ),
+
+                    int(
+                        state.singularity_hold
+                    ),
+
                     state.last_solve_ms,
                 )
             )
@@ -1511,6 +3210,11 @@ class QuestDualIKFusion(Node):
                 cycle_ms
             )
         )
+
+    def destroy_node(self):
+        """Close command sockets without issuing a final motion command."""
+        self.robot_command_dispatcher.close()
+        return super().destroy_node()
 
 
 def main(

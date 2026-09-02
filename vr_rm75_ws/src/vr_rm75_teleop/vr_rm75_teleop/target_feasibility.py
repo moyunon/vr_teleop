@@ -119,13 +119,30 @@ def minimum_singular_value(
     model,
 ):
     """
-    返回当前 RM75 Jacobian 的最小奇异值。
+    返回当前 RM75 几何 Jacobian 的最小奇异值。
+
+    当前 6x7 Jacobian 直接堆叠：
+
+    - Jv：末端线速度，单位 m/s（相对于 rad/s 关节速度）
+    - Jw：末端角速度，单位 rad/s（相对于 rad/s 关节速度）
+
+    因此这个 SVD 指标混合了平移与旋转尺度。它适合在本 RM75
+    模型和同一套单位下做相对奇异性保护，但不能把阈值直接搬到
+    使用毫米或不同旋转权重的 Jacobian 实现中。
     """
 
     J = geometric_jacobian(
         q,
         model=model,
     )
+
+    if J.shape != (6, model.DOF):
+        raise ValueError(
+            "geometric Jacobian must have shape "
+            f"(6, {model.DOF})"
+        )
+    if not np.all(np.isfinite(J)):
+        raise ValueError("geometric Jacobian contains NaN or Infinity")
 
     singular_values = np.linalg.svd(
         J,
@@ -135,6 +152,80 @@ def minimum_singular_value(
     return float(
         singular_values[-1]
     )
+
+
+def validate_singularity_thresholds(
+    sigma_stop,
+    sigma_warn,
+):
+    """Return finite ordered stop/warn thresholds for this Jacobian metric."""
+    sigma_stop = float(sigma_stop)
+    sigma_warn = float(sigma_warn)
+
+    if not np.isfinite(sigma_stop) or sigma_stop < 0.0:
+        raise ValueError("sigma_stop must be finite and nonnegative")
+    if not np.isfinite(sigma_warn) or sigma_warn <= sigma_stop:
+        raise ValueError(
+            "sigma_warn must be finite and greater than sigma_stop"
+        )
+
+    return sigma_stop, sigma_warn
+
+
+def singularity_speed_scale(
+    sigma_min,
+    sigma_stop=0.010,
+    sigma_warn=0.020,
+):
+    """Map sigma to a continuous safe/warning/stop Cartesian rate scale.
+
+    The warning interval uses smoothstep, so both the scale and its slope are
+    continuous at the stop and warning thresholds.  The stop region returns
+    zero; target projection and final-command hold remain the hard barriers.
+    """
+    sigma_stop, sigma_warn = validate_singularity_thresholds(
+        sigma_stop,
+        sigma_warn,
+    )
+    sigma_min = float(sigma_min)
+
+    if not np.isfinite(sigma_min) or sigma_min < 0.0:
+        raise ValueError("sigma_min must be finite and nonnegative")
+    if sigma_min <= sigma_stop:
+        return 0.0
+    if sigma_min >= sigma_warn:
+        return 1.0
+
+    normalized = (
+        (sigma_min - sigma_stop)
+        / (sigma_warn - sigma_stop)
+    )
+    return float(
+        normalized
+        * normalized
+        * (3.0 - 2.0 * normalized)
+    )
+
+
+def singularity_region(
+    sigma_min,
+    sigma_stop=0.010,
+    sigma_warn=0.020,
+):
+    """Classify one sigma value as ``safe``, ``warning``, or ``stop``."""
+    sigma_stop, sigma_warn = validate_singularity_thresholds(
+        sigma_stop,
+        sigma_warn,
+    )
+    sigma_min = float(sigma_min)
+
+    if not np.isfinite(sigma_min) or sigma_min < 0.0:
+        raise ValueError("sigma_min must be finite and nonnegative")
+    if sigma_min <= sigma_stop:
+        return "stop"
+    if sigma_min < sigma_warn:
+        return "warning"
+    return "safe"
 
 
 def try_target(

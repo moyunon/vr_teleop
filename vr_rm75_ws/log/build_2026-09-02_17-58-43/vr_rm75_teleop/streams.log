@@ -1,0 +1,20 @@
+[90.096s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build --no-deps symlink_data
+[90.257s] running develop
+[90.339s] running egg_info
+[90.339s] writing vr_rm75_teleop.egg-info/PKG-INFO
+[90.339s] writing dependency_links to vr_rm75_teleop.egg-info/dependency_links.txt
+[90.339s] writing entry points to vr_rm75_teleop.egg-info/entry_points.txt
+[90.340s] writing requirements to vr_rm75_teleop.egg-info/requires.txt
+[90.340s] writing top-level names to vr_rm75_teleop.egg-info/top_level.txt
+[90.341s] reading manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'
+[90.342s] writing manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'
+[90.342s] running build_ext
+[90.342s] Creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr-rm75-teleop.egg-link (link to .)
+[90.343s] Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.343s] Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.343s] Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.343s] 
+[90.343s] Installed /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop
+[90.343s] running symlink_data
+[90.344s] symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.360s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop' returned '0': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build --no-deps symlink_data

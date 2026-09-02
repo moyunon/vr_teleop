@@ -1,6 +1,7 @@
 """Meta Quest Reader."""
 
 import os
+import math
 import select
 import subprocess
 import sys
@@ -108,6 +109,7 @@ class MetaQuestReader:
         # Cache latest transforms and button values (validated)
         self._latest_transforms: dict[str, np.ndarray] = {}
         self._latest_buttons: dict[str, Any] = {}
+        self._last_sample_monotonic: float | None = None
 
         self.device = self.get_device()
         self.install(verbose=False)
@@ -196,20 +198,27 @@ class MetaQuestReader:
                         if not data:
                             continue
                         transforms, buttons = MetaQuestReader.process_data(data)
+                        validated_transforms = {}
+                        if transforms is not None:
+                            for key, matrix in transforms.items():
+                                validated = self._validate_transform(matrix)
+                                if validated is not None:
+                                    validated_transforms[key] = validated
+
                         with self._lock:
                             self.last_transforms, self.last_buttons = (
                                 transforms,
                                 buttons,
                             )
-
-                        if transforms is not None:
-                            for key, matrix in transforms.items():
-                                validated = self._validate_transform(matrix)
-                                if validated is not None:
-                                    self._latest_transforms[key] = validated
+                            self._latest_transforms.update(
+                                validated_transforms
+                            )
+                            if buttons is not None:
+                                self._latest_buttons = buttons
+                            if transforms is not None and buttons is not None:
+                                self._last_sample_monotonic = time.monotonic()
 
                         if buttons is not None:
-                            self._latest_buttons = buttons
                             self._handle_button_events(buttons)
                 proc.terminate()
                 proc.wait(timeout=5)
@@ -453,6 +462,26 @@ class MetaQuestReader:
         with self._lock:
             return self.last_transforms, self.last_buttons
 
+    def get_data_age_s(self, now_monotonic=None) -> float:
+        """Return age of the latest parsed APK sample, or infinity."""
+        if now_monotonic is None:
+            now_monotonic = time.monotonic()
+        now_monotonic = float(now_monotonic)
+        if not math.isfinite(now_monotonic):
+            raise ValueError("now_monotonic must be finite")
+        with self._lock:
+            received = self._last_sample_monotonic
+        if received is None:
+            return math.inf
+        return max(0.0, now_monotonic - received)
+
+    def data_is_fresh(self, timeout_s, now_monotonic=None) -> bool:
+        """Return whether the APK/logcat source produced a recent sample."""
+        timeout_s = float(timeout_s)
+        if not math.isfinite(timeout_s) or timeout_s <= 0.0:
+            raise ValueError("timeout_s must be finite and positive")
+        return self.get_data_age_s(now_monotonic) <= timeout_s
+
     def _apply_axis_mask(self, transform: np.ndarray) -> np.ndarray:
         """Apply axis mask to transform, zeroing masked axes.
 
@@ -524,7 +553,6 @@ class MetaQuestReader:
             )
 
         return transform_openxr
-
 
     def get_hand_controller_transform_ros(
         self,

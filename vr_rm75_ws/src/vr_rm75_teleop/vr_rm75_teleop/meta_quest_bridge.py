@@ -12,7 +12,7 @@ from rclpy.qos import (
 )
 
 from geometry_msgs.msg import PoseStamped
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float32
 
 from scipy.spatial.transform import Rotation
 
@@ -25,6 +25,23 @@ class MetaQuestBridge(Node):
         super().__init__("meta_quest_bridge")
 
         self.reader = MetaQuestReader()
+
+        self.declare_parameter(
+            "quest_source_timeout_s",
+            0.20,
+        )
+        self.quest_source_timeout_s = float(
+            self.get_parameter(
+                "quest_source_timeout_s"
+            ).value
+        )
+        if (
+            not np.isfinite(self.quest_source_timeout_s)
+            or self.quest_source_timeout_s <= 0.0
+        ):
+            raise ValueError(
+                "quest_source_timeout_s must be finite and positive"
+            )
 
         self.frame_id = "meta_world_ros"
 
@@ -56,6 +73,24 @@ class MetaQuestBridge(Node):
         self.right_valid_pub = self.create_publisher(
             Bool,
             "/meta_quest/right_tracking_valid",
+            self.qos,
+        )
+
+        self.left_grip_pub = self.create_publisher(
+            Float32,
+            "/meta_quest/left_grip",
+            self.qos,
+        )
+
+        self.right_grip_pub = self.create_publisher(
+            Float32,
+            "/meta_quest/right_grip",
+            self.qos,
+        )
+
+        self.input_fresh_pub = self.create_publisher(
+            Bool,
+            "/meta_quest/input_fresh",
             self.qos,
         )
 
@@ -120,9 +155,13 @@ class MetaQuestBridge(Node):
         hand: str,
         pose_pub,
         valid_pub,
+        source_fresh,
     ):
-        valid = self.reader.get_tracking_valid(
-            hand
+        valid = (
+            source_fresh
+            and self.reader.get_tracking_valid(
+                hand
+            )
         )
 
         valid_msg = Bool()
@@ -160,17 +199,60 @@ class MetaQuestBridge(Node):
 
     def timer_callback(self):
 
+        source_fresh = self.reader.data_is_fresh(
+            self.quest_source_timeout_s
+        )
+
+        grip_values = {}
+        if source_fresh:
+            try:
+                grip_values = {
+                    "left": float(
+                        self.reader.get_grip_value(
+                            "left"
+                        )
+                    ),
+                    "right": float(
+                        self.reader.get_grip_value(
+                            "right"
+                        )
+                    ),
+                }
+            except (TypeError, ValueError):
+                source_fresh = False
+
+        if source_fresh:
+            source_fresh = all(
+                np.isfinite(value)
+                and 0.0 <= value <= 1.0
+                for value in grip_values.values()
+            )
+
+        self.input_fresh_pub.publish(
+            Bool(data=source_fresh)
+        )
+
         self.publish_hand(
             "left",
             self.left_pose_pub,
             self.left_valid_pub,
+            source_fresh,
         )
 
         self.publish_hand(
             "right",
             self.right_pose_pub,
             self.right_valid_pub,
+            source_fresh,
         )
+
+        if source_fresh:
+            self.left_grip_pub.publish(
+                Float32(data=grip_values["left"])
+            )
+            self.right_grip_pub.publish(
+                Float32(data=grip_values["right"])
+            )
 
 
 def main(args=None):
