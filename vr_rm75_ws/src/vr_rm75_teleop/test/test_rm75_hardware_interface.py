@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from vr_rm75_teleop.rm75_hardware_interface import (
+    GEN4_JOINT_SPEED_TO_RAD_S,
     GET_CONTROLLER_STATE,
     GET_CURRENT_ARM_STATE,
     GET_JOINT_ENABLE_STATE,
@@ -19,6 +20,7 @@ from vr_rm75_teleop.rm75_hardware_interface import (
     RM75ReadOnlyClient,
     RM75StateWorker,
     RM75TimeoutError,
+    RM75UDPStateReceiver,
     parse_realtime_udp_state,
 )
 
@@ -244,6 +246,7 @@ def test_udp_realtime_state_parser():
             "joint_position": JOINT_MILLI_DEGREES,
             "joint_en_flag": [1] * 7,
             "joint_err_code": [0, 0, 0, 4, 0, 0, 0],
+            "joint_speed": [1, -2, 3, -4, 5, -6, 7],
         },
     }
 
@@ -254,6 +257,71 @@ def test_udp_realtime_state_parser():
     assert state.joint_errors[3] == 4
     assert state.has_fault is True
     assert np.allclose(state.q_measured, np.deg2rad([1, -2, 3, 4, -5, 6, -7]))
+    assert np.allclose(
+        state.qd_measured,
+        np.array([1, -2, 3, -4, 5, -6, 7])
+        * GEN4_JOINT_SPEED_TO_RAD_S,
+    )
+    assert state.velocity_source == "controller_udp_joint_speed"
+
+
+def test_udp_acceptance_checks_source_sequence_period_and_duplicates():
+    """Reject spoofed and duplicate-time packets before state replacement."""
+    payload = {
+        "state": "realtime_arm_joint_state",
+        "arm_current_status": "idle",
+        "err": [0],
+        "joint_status": {
+            "joint_position": JOINT_MILLI_DEGREES,
+            "joint_en_flag": [1] * 7,
+            "joint_err_code": [0] * 7,
+            "joint_speed": [0] * 7,
+        },
+    }
+    encoded = json.dumps(payload).encode("utf-8")
+    receiver = RM75UDPStateReceiver(
+        side="left",
+        bind_host="127.0.0.1",
+        bind_port=8089,
+        expected_source_ip="192.0.2.18",
+    )
+
+    with pytest.raises(RM75ProtocolError, match="unexpected UDP source"):
+        receiver.accept_datagram(encoded, ("192.0.2.99", 8089), 1.0)
+
+    first = receiver.accept_datagram(encoded, ("192.0.2.18", 8089), 1.0)
+    second = receiver.accept_datagram(encoded, ("192.0.2.18", 8089), 1.01)
+
+    assert first.measurement_seq == 1
+    assert first.measurement_period_s is None
+    assert second.measurement_seq == 2
+    assert second.measurement_period_s == pytest.approx(0.01)
+    assert second.effective_measurement_hz == pytest.approx(100.0)
+
+    with pytest.raises(RM75ProtocolError, match="did not advance"):
+        receiver.accept_datagram(encoded, ("192.0.2.18", 8089), 1.01)
+    assert receiver.get_status().state.measurement_seq == 2
+
+
+@pytest.mark.parametrize(
+    "bad_speed",
+    [[0] * 6, [0, 0, 0, float("nan"), 0, 0, 0]],
+)
+def test_udp_joint_speed_must_be_a_finite_seven_vector(bad_speed):
+    """Never accept malformed direct velocity as measured feedback."""
+    payload = {
+        "state": "realtime_arm_joint_state",
+        "err": 0,
+        "joint_status": {
+            "joint_position": JOINT_MILLI_DEGREES,
+            "joint_en_flag": [1] * 7,
+            "joint_err_code": [0] * 7,
+            "joint_speed": bad_speed,
+        },
+    }
+
+    with pytest.raises(RM75ProtocolError):
+        parse_realtime_udp_state(payload, "right", 2.0)
 
 
 def test_worker_reconnects_after_disconnect_and_recovers_state():

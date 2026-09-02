@@ -306,6 +306,29 @@ def test_actuator_transport_failure_is_a_latched_fault():
     assert decision.reason == "dual-arm command send failed; fault latched"
 
 
+def test_required_following_error_stop_holds_both_arms():
+    """Route persistent following error through the global dual-arm HOLD."""
+    supervisor = SafetySupervisor(
+        command_timeout_s=1.0,
+        require_following_safety=True,
+    )
+    supervisor.update_following(
+        ready=True,
+        hold_required=False,
+        reason="following error normal",
+    )
+    engage(supervisor, 3.24)
+    supervisor.update_following(
+        ready=True,
+        hold_required=True,
+        reason="left following error stop: max 0.1rad",
+    )
+
+    decision = supervisor.evaluate(True, 3.25)
+    assert decision.state == SafetyState.HOLD
+    assert decision.reason == "left following error stop: max 0.1rad"
+
+
 def test_joint_velocity_above_scaled_model_limit_enters_hold():
     """Independently reject a finite command that bypasses the limiter."""
     supervisor = SafetySupervisor(

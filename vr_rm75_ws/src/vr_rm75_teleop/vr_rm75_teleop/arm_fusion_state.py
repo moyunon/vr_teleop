@@ -9,6 +9,7 @@ import numpy as np
 
 from vr_rm75_teleop.rm75_fk import forward_kinematics
 from vr_rm75_teleop.rm75_model import RM75Model
+from vr_rm75_teleop.robot_feedback_monitor import RobotFeedbackMonitor
 
 
 class ArmFusionState:
@@ -49,6 +50,13 @@ class ArmFusionState:
         self.robot_enable_known = False
         self.last_robot_state_error = None
         self.robot_ready_previous = False
+        self.feedback_monitor = RobotFeedbackMonitor(self.model.DOF)
+        self.qdot_measured = None
+        self.qddot_measured = None
+        self.measured_kinematics_valid = False
+        self.measured_velocity_source = "unavailable"
+        self.measured_sample_period_s = None
+        self.measured_kinematics_reason = "no measured state"
 
         # VR relative-pose state.
         self.T_vr_latest = None
@@ -152,7 +160,12 @@ class ArmFusionState:
             and np.all(q <= self.q_soft_max)
         )
 
-    def update_measured_q(self, q, received_monotonic=None):
+    def update_measured_q(
+        self,
+        q,
+        received_monotonic=None,
+        qdot_measured=None,
+    ):
         """Store one valid measured sample without changing a live command."""
         q = self.validate_q(q)
         if received_monotonic is None:
@@ -166,6 +179,17 @@ class ArmFusionState:
         self.last_robot_state_rx_time = received_monotonic
         self.robot_data_valid = True
         self.last_robot_state_error = None
+        kinematics = self.feedback_monitor.update(
+            q,
+            received_monotonic,
+            direct_qdot=qdot_measured,
+        )
+        self.qdot_measured = kinematics.qdot
+        self.qddot_measured = kinematics.qddot
+        self.measured_kinematics_valid = kinematics.valid
+        self.measured_velocity_source = kinematics.velocity_source
+        self.measured_sample_period_s = kinematics.dt_s
+        self.measured_kinematics_reason = kinematics.reason
 
     def reject_measured_q(self, reason):
         """Make robot state unusable immediately after invalid feedback."""

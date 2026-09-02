@@ -23,9 +23,12 @@ from typing import Callable, Dict, Mapping, Optional, Tuple
 import numpy as np
 
 from vr_rm75_teleop.rm75_model import RM75Model
+from vr_rm75_teleop.stop_policy import StopClass, StopRequest
 
 
 MOVEJ_CANFD = "movej_canfd"
+SET_ARM_SLOW_STOP = "set_arm_slow_stop"
+SET_ARM_STOP = "set_arm_stop"
 SIDES = ("left", "right")
 RAD_TO_MILLI_DEG = 180000.0 / math.pi
 MILLI_DEG_TO_RAD = math.pi / 180000.0
@@ -60,6 +63,8 @@ class CommandDispatchResult:
     reason: str
     generated_monotonic: Optional[float]
     sent_monotonic: Optional[float]
+    ack_latency_s: Optional[Tuple[float, float]] = None
+    send_duration_s: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -69,6 +74,35 @@ class CommandControllerResponse:
     side: str
     q_reported: Tuple[float, ...]
     arm_error: int
+
+
+@dataclass(frozen=True)
+class ArmStopResult:
+    """Observed result for one arm during a dual-arm stop request."""
+
+    side: str
+    attempted: bool
+    acknowledged: bool
+    ack_latency_s: Optional[float]
+    error: Optional[str]
+
+
+@dataclass(frozen=True)
+class DualArmStopResult:
+    """Outcome of one edge-triggered stop request for both arms."""
+
+    request: StopRequest
+    arms: Tuple[ArmStopResult, ...]
+    dry_run: bool
+
+    @property
+    def all_acknowledged(self):
+        """Return true only when both controller acknowledgements succeeded."""
+        return (
+            not self.dry_run
+            and len(self.arms) == len(SIDES)
+            and all(item.acknowledged for item in self.arms)
+        )
 
 
 def _reject_json_constant(value):
@@ -146,6 +180,58 @@ def decode_movej_canfd_response(data, side):
     )
 
 
+def stop_command_for_class(stop_class):
+    """Map project stop strength to the documented RM75 JSON command."""
+    stop_class = StopClass(stop_class)
+    if stop_class == StopClass.CONTROLLED_STOP:
+        return SET_ARM_SLOW_STOP, "arm_slow_stop"
+    return SET_ARM_STOP, "arm_stop"
+
+
+def encode_stop_request(stop_class):
+    """Encode one documented RM75 software stop request."""
+    command, _ = stop_command_for_class(stop_class)
+    return json.dumps(
+        {"command": command},
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("ascii") + b"\r\n"
+
+
+def decode_stop_response(data, side, stop_class):
+    """Validate command echo and positive stop acknowledgement."""
+    side = str(side).lower()
+    command, result_field = stop_command_for_class(stop_class)
+    try:
+        response = json.loads(
+            data.decode("utf-8") if isinstance(data, bytes) else data,
+            parse_constant=_reject_json_constant,
+        )
+    except (
+        AttributeError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as exc:
+        raise RM75CommandConnectionError(
+            f"invalid {side} stop JSON response: {exc}"
+        ) from exc
+    if not isinstance(response, Mapping) or response.get("command") != command:
+        raise RM75CommandConnectionError(
+            f"unexpected {side} response to {command}"
+        )
+    acknowledged = response.get(result_field)
+    if not isinstance(acknowledged, bool):
+        raise RM75CommandConnectionError(
+            f"{side} {result_field} acknowledgement must be boolean"
+        )
+    if not acknowledged:
+        raise RM75ControllerCommandError(
+            f"{side} controller did not acknowledge {command}"
+        )
+    return True
+
+
 def encode_low_follow_movej_canfd(q_rad, side):
     """Encode one validated seven-axis target using integer 0.001 degrees."""
     side = str(side).lower()
@@ -197,6 +283,7 @@ class RM75LowFollowCommandClient:
         timeout_s=0.01,
         enable_robot_motion=False,
         socket_factory: Optional[Callable[..., socket.socket]] = None,
+        monotonic=time.monotonic,
     ):
         """Configure one endpoint without opening a socket or sending data."""
         self.side = str(side).lower()
@@ -215,6 +302,7 @@ class RM75LowFollowCommandClient:
         self.timeout_s = timeout_s
         self.enable_robot_motion = bool(enable_robot_motion)
         self._socket_factory = socket_factory or socket.create_connection
+        self._monotonic = monotonic
         self._socket: Optional[socket.socket] = None
         self._receive_buffer = bytearray()
         self.last_response_monotonic: Optional[float] = None
@@ -277,6 +365,72 @@ class RM75LowFollowCommandClient:
                 "command socket is not connected"
             )
 
+        frame = self._receive_frame()
+        response = decode_movej_canfd_response(frame, self.side)
+        self.last_response_monotonic = self._monotonic()
+        return response
+
+    def send_stop_request(self, stop_class):
+        """Send one stop request only on an already-enabled open channel."""
+        if not self.enable_robot_motion:
+            raise RM75MotionDisabledError("enable_robot_motion is false")
+        if self._socket is None:
+            raise RM75CommandConnectionError("command socket is not connected")
+        payload = encode_stop_request(stop_class)
+        try:
+            self._socket.sendall(payload)
+        except (OSError, socket.timeout) as exc:
+            self.close()
+            raise RM75CommandConnectionError(
+                f"failed sending {self.side} software stop: {exc}"
+            ) from exc
+        return payload
+
+    def receive_stop_result(self, stop_class):
+        """Receive the stop ACK, skipping bounded earlier motion replies."""
+        command, _ = stop_command_for_class(stop_class)
+        for _ in range(8):
+            frame = self._receive_frame()
+            try:
+                response = json.loads(
+                    frame.decode("utf-8"),
+                    parse_constant=_reject_json_constant,
+                )
+            except (
+                UnicodeDecodeError,
+                ValueError,
+                json.JSONDecodeError,
+            ) as exc:
+                raise RM75CommandConnectionError(
+                    f"invalid {self.side} stop JSON response: {exc}"
+                ) from exc
+            if isinstance(response, Mapping) and response.get(
+                "command"
+            ) == command:
+                acknowledged = decode_stop_response(
+                    frame, self.side, stop_class
+                )
+                self.last_response_monotonic = self._monotonic()
+                return acknowledged
+            if isinstance(response, Mapping) and response.get(
+                "state"
+            ) == "joint_state":
+                continue
+            raise RM75CommandConnectionError(
+                f"unexpected {self.side} response while awaiting {command}"
+            )
+        raise RM75CommandConnectionError(
+            f"too many earlier responses while awaiting {command}"
+        )
+
+    def _receive_frame(self):
+        """Receive one bounded newline-framed controller JSON response."""
+        if not self.enable_robot_motion:
+            raise RM75MotionDisabledError("enable_robot_motion is false")
+        if self._socket is None:
+            raise RM75CommandConnectionError(
+                "command socket is not connected"
+            )
         while True:
             newline = self._receive_buffer.find(b"\n")
             if newline >= 0:
@@ -286,9 +440,7 @@ class RM75LowFollowCommandClient:
                 del self._receive_buffer[: newline + 1]
                 if not frame:
                     continue
-                response = decode_movej_canfd_response(frame, self.side)
-                self.last_response_monotonic = time.monotonic()
-                return response
+                return frame
 
             if len(self._receive_buffer) > MAX_RESPONSE_BYTES:
                 self.close()
@@ -379,6 +531,8 @@ class DualArmCommandDispatcher:
         self.last_send_monotonic: Optional[float] = None
         self.last_reason = "enable_robot_motion is false"
         self.faulted = False
+        self.motion_armed = False
+        self.last_stop_result: Optional[DualArmStopResult] = None
 
     @property
     def connected(self):
@@ -405,9 +559,10 @@ class DualArmCommandDispatcher:
         for client in self.clients.values():
             client.close()
         self.disarm()
+        self.motion_armed = False
 
     def disarm(self):
-        """Discard the previous target so re-engagement resynchronizes."""
+        """Discard continuity history without claiming physical arrest."""
         self._last_sent_q.clear()
         self._last_sent_velocity.clear()
         self._last_generated_monotonic = None
@@ -424,6 +579,101 @@ class DualArmCommandDispatcher:
         self.close()
         self.faulted = True
         self.last_reason = str(reason) or "command transport fault latched"
+
+    def request_stop(self, stop_class, reason, requested_monotonic=None):
+        """Attempt a dual stop without opening or reconnecting sockets."""
+        stop_class = StopClass(stop_class)
+        if requested_monotonic is None:
+            requested_monotonic = self._monotonic()
+        request = StopRequest(
+            stop_class=stop_class,
+            reason=str(reason),
+            requested_monotonic=self._finite_time(requested_monotonic),
+        )
+
+        if not self.enable_robot_motion:
+            result = DualArmStopResult(
+                request=request,
+                arms=tuple(
+                    ArmStopResult(
+                        side=side,
+                        attempted=False,
+                        acknowledged=False,
+                        ack_latency_s=None,
+                        error="dry-run: command output disabled",
+                    )
+                    for side in SIDES
+                ),
+                dry_run=True,
+            )
+            self.last_stop_result = result
+            self.last_reason = (
+                f"dry-run intended {stop_class.value}: {request.reason}"
+            )
+            return result
+
+        starts = {}
+        sent = set()
+        results = {}
+        for side in SIDES:
+            client = self.clients[side]
+            if not client.connected:
+                results[side] = ArmStopResult(
+                    side=side,
+                    attempted=False,
+                    acknowledged=False,
+                    ack_latency_s=None,
+                    error="existing command channel unavailable",
+                )
+                continue
+            starts[side] = self._monotonic()
+            try:
+                client.send_stop_request(stop_class)
+                sent.add(side)
+            except RM75CommandError as exc:
+                results[side] = ArmStopResult(
+                    side=side,
+                    attempted=True,
+                    acknowledged=False,
+                    ack_latency_s=None,
+                    error=str(exc),
+                )
+
+        for side in SIDES:
+            if side not in sent:
+                continue
+            try:
+                self.clients[side].receive_stop_result(stop_class)
+            except RM75CommandError as exc:
+                results[side] = ArmStopResult(
+                    side=side,
+                    attempted=True,
+                    acknowledged=False,
+                    ack_latency_s=max(0.0, self._monotonic() - starts[side]),
+                    error=str(exc),
+                )
+            else:
+                results[side] = ArmStopResult(
+                    side=side,
+                    attempted=True,
+                    acknowledged=True,
+                    ack_latency_s=max(0.0, self._monotonic() - starts[side]),
+                    error=None,
+                )
+
+        result = DualArmStopResult(
+            request=request,
+            arms=tuple(results[side] for side in SIDES),
+            dry_run=False,
+        )
+        self.motion_armed = False
+        self.last_stop_result = result
+        self.last_reason = (
+            f"{stop_class.value} acknowledged by both arms"
+            if result.all_acknowledged
+            else f"{stop_class.value} incomplete; physical E-stop required"
+        )
+        return result
 
     def dispatch(
         self,
@@ -443,6 +693,12 @@ class DualArmCommandDispatcher:
                 "command interface fault is latched"
             )
         if not safety_command_allowed:
+            if self.motion_armed:
+                self.request_stop(
+                    StopClass.SAFETY_STOP,
+                    "Safety Supervisor command gate closed",
+                    now_monotonic,
+                )
             self.disarm()
             self.last_reason = "Safety Supervisor command gate is closed"
             return CommandDispatchResult(False, self.last_reason, None, None)
@@ -521,18 +777,31 @@ class DualArmCommandDispatcher:
         for side in SIDES:
             encode_low_follow_movej_canfd(commands[side], side)
 
+        transport_start = self._monotonic()
+        ack_starts = {}
+        ack_latencies = {}
         try:
             for side in SIDES:
+                ack_starts[side] = self._monotonic()
                 self.clients[side].send_joint_target(commands[side])
             for side in SIDES:
                 self.clients[side].receive_joint_result()
+                ack_latencies[side] = max(
+                    0.0, self._monotonic() - ack_starts[side]
+                )
         except RM75CommandError:
+            self.request_stop(
+                StopClass.SAFETY_STOP,
+                "dual-arm command send or acknowledgement failure",
+                self._monotonic(),
+            )
             self.close()
             self.faulted = True
             self.last_reason = "dual-arm command send failed; fault latched"
             raise
 
         sent_monotonic = self._monotonic()
+        send_duration_s = max(0.0, sent_monotonic - transport_start)
         self._last_sent_q = {
             side: commands[side].copy() for side in SIDES
         }
@@ -541,14 +810,15 @@ class DualArmCommandDispatcher:
         }
         self._last_generated_monotonic = generated_monotonic
         self.last_send_monotonic = sent_monotonic
-        self.last_reason = (
-            "fresh dual-arm low-follow command accepted by controllers"
-        )
+        self.last_reason = "dual-arm low-follow point acknowledged"
+        self.motion_armed = True
         return CommandDispatchResult(
             True,
             self.last_reason,
             generated_monotonic,
             sent_monotonic,
+            tuple(ack_latencies[side] for side in SIDES),
+            send_duration_s,
         )
 
     @staticmethod

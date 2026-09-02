@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import time
 
 import numpy as np
@@ -43,6 +44,12 @@ from vr_rm75_teleop.rm75_command_interface import (
     RM75ControllerCommandError,
     RM75LowFollowCommandClient,
 )
+from vr_rm75_teleop.stop_policy import (
+    StopClass,
+    stop_for_transition,
+)
+from vr_rm75_teleop.following_error_monitor import FollowingErrorMonitor
+from vr_rm75_teleop.timing_monitor import TimingMonitor
 
 from vr_rm75_teleop.vr_pose_mapping import (
     position_quaternion_to_transform,
@@ -234,6 +241,13 @@ class QuestDualIKFusion(Node):
                 -158.273,
             ],
         )
+        # PROVISIONAL commissioning values. Hardware latency calibration is
+        # required before treating these as validated thresholds.
+        self.declare_parameter("following_warning_deg", [2.0] * 7)
+        self.declare_parameter("following_stop_deg", [5.0] * 7)
+        self.declare_parameter("following_persistence_s", 0.10)
+        self.declare_parameter("following_hysteresis_ratio", 0.8)
+        self.declare_parameter("following_max_timestamp_skew_s", 0.10)
 
         self.require_robot_state = bool(
             self.get_parameter(
@@ -360,6 +374,27 @@ class QuestDualIKFusion(Node):
                     "elbow_singularity_margin_deg"
                 ).value
             )
+        )
+        self.following_warning_rad = np.deg2rad(
+            np.asarray(
+                self.get_parameter("following_warning_deg").value,
+                dtype=float,
+            )
+        )
+        self.following_stop_rad = np.deg2rad(
+            np.asarray(
+                self.get_parameter("following_stop_deg").value,
+                dtype=float,
+            )
+        )
+        self.following_persistence_s = float(
+            self.get_parameter("following_persistence_s").value
+        )
+        self.following_hysteresis_ratio = float(
+            self.get_parameter("following_hysteresis_ratio").value
+        )
+        self.following_max_timestamp_skew_s = float(
+            self.get_parameter("following_max_timestamp_skew_s").value
         )
         if (
             not np.isfinite(self.control_frequency_hz)
@@ -528,6 +563,27 @@ class QuestDualIKFusion(Node):
                 elbow_branch,
             )
 
+        self.following_monitors = {
+            side: FollowingErrorMonitor(
+                self.following_warning_rad,
+                self.following_stop_rad,
+                persistence_s=self.following_persistence_s,
+                hysteresis_ratio=self.following_hysteresis_ratio,
+                max_age_s=self.robot_state_timeout_s,
+                max_timestamp_skew_s=(
+                    self.following_max_timestamp_skew_s
+                ),
+                # RM75 joints in this model are bounded, not continuous.
+                continuous_joints=[False] * 7,
+            )
+            for side in ("left", "right")
+        }
+        self.last_following_decisions = {}
+        self.timing_monitor = TimingMonitor(
+            nominal_period_s=self.control_period_s,
+            window_size=500,
+        )
+
         joint_soft_limits = {
             side: (state.q_soft_min, state.q_soft_max)
             for side, state in self.arms.items()
@@ -596,6 +652,7 @@ class QuestDualIKFusion(Node):
             joint_soft_limits=joint_soft_limits,
             require_collision_safety=self.collision_protection_enabled,
             require_actuator_safety=self.enable_robot_motion,
+            require_following_safety=self.require_robot_state,
         )
 
         self.deadman_clutch = DualGripDeadman(
@@ -759,6 +816,18 @@ class QuestDualIKFusion(Node):
             self.collision_distance_callback,
             10,
         )
+        self.collision_diagnostics_sub = self.create_subscription(
+            String,
+            "/vr_rm75/collision/backend_diagnostics",
+            self.collision_diagnostics_callback,
+            10,
+        )
+        self.collision_ready_sub = self.create_subscription(
+            Bool,
+            "/vr_rm75/collision/backend_ready",
+            self.collision_ready_callback,
+            10,
+        )
 
         # =====================================================
         # 5. Pose publishers
@@ -857,6 +926,42 @@ class QuestDualIKFusion(Node):
         self.robot_command_status_pub = self.create_publisher(
             String,
             "/vr_rm75/robot_command_status",
+            10,
+        )
+
+        self.stop_event_pub = self.create_publisher(
+            String,
+            "/vr_rm75/stop_event",
+            10,
+        )
+
+        self.stop_ack_pub = self.create_publisher(
+            Bool,
+            "/vr_rm75/stop_acknowledged",
+            10,
+        )
+
+        self.measured_kinematics_pub = self.create_publisher(
+            Float64MultiArray,
+            "/vr_rm75/measured_qdot_qddot",
+            10,
+        )
+
+        self.following_error_pub = self.create_publisher(
+            String,
+            "/vr_rm75/following_error_diagnostics",
+            10,
+        )
+
+        self.timing_diagnostics_pub = self.create_publisher(
+            String,
+            "/vr_rm75/timing_diagnostics",
+            10,
+        )
+
+        self.control_diagnostics_pub = self.create_publisher(
+            String,
+            "/vr_rm75/control_diagnostics",
             10,
         )
 
@@ -1017,10 +1122,22 @@ class QuestDualIKFusion(Node):
                 for name in expected_names
             ]
 
+            qdot_measured = None
+            if msg.velocity:
+                if len(msg.velocity) != len(msg.name):
+                    raise ValueError(
+                        "JointState name/velocity lengths differ"
+                    )
+                velocity_by_name = dict(zip(msg.name, msg.velocity))
+                qdot_measured = [
+                    velocity_by_name[name] for name in expected_names
+                ]
+
             state.update_measured_q(
                 q_measured,
                 received_monotonic=
                     time.perf_counter(),
+                qdot_measured=qdot_measured,
             )
 
         except (
@@ -1046,6 +1163,7 @@ class QuestDualIKFusion(Node):
         self.robot_system_ready = (
             self.refresh_robot_system_readiness()
         )
+        self.publish_measured_kinematics()
 
     def robot_connected_callback(
         self,
@@ -1169,6 +1287,114 @@ class QuestDualIKFusion(Node):
             time.perf_counter()
         )
 
+    def collision_diagnostics_callback(self, msg):
+        """Import measured collision solve time into unified timing stats."""
+        try:
+            payload = json.loads(msg.data)
+            solve_ms = payload.get("solve_ms")
+            if solve_ms is not None:
+                self.timing_monitor.record(
+                    "collision_solve", float(solve_ms) / 1000.0
+                )
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return
+
+    def collision_ready_callback(self, msg):
+        """Immediately invalidate an old snapshot when its backend fails."""
+        if bool(msg.data):
+            return
+        self.collision_monitor.reject_snapshot(
+            "collision backend reported not ready"
+        )
+        self.update_safety_supervisor(time.perf_counter())
+
+    def publish_measured_kinematics(self):
+        """Publish 14 qdot then 14 qddot values only when both are valid."""
+        states = [self.arms[side] for side in ("left", "right")]
+        if any(
+            state.qdot_measured is None or state.qddot_measured is None
+            for state in states
+        ):
+            return
+        qdot = np.concatenate([state.qdot_measured for state in states])
+        qddot = np.concatenate([state.qddot_measured for state in states])
+        self.measured_kinematics_pub.publish(
+            Float64MultiArray(data=qdot.tolist() + qddot.tolist())
+        )
+
+    def refresh_following_safety(self, now_monotonic):
+        """Evaluate fresh command/measurement pairs while motion is engaged."""
+        if not self.require_robot_state:
+            self.safety_supervisor.update_following(
+                ready=True,
+                hold_required=False,
+                reason="following-error guard disabled in RViz-only mode",
+            )
+            return
+        if self.safety_supervisor.state != SafetyState.ENGAGED:
+            for monitor in self.following_monitors.values():
+                monitor.reset()
+            self.safety_supervisor.update_following(
+                ready=True,
+                hold_required=False,
+                reason="following-error monitor armed; no motion engaged",
+            )
+            return
+
+        decisions = {}
+        for side, state in self.arms.items():
+            if state.last_safe_command_time is None:
+                self.safety_supervisor.update_following(
+                    ready=True,
+                    hold_required=False,
+                    reason="awaiting first post-engagement safe command",
+                )
+                return
+            decisions[side] = self.following_monitors[side].evaluate(
+                state.q_command,
+                state.last_safe_command_time,
+                state.q_measured,
+                state.last_robot_state_rx_time,
+                now_monotonic,
+            )
+        self.last_following_decisions = decisions
+        ready = all(item.ready for item in decisions.values())
+        hold = any(item.hold_required for item in decisions.values())
+        limiting_side = max(
+            decisions,
+            key=lambda side: (
+                -1.0
+                if decisions[side].max_abs_error_rad is None
+                else decisions[side].max_abs_error_rad
+            ),
+        )
+        detail = decisions[limiting_side]
+        self.safety_supervisor.update_following(
+            ready=ready,
+            hold_required=hold,
+            reason=f"{limiting_side} {detail.reason}",
+        )
+        self.following_error_pub.publish(
+            String(
+                data=json.dumps(
+                    {
+                        side: {
+                            "state": item.state.value,
+                            "ready": item.ready,
+                            "hold_required": item.hold_required,
+                            "max_abs_error_rad": item.max_abs_error_rad,
+                            "command_age_s": item.command_age_s,
+                            "measurement_age_s": item.measurement_age_s,
+                            "timestamp_skew_s": item.timestamp_skew_s,
+                            "reason": item.reason,
+                        }
+                        for side, item in decisions.items()
+                    },
+                    sort_keys=True,
+                )
+            )
+        )
+
     def refresh_collision_safety(
         self,
         now_monotonic,
@@ -1273,6 +1499,72 @@ class QuestDualIKFusion(Node):
         self.robot_command_status_pub.publish(
             String(data=str(reason))
         )
+
+    def handle_stop_transition(self, decision, now_monotonic):
+        """Issue at most one dual-arm software stop per ENGAGED exit edge."""
+        request = stop_for_transition(decision, now_monotonic)
+        if request is None:
+            return None
+
+        previous_result = self.robot_command_dispatcher.last_stop_result
+        if (
+            previous_result is not None
+            and previous_result.request.stop_class == request.stop_class
+            and now_monotonic
+            - previous_result.request.requested_monotonic
+            <= self.command_timeout_s
+        ):
+            result = previous_result
+        else:
+            result = self.robot_command_dispatcher.request_stop(
+                request.stop_class,
+                request.reason,
+                request.requested_monotonic,
+            )
+
+        event = {
+            "stop_class": request.stop_class.value,
+            "reason": request.reason,
+            "dry_run": result.dry_run,
+            "all_acknowledged": result.all_acknowledged,
+            "arms": {
+                arm.side: {
+                    "attempted": arm.attempted,
+                    "acknowledged": arm.acknowledged,
+                    "ack_latency_s": arm.ack_latency_s,
+                    "error": arm.error,
+                }
+                for arm in result.arms
+            },
+        }
+        self.stop_event_pub.publish(
+            String(data=json.dumps(event, sort_keys=True))
+        )
+        self.stop_ack_pub.publish(
+            Bool(data=result.all_acknowledged)
+        )
+
+        if result.dry_run:
+            self.get_logger().warning(
+                f"DRY-RUN intended {request.stop_class.value}: "
+                f"{request.reason}; no command socket was opened"
+            )
+        elif result.all_acknowledged:
+            self.get_logger().warning(
+                f"{request.stop_class.value} acknowledged by both arms: "
+                f"{request.reason}"
+            )
+        else:
+            self.get_logger().error(
+                f"{request.stop_class.value} was not acknowledged by both "
+                "arms; use the physical emergency stop and inspect the "
+                "controller/network"
+            )
+            self.robot_command_transport_fault = True
+            self.robot_command_dispatcher.latch_transport_fault(
+                "dual-arm software stop acknowledgement incomplete"
+            )
+        return result
 
     def dispatch_robot_commands(
         self,
@@ -1606,12 +1898,14 @@ class QuestDualIKFusion(Node):
         now_monotonic,
     ):
         """Refresh both arm observations and evaluate one explicit state."""
+        supervisor_start = time.perf_counter()
         self.refresh_collision_safety(
             now_monotonic
         )
         self.refresh_actuator_safety(
             now_monotonic
         )
+        self.refresh_following_safety(now_monotonic)
 
         for side, state in self.arms.items():
             if self.require_robot_state:
@@ -1680,6 +1974,8 @@ class QuestDualIKFusion(Node):
             now_monotonic=now_monotonic,
         )
 
+        self.handle_stop_transition(decision, now_monotonic)
+
         if (
             decision.state == SafetyState.ENGAGED
             and decision.previous_state != SafetyState.ENGAGED
@@ -1718,6 +2014,10 @@ class QuestDualIKFusion(Node):
         )
         self.command_allowed_pub.publish(
             Bool(data=decision.command_allowed)
+        )
+        self.timing_monitor.record(
+            "supervisor_processing",
+            time.perf_counter() - supervisor_start,
         )
         return decision
 
@@ -1940,6 +2240,7 @@ class QuestDualIKFusion(Node):
         cycle_start = (
             time.perf_counter()
         )
+        self.timing_monitor.begin_cycle(cycle_start)
 
         joint_limit_dt_s = self.next_joint_limit_dt(
             cycle_start
@@ -1982,6 +2283,9 @@ class QuestDualIKFusion(Node):
                     stamp=now,
                     joint_limit_dt_s=joint_limit_dt_s,
                 )
+                self.timing_monitor.record(
+                    f"ik_{side}", state.last_solve_ms / 1000.0
+                )
             except (
                 FloatingPointError,
                 KeyError,
@@ -2005,10 +2309,34 @@ class QuestDualIKFusion(Node):
             command_evaluation_time
         )
 
-        self.dispatch_robot_commands(
+        dispatch_start = time.perf_counter()
+        dispatch_result = self.dispatch_robot_commands(
             safety_decision,
             time.perf_counter(),
         )
+        self.timing_monitor.record(
+            "command_send", time.perf_counter() - dispatch_start
+        )
+        if (
+            dispatch_result is not None
+            and dispatch_result.ack_latency_s is not None
+        ):
+            for side, latency in zip(
+                ("left", "right"), dispatch_result.ack_latency_s
+            ):
+                self.timing_monitor.record(f"command_ack_{side}", latency)
+
+        for side, state in self.arms.items():
+            if state.last_vr_rx_time is not None:
+                self.timing_monitor.record(
+                    f"vr_input_age_{side}",
+                    max(0.0, cycle_start - state.last_vr_rx_time),
+                )
+            if state.last_robot_state_rx_time is not None:
+                self.timing_monitor.record(
+                    f"robot_state_age_{side}",
+                    max(0.0, cycle_start - state.last_robot_state_rx_time),
+                )
 
         # =====================================================
         # 两臂都完成 measured-state 初始化后，
@@ -2023,6 +2351,7 @@ class QuestDualIKFusion(Node):
             time.perf_counter()
             - cycle_start
         ) * 1000.0
+        self.timing_monitor.record("full_control_cycle", cycle_ms / 1000.0)
 
         # =====================================================
         # Diagnostics
@@ -2039,6 +2368,54 @@ class QuestDualIKFusion(Node):
             self.print_diagnostics(
                 cycle_ms
             )
+            self.timing_diagnostics_pub.publish(
+                String(
+                    data=json.dumps(
+                        self.timing_monitor.summary(), sort_keys=True
+                    )
+                )
+            )
+            self.publish_control_diagnostics()
+
+    def publish_control_diagnostics(self):
+        """Publish recordable IK, sigma, limiter, and feedback provenance."""
+        payload = {
+            "safety_state": self.safety_supervisor.state.value,
+            "command_allowed": (
+                self.safety_supervisor.state == SafetyState.ENGAGED
+            ),
+            "arms": {},
+        }
+        for side, state in self.arms.items():
+            result = state.last_result or {}
+            payload["arms"][side] = {
+                "ik_success": result.get("success"),
+                "ik_projected": result.get("projected"),
+                "consecutive_ik_failures": state.consecutive_ik_failures,
+                "sigma_min": state.last_sigma_min,
+                "singularity_region": state.last_singularity_region,
+                "singularity_speed_scale": (
+                    state.last_singularity_speed_scale
+                ),
+                "ik_solve_ms": state.last_solve_ms,
+                "joint_rate_limited": state.last_joint_rate_limited,
+                "joint_acceleration_limited": (
+                    state.last_joint_acceleration_limited
+                ),
+                "joint_soft_limited": state.last_joint_soft_limited,
+                "measured_velocity_source": (
+                    state.measured_velocity_source
+                ),
+                "measured_sample_period_s": (
+                    state.measured_sample_period_s
+                ),
+                "measured_kinematics_valid": (
+                    state.measured_kinematics_valid
+                ),
+            }
+        self.control_diagnostics_pub.publish(
+            String(data=json.dumps(payload, sort_keys=True))
+        )
 
     # =========================================================
     # Process one arm
@@ -3212,7 +3589,18 @@ class QuestDualIKFusion(Node):
         )
 
     def destroy_node(self):
-        """Close command sockets without issuing a final motion command."""
+        """Best-effort controlled stop on an existing armed connection."""
+        if self.robot_command_dispatcher.motion_armed:
+            result = self.robot_command_dispatcher.request_stop(
+                StopClass.CONTROLLED_STOP,
+                "fusion node shutdown",
+                time.perf_counter(),
+            )
+            if not result.dry_run and not result.all_acknowledged:
+                self.get_logger().error(
+                    "shutdown stop was not acknowledged by both arms; "
+                    "physical emergency stop may be required"
+                )
         self.robot_command_dispatcher.close()
         return super().destroy_node()
 

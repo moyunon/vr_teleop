@@ -58,3 +58,19 @@ def test_first_motion_profile_keeps_all_runtime_guards_enabled():
     assert parameters["sigma_warn"] > parameters["sigma_stop"]
     assert parameters["joint_soft_limit_margin_deg"] > 0.0
     assert parameters["max_consecutive_ik_failures"] >= 1
+    assert parameters["following_warning_deg"] == pytest.approx([2.0] * 7)
+    assert parameters["following_stop_deg"] == pytest.approx([5.0] * 7)
+    assert parameters["following_persistence_s"] > 0.0
+
+
+def test_unified_launch_keeps_motion_and_bag_default_off():
+    """Statically lock the two side-effecting launch defaults."""
+    launch_path = (
+        Path(__file__).resolve().parents[1]
+        / "launch"
+        / "commissioning_dry_run.launch.py"
+    )
+    source = launch_path.read_text(encoding="utf-8")
+    assert '"enable_robot_motion", default_value="false"' in source
+    assert '"enable_bag_recording", default_value="false"' in source
+    assert '"movej_canfd"' not in source

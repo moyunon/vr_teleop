@@ -28,6 +28,13 @@ quest_dual_ik_fusion:
     collision_stop_distance_m: 0.05
     collision_warn_distance_m: 0.15
 
+    # PROVISIONAL / REQUIRES HARDWARE CALIBRATION from dry-run bag data.
+    following_warning_deg: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+    following_stop_deg: [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
+    following_persistence_s: 0.10
+    following_hysteresis_ratio: 0.8
+    following_max_timestamp_skew_s: 0.10
+
     sigma_stop: 0.010
     sigma_warn: 0.020
     joint_soft_limit_margin_deg: 5.0

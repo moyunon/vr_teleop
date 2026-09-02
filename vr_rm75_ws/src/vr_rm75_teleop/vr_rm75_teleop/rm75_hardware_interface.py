@@ -7,7 +7,7 @@ coupling socket lifetime to the control loop.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 import math
 import socket
@@ -20,6 +20,10 @@ from vr_rm75_teleop.rm75_model import RM75Model
 
 DOF = 7
 MILLI_DEG_TO_RAD = math.pi / 180000.0
+# Gen-4 documentation defines UDP ``joint_speed`` in 0.02 rpm units.  This
+# scale is explicit so commissioning can detect a controller-generation
+# mismatch instead of silently treating the raw integer as rad/s.
+GEN4_JOINT_SPEED_TO_RAD_S = 0.02 * 2.0 * math.pi / 60.0
 MAX_JSON_BYTES = 65536
 
 GET_CURRENT_ARM_STATE = "get_current_arm_state"
@@ -71,6 +75,11 @@ class RM75ArmState:
     arm_motion_state: Optional[str]
     received_monotonic: float
     source: str
+    qd_measured: Optional[Tuple[float, ...]] = None
+    velocity_source: str = "unavailable"
+    measurement_seq: int = 0
+    measurement_period_s: Optional[float] = None
+    query_latency_s: Optional[float] = None
 
     def age_s(self, now_monotonic: Optional[float] = None) -> float:
         """Return local receive age, clamped against a backwards clock jump."""
@@ -106,6 +115,14 @@ class RM75ArmState:
         if self.joint_enabled is None:
             return None
         return all(self.joint_enabled)
+
+    @property
+    def effective_measurement_hz(self) -> Optional[float]:
+        """Return receive-rate estimate without using the ROS publish rate."""
+        period = self.measurement_period_s
+        if period is None or not math.isfinite(period) or period <= 0.0:
+            return None
+        return 1.0 / period
 
 
 @dataclass(frozen=True)
@@ -210,6 +227,35 @@ def _parse_int_flags(value: Any, field: str) -> Tuple[int, ...]:
     return tuple(_integer(item, field) for item in _array(value, field))
 
 
+def _parse_optional_joint_speed(
+    value: Any,
+    field: str,
+    scale_rad_s: float,
+) -> Optional[Tuple[float, ...]]:
+    """Parse optional controller velocity using an explicit protocol scale."""
+    if value is None:
+        return None
+    scale_rad_s = float(scale_rad_s)
+    if not math.isfinite(scale_rad_s) or scale_rad_s <= 0.0:
+        raise ValueError("joint speed scale must be finite and positive")
+    return tuple(
+        _finite_number(item, field) * scale_rad_s
+        for item in _array(value, field)
+    )
+
+
+def _parse_udp_error(value: Any) -> int:
+    """Accept documented scalar and single-element Gen-4 error forms."""
+    if (
+        isinstance(value, Sequence)
+        and not isinstance(value, (str, bytes, bytearray))
+    ):
+        if len(value) != 1:
+            raise RM75ProtocolError("err array must contain exactly one value")
+        value = value[0]
+    return _integer(value, "err")
+
+
 def _matches_response(message: Mapping[str, Any], expected: str) -> bool:
     command = message.get("command")
     if command == expected:
@@ -237,6 +283,10 @@ def parse_realtime_udp_state(
     data: Any,
     side: str,
     received_monotonic: Optional[float] = None,
+    *,
+    joint_speed_scale_rad_s: float = GEN4_JOINT_SPEED_TO_RAD_S,
+    measurement_seq: int = 0,
+    measurement_period_s: Optional[float] = None,
 ) -> RM75ArmState:
     """Validate a Gen-4 ``realtime_arm_joint_state`` UDP datagram."""
     side = _validate_side(side)
@@ -257,7 +307,12 @@ def parse_realtime_udp_state(
     errors = _parse_int_flags(
         joint_status.get("joint_err_code"), "joint_status.joint_err_code"
     )
-    arm_error = _integer(message.get("err", 0), "err")
+    qd_measured = _parse_optional_joint_speed(
+        joint_status.get("joint_speed"),
+        "joint_status.joint_speed",
+        joint_speed_scale_rad_s,
+    )
+    arm_error = _parse_udp_error(message.get("err", 0))
     motion_state = message.get("arm_current_status")
     if motion_state is not None and not isinstance(motion_state, str):
         raise RM75ProtocolError("arm_current_status must be a string")
@@ -267,6 +322,18 @@ def parse_realtime_udp_state(
     received_monotonic = _finite_number(
         received_monotonic, "received_monotonic"
     )
+    measurement_seq = _integer(measurement_seq, "measurement_seq")
+    if measurement_seq < 0:
+        raise RM75ProtocolError("measurement_seq must be non-negative")
+    if measurement_period_s is not None:
+        measurement_period_s = _finite_number(
+            measurement_period_s,
+            "measurement_period_s",
+        )
+        if measurement_period_s <= 0.0:
+            raise RM75ProtocolError(
+                "measurement_period_s must be positive"
+            )
 
     return RM75ArmState(
         side=side,
@@ -279,6 +346,14 @@ def parse_realtime_udp_state(
         arm_motion_state=motion_state,
         received_monotonic=received_monotonic,
         source="udp",
+        qd_measured=qd_measured,
+        velocity_source=(
+            "controller_udp_joint_speed"
+            if qd_measured is not None
+            else "unavailable"
+        ),
+        measurement_seq=measurement_seq,
+        measurement_period_s=measurement_period_s,
     )
 
 
@@ -414,6 +489,7 @@ class RM75ReadOnlyClient:
     ) -> RM75ArmState:
         """Read joint position and, periodically, enable/fault diagnostics."""
         side = _validate_side(side)
+        query_started = float(self._monotonic())
         current = self._query(GET_CURRENT_ARM_STATE)
         arm_state = current.get("arm_state")
         if not isinstance(arm_state, Mapping):
@@ -443,6 +519,7 @@ class RM75ReadOnlyClient:
                 controller.get("err_flag", 0), "controller.err_flag"
             )
 
+        received_monotonic = float(self._monotonic())
         return RM75ArmState(
             side=side,
             q_measured=q,
@@ -452,8 +529,9 @@ class RM75ReadOnlyClient:
             joint_errors=self._joint_errors,
             brake_released=self._brake_released,
             arm_motion_state=None,
-            received_monotonic=float(self._monotonic()),
+            received_monotonic=received_monotonic,
             source="tcp",
+            query_latency_s=max(0.0, received_monotonic - query_started),
         )
 
     def read_udp_configuration(self) -> Mapping[str, Any]:
@@ -506,6 +584,8 @@ class RM75StateWorker:
         self._connected = False
         self._state: Optional[RM75ArmState] = None
         self._last_error: Optional[str] = None
+        self._measurement_seq = 0
+        self._last_measurement_receive: Optional[float] = None
 
     def start(self) -> None:
         """Start the background reader if it is not already running."""
@@ -545,6 +625,18 @@ class RM75StateWorker:
             self._last_error = error
 
     def _set_state(self, state: RM75ArmState) -> None:
+        measurement_period_s = None
+        if self._last_measurement_receive is not None:
+            elapsed = state.received_monotonic - self._last_measurement_receive
+            if math.isfinite(elapsed) and elapsed > 0.0:
+                measurement_period_s = elapsed
+        self._measurement_seq += 1
+        self._last_measurement_receive = state.received_monotonic
+        state = replace(
+            state,
+            measurement_seq=self._measurement_seq,
+            measurement_period_s=measurement_period_s,
+        )
         with self._lock:
             self._state = state
             self._connected = True
@@ -601,6 +693,7 @@ class RM75UDPStateReceiver:
         expected_source_ip: str,
         timeout_s: float = 0.25,
         stale_timeout_s: float = 0.25,
+        joint_speed_scale_rad_s: float = GEN4_JOINT_SPEED_TO_RAD_S,
         monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         """Configure a passive receiver for one controller and UDP port."""
@@ -614,6 +707,14 @@ class RM75UDPStateReceiver:
         self.expected_source_ip = str(expected_source_ip)
         self.timeout_s = float(timeout_s)
         self.stale_timeout_s = float(stale_timeout_s)
+        self.joint_speed_scale_rad_s = float(joint_speed_scale_rad_s)
+        if (
+            not math.isfinite(self.joint_speed_scale_rad_s)
+            or self.joint_speed_scale_rad_s <= 0.0
+        ):
+            raise ValueError(
+                "joint_speed_scale_rad_s must be finite and positive"
+            )
         self._monotonic = monotonic
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
@@ -622,6 +723,8 @@ class RM75UDPStateReceiver:
         self._listening = False
         self._state: Optional[RM75ArmState] = None
         self._last_error: Optional[str] = None
+        self._measurement_seq = 0
+        self._last_measurement_receive: Optional[float] = None
 
     def start(self) -> None:
         """Start listening without sending or configuring any datagram."""
@@ -659,6 +762,51 @@ class RM75UDPStateReceiver:
         )
         return RM75StateStatus(listening, state, stale, error)
 
+    def accept_datagram(
+        self,
+        payload: bytes,
+        address: Tuple[str, int],
+        received_monotonic: Optional[float] = None,
+    ) -> RM75ArmState:
+        """Validate and atomically store one source-authenticated sample."""
+        if not isinstance(address, tuple) or len(address) < 2:
+            raise RM75ProtocolError("UDP source address is malformed")
+        if self.expected_source_ip and address[0] != self.expected_source_ip:
+            raise RM75ProtocolError(
+                f"unexpected UDP source {address[0]!r}"
+            )
+        if len(payload) > MAX_JSON_BYTES:
+            raise RM75ProtocolError("UDP state datagram exceeds size limit")
+        if received_monotonic is None:
+            received_monotonic = self._monotonic()
+        received_monotonic = _finite_number(
+            received_monotonic,
+            "received_monotonic",
+        )
+        period_s = None
+        if self._last_measurement_receive is not None:
+            elapsed = received_monotonic - self._last_measurement_receive
+            if elapsed <= 0.0:
+                raise RM75ProtocolError(
+                    "UDP measurement receive time did not advance"
+                )
+            period_s = elapsed
+        next_sequence = self._measurement_seq + 1
+        state = parse_realtime_udp_state(
+            payload,
+            self.side,
+            received_monotonic,
+            joint_speed_scale_rad_s=self.joint_speed_scale_rad_s,
+            measurement_seq=next_sequence,
+            measurement_period_s=period_s,
+        )
+        self._measurement_seq = next_sequence
+        self._last_measurement_receive = received_monotonic
+        with self._lock:
+            self._state = state
+            self._last_error = None
+        return state
+
     def _run(self) -> None:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -674,28 +822,16 @@ class RM75UDPStateReceiver:
                     payload, address = sock.recvfrom(MAX_JSON_BYTES + 1)
                 except socket.timeout:
                     continue
-                if (
-                    self.expected_source_ip
-                    and address[0] != self.expected_source_ip
-                ):
-                    continue
-                if len(payload) > MAX_JSON_BYTES:
-                    with self._lock:
-                        self._last_error = (
-                            "UDP state datagram exceeds size limit"
-                        )
-                    continue
                 try:
-                    state = parse_realtime_udp_state(
-                        payload, self.side, self._monotonic()
+                    self.accept_datagram(
+                        payload,
+                        address,
+                        self._monotonic(),
                     )
                 except RM75ProtocolError as exc:
                     with self._lock:
                         self._last_error = str(exc)
                     continue
-                with self._lock:
-                    self._state = state
-                    self._last_error = None
         except OSError as exc:
             if not self._stop_event.is_set():
                 with self._lock:

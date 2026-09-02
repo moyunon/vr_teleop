@@ -12,6 +12,7 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 
 from vr_rm75_teleop.rm75_hardware_interface import (
+    GEN4_JOINT_SPEED_TO_RAD_S,
     RM75ArmState,
     RM75StateStatus,
     RM75StateWorker,
@@ -42,6 +43,10 @@ class RM75StateNode(Node):
         self.declare_parameter("udp_bind_host", "0.0.0.0")
         self.declare_parameter("left_udp_port", 8089)
         self.declare_parameter("right_udp_port", 8090)
+        self.declare_parameter(
+            "udp_joint_speed_scale_rad_s",
+            GEN4_JOINT_SPEED_TO_RAD_S,
+        )
 
         self._stale_timeout_s = float(
             self.get_parameter("stale_timeout_s").value
@@ -87,6 +92,11 @@ class RM75StateNode(Node):
                     ),
                     timeout_s=tcp_timeout_s,
                     stale_timeout_s=self._stale_timeout_s,
+                    joint_speed_scale_rad_s=float(
+                        self.get_parameter(
+                            "udp_joint_speed_scale_rad_s"
+                        ).value
+                    ),
                 )
                 self._udp_receivers[side] = receiver
                 receiver.start()
@@ -149,20 +159,16 @@ class RM75StateNode(Node):
         side: str,
         tcp_status: RM75StateStatus,
     ) -> Tuple[Optional[RM75ArmState], bool]:
-        candidates = []
-        if tcp_status.state is not None and not tcp_status.stale:
-            candidates.append(tcp_status.state)
         receiver = self._udp_receivers.get(side)
         if receiver is not None:
             udp_status = receiver.get_status()
             if udp_status.state is not None and not udp_status.stale:
-                candidates.append(udp_status.state)
-        if not candidates:
-            return tcp_status.state, True
-        return (
-            max(candidates, key=lambda state: state.received_monotonic),
-            False,
-        )
+                # Prefer the direct, high-rate controller velocity sample.
+                # TCP remains the explicit fallback when UDP is unavailable.
+                return udp_status.state, False
+        if tcp_status.state is not None and not tcp_status.stale:
+            return tcp_status.state, False
+        return tcp_status.state, True
 
     def _publish(self) -> None:
         stamp = self.get_clock().now().to_msg()
@@ -204,7 +210,7 @@ class RM75StateNode(Node):
             if state is None or stale:
                 continue
             self._latest_states[side] = state
-            sample_id = (state.source, state.received_monotonic)
+            sample_id = (state.source, state.measurement_seq)
             if sample_id == self._last_published_sample[side]:
                 continue
 
@@ -212,6 +218,8 @@ class RM75StateNode(Node):
             message.header.stamp = stamp
             message.name = self._joint_names(side)
             message.position = list(state.q_measured)
+            if state.qd_measured is not None:
+                message.velocity = list(state.qd_measured)
             self._joint_publishers[side].publish(message)
             self._last_published_sample[side] = sample_id
             any_new_sample = True
@@ -231,6 +239,10 @@ class RM75StateNode(Node):
                 self._joint_names("left") + self._joint_names("right")
             )
             message.position = list(left.q_measured) + list(right.q_measured)
+            if left.qd_measured is not None and right.qd_measured is not None:
+                message.velocity = (
+                    list(left.qd_measured) + list(right.qd_measured)
+                )
             self._dual_joint_publisher.publish(message)
 
         self._publish_diagnostics(stamp, statuses)
@@ -268,6 +280,33 @@ class RM75StateNode(Node):
                 "stale": str(stale).lower(),
                 "last_error": tcp_status.last_error or "",
                 "source": state.source if state is not None else "none",
+                "measurement_seq": str(
+                    state.measurement_seq if state is not None else ""
+                ),
+                "measurement_period_s": (
+                    f"{state.measurement_period_s:.6f}"
+                    if state is not None
+                    and state.measurement_period_s is not None
+                    else "unknown"
+                ),
+                "effective_measurement_hz": (
+                    f"{state.effective_measurement_hz:.3f}"
+                    if state is not None
+                    and state.effective_measurement_hz is not None
+                    else "unknown"
+                ),
+                "velocity_source": (
+                    state.velocity_source if state is not None else "none"
+                ),
+                "joint_velocity_valid": str(
+                    state is not None and state.qd_measured is not None
+                ).lower(),
+                "query_latency_s": (
+                    f"{state.query_latency_s:.6f}"
+                    if state is not None and state.query_latency_s is not None
+                    else "unknown"
+                ),
+                "joint_valid": str(state is not None and not stale).lower(),
                 "age_s": (
                     f"{state.age_s():.6f}" if state is not None else "inf"
                 ),

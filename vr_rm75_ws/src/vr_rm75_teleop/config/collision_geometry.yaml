@@ -1,0 +1,15 @@
+# No on-site environment or missing camera dimensions have been verified yet.
+# This intentionally leaves collision_geometry_ready=false and makes the
+# Safety Supervisor fail closed. Add only surveyed geometry in the xb_link/
+# configured world frame; do not estimate dimensions from photographs.
+environment: []
+
+# Parent-child URDF pairs are excluded automatically. Add only pairs whose
+# permanent contact has been verified against the assembled hardware.
+ignored_collision_pairs: []
+
+# The dual RM75 JointState supplies only 14 arm joints. Any other non-fixed
+# URDF joint that influences collision transforms must be supplied from a
+# measured topic in a future integration or explicitly verified here. Empty
+# is the safe commissioning default.
+fixed_or_externally_verified_joint_positions: {}

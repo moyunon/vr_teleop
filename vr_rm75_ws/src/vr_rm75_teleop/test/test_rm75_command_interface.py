@@ -13,9 +13,12 @@ from vr_rm75_teleop.rm75_command_interface import (
     RM75ControllerCommandError,
     RM75LowFollowCommandClient,
     RM75MotionDisabledError,
+    decode_stop_response,
     decode_movej_canfd_response,
+    encode_stop_request,
     encode_low_follow_movej_canfd,
 )
+from vr_rm75_teleop.stop_policy import StopClass
 
 
 Q_DEG = {
@@ -63,6 +66,22 @@ class FakeSocket:
     def close(self):
         """Record transport closure."""
         self.closed = True
+
+    def queue_response(self, response):
+        """Append one newline-framed synthetic controller response."""
+        self.receive_chunks.append(
+            json.dumps(response).encode("ascii") + b"\r\n"
+        )
+
+
+def stop_response(stop_class, acknowledged=True):
+    """Return the documented response fields for one software stop."""
+    if stop_class == StopClass.CONTROLLED_STOP:
+        return {
+            "command": "set_arm_slow_stop",
+            "arm_slow_stop": acknowledged,
+        }
+    return {"command": "set_arm_stop", "arm_stop": acknowledged}
 
 
 def client(side, fake_socket, enabled=True):
@@ -220,6 +239,107 @@ def test_disabled_dispatcher_returns_dry_run_before_validating_or_sending():
         for command_client in clients.values()
     )
     assert all(fake_socket.payloads == [] for fake_socket in sockets.values())
+
+
+@pytest.mark.parametrize(
+    "stop_class, command, field",
+    [
+        (
+            StopClass.CONTROLLED_STOP,
+            "set_arm_slow_stop",
+            "arm_slow_stop",
+        ),
+        (StopClass.SAFETY_STOP, "set_arm_stop", "arm_stop"),
+    ],
+)
+def test_stop_codec_uses_documented_commands(stop_class, command, field):
+    """Keep both software stop classes explicit and protocol-validated."""
+    payload = encode_stop_request(stop_class)
+    assert json.loads(payload) == {"command": command}
+    assert decode_stop_response(
+        json.dumps({"command": command, field: True}),
+        "left",
+        stop_class,
+    )
+    with pytest.raises(RM75ControllerCommandError):
+        decode_stop_response(
+            json.dumps({"command": command, field: False}),
+            "left",
+            stop_class,
+        )
+
+
+def test_dry_run_stop_records_intent_without_network_activity():
+    """Report the intended stop while the default-off gate stays closed."""
+    sockets = {side: FakeSocket() for side in ("left", "right")}
+    clients = {
+        side: client(side, sockets[side], enabled=False)
+        for side in ("left", "right")
+    }
+    dispatcher = DualArmCommandDispatcher(
+        clients,
+        {side: np.ones(7) for side in ("left", "right")},
+    )
+
+    result = dispatcher.request_stop(
+        StopClass.SAFETY_STOP,
+        "synthetic collision event",
+        1.0,
+    )
+
+    assert result.dry_run
+    assert not result.all_acknowledged
+    assert all(not arm.attempted for arm in result.arms)
+    assert all(not client_.connected for client_ in clients.values())
+    assert all(socket_.payloads == [] for socket_ in sockets.values())
+
+
+@pytest.mark.parametrize(
+    "stop_class",
+    [StopClass.CONTROLLED_STOP, StopClass.SAFETY_STOP],
+)
+def test_dual_stop_sends_both_before_waiting_for_both_acks(stop_class):
+    """Issue one request per arm and validate both acknowledgements."""
+    dispatcher, sockets = connected_dispatcher()
+    for socket_ in sockets.values():
+        socket_.receive_chunks.clear()
+        socket_.queue_response(stop_response(stop_class))
+
+    result = dispatcher.request_stop(stop_class, "synthetic edge", 1.0)
+
+    assert result.all_acknowledged
+    assert not result.dry_run
+    assert all(arm.attempted and arm.acknowledged for arm in result.arms)
+    for socket_ in sockets.values():
+        message = json.loads(socket_.payloads[-1])
+        expected = (
+            "set_arm_slow_stop"
+            if stop_class == StopClass.CONTROLLED_STOP
+            else "set_arm_stop"
+        )
+        assert message["command"] == expected
+
+
+def test_malformed_stop_ack_is_reported_as_incomplete_dual_stop():
+    """Fail closed when either controller returns a malformed stop ACK."""
+    dispatcher, sockets = connected_dispatcher()
+    for socket_ in sockets.values():
+        socket_.receive_chunks.clear()
+    sockets["left"].queue_response(stop_response(StopClass.SAFETY_STOP))
+    sockets["right"].queue_response(
+        {"command": "set_arm_stop", "arm_stop": "yes"}
+    )
+
+    result = dispatcher.request_stop(
+        StopClass.SAFETY_STOP,
+        "synthetic malformed acknowledgement",
+        1.0,
+    )
+
+    assert not result.all_acknowledged
+    assert result.arms[0].acknowledged
+    assert not result.arms[1].acknowledged
+    assert "must be boolean" in result.arms[1].error
 
 
 def test_valid_fresh_dual_command_is_sent_once_to_each_arm():
@@ -419,7 +539,8 @@ def test_partial_transport_failure_closes_both_and_latches_fault():
     assert not dispatcher.connected
     assert left_socket.closed
     assert right_socket.closed
-    assert len(left_socket.payloads) == 1
+    assert len(left_socket.payloads) == 2
+    assert json.loads(left_socket.payloads[-1])["command"] == "set_arm_stop"
 
 
 def test_controller_error_response_closes_both_and_latches_fault():

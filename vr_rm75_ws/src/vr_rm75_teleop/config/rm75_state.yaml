@@ -19,3 +19,8 @@ rm75_state_node:
     udp_bind_host: 0.0.0.0
     left_udp_port: 8089
     right_udp_port: 8090
+
+    # Current Gen-4 documentation defines one raw joint_speed unit as
+    # 0.02 rpm = 0.0020943951 rad/s. This is protocol configuration, not a
+    # calibrated limit, and must be confirmed against the installed firmware.
+    udp_joint_speed_scale_rad_s: 0.0020943951023931952

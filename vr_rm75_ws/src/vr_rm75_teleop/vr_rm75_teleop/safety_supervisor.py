@@ -96,6 +96,7 @@ class SafetySupervisor:
         joint_soft_limits=None,
         require_collision_safety=True,
         require_actuator_safety=False,
+        require_following_safety=False,
         monotonic=time.monotonic,
     ):
         """Configure watchdog limits without enabling any command output."""
@@ -118,6 +119,7 @@ class SafetySupervisor:
         self.joint_velocity_scale = joint_velocity_scale
         self.require_collision_safety = bool(require_collision_safety)
         self.require_actuator_safety = bool(require_actuator_safety)
+        self.require_following_safety = bool(require_following_safety)
         self._monotonic = monotonic
         self.state = SafetyState.INIT
         self.last_reason = "waiting for dual-arm state"
@@ -152,6 +154,13 @@ class SafetySupervisor:
             "robot command interface unavailable"
             if self.require_actuator_safety
             else "robot motion explicitly disabled"
+        )
+        self.following_ready = not self.require_following_safety
+        self.following_hold_required = False
+        self.following_reason = (
+            "following-error observation unavailable"
+            if self.require_following_safety
+            else "following-error guard not required"
         )
 
     def update_arm(
@@ -336,6 +345,14 @@ class SafetySupervisor:
         self.actuator_fault = fault
         self.actuator_reason = str(reason) or "robot command safety hold"
 
+    def update_following(self, *, ready, hold_required, reason):
+        """Replace the timestamp-aware closed-loop following-error guard."""
+        self.following_ready = bool(ready)
+        self.following_hold_required = bool(hold_required)
+        if not self.following_ready:
+            self.following_hold_required = True
+        self.following_reason = str(reason) or "following-error safety hold"
+
     def request_fault_reset(self):
         """Request a latched FAULT reset on the next safe evaluation."""
         if self.state != SafetyState.FAULT:
@@ -384,6 +401,7 @@ class SafetySupervisor:
         soft_limit_reason = self._soft_limit_reason()
         collision_hold_reason = self._collision_hold_reason()
         actuator_hold_reason = self._actuator_hold_reason()
+        following_hold_reason = self._following_hold_reason()
 
         if self.state == SafetyState.FAULT:
             if (
@@ -411,6 +429,8 @@ class SafetySupervisor:
                 self.last_reason = collision_hold_reason
             elif actuator_hold_reason is not None:
                 self.last_reason = actuator_hold_reason
+            elif following_hold_reason is not None:
+                self.last_reason = following_hold_reason
             elif robot_ready:
                 self._transition(
                     SafetyState.READY,
@@ -437,6 +457,11 @@ class SafetySupervisor:
                 self._transition(
                     SafetyState.HOLD,
                     actuator_hold_reason,
+                )
+            elif following_hold_reason is not None:
+                self._transition(
+                    SafetyState.HOLD,
+                    following_hold_reason,
                 )
             elif soft_limit_reason is not None:
                 self._transition(
@@ -483,6 +508,11 @@ class SafetySupervisor:
                     SafetyState.HOLD,
                     actuator_hold_reason,
                 )
+            elif following_hold_reason is not None:
+                self._transition(
+                    SafetyState.HOLD,
+                    following_hold_reason,
+                )
             elif soft_limit_reason is not None:
                 self._transition(
                     SafetyState.HOLD,
@@ -519,6 +549,8 @@ class SafetySupervisor:
                 self.last_reason = collision_hold_reason
             elif actuator_hold_reason is not None:
                 self.last_reason = actuator_hold_reason
+            elif following_hold_reason is not None:
+                self.last_reason = following_hold_reason
             elif soft_limit_reason is not None:
                 self.last_reason = soft_limit_reason
             elif robot_ready and not deadman_active:
@@ -617,6 +649,13 @@ class SafetySupervisor:
             return None
         if not self.actuator_ready or self.actuator_hold_required:
             return self.actuator_reason
+        return None
+
+    def _following_hold_reason(self):
+        if not self.require_following_safety:
+            return None
+        if not self.following_ready or self.following_hold_required:
+            return self.following_reason
         return None
 
     def _normalize_soft_limits(self, configured):

@@ -34,6 +34,15 @@ quest_dual_ik_fusion:
     collision_stop_distance_m: 0.05
     collision_warn_distance_m: 0.15
 
+    # PROVISIONAL commissioning thresholds. These are deliberately
+    # conservative software defaults, not hardware-validated safety values.
+    # Recalibrate from recorded controller interpolation/network latency.
+    following_warning_deg: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+    following_stop_deg: [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
+    following_persistence_s: 0.10
+    following_hysteresis_ratio: 0.8
+    following_max_timestamp_skew_s: 0.10
+
     # Online joint command rate. qd_max is never used directly: the first
     # hardware-motion profile permits only 10% of each model velocity limit.
     control_frequency_hz: 50.0
