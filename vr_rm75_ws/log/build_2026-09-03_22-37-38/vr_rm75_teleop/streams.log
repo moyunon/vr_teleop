@@ -1,0 +1,34 @@
+[30.233s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/src/vr_rm75_teleop': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/vr_rm75_teleop build --build-base /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build install --record /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log --single-version-externally-managed install_data
+[30.373s] running egg_info
+[30.373s] writing ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/PKG-INFO
+[30.374s] writing dependency_links to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/dependency_links.txt
+[30.374s] writing entry points to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/entry_points.txt
+[30.374s] writing requirements to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/requires.txt
+[30.374s] writing top-level names to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/top_level.txt
+[30.375s] reading manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'
+[30.375s] adding license file 'LICENSE'
+[30.377s] writing manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'
+[30.377s] running build
+[30.377s] running build_py
+[30.377s] copying vr_rm75_teleop/quest_dual_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop
+[30.378s] copying vr_rm75_teleop/rm75_command_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop
+[30.378s] running install
+[30.379s] running install_lib
+[30.379s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/quest_dual_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[30.380s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_command_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[30.380s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/quest_dual_ik_fusion.py to quest_dual_ik_fusion.cpython-310.pyc
+[30.388s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_command_interface.py to rm75_command_interface.cpython-310.pyc
+[30.391s] running install_data
+[30.391s] copying config/quest_dual_ik_fusion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[30.392s] copying config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[30.392s] copying docs/rm75_command_interface.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[30.392s] running install_egg_info
+[30.392s] removing '/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop-0.0.0-py3.10.egg-info' (and everything under it)
+[30.393s] Copying ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop-0.0.0-py3.10.egg-info
+[30.393s] running install_scripts
+[30.405s] Installing collision_backend script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[30.406s] Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[30.406s] Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[30.406s] Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[30.406s] writing list of installed files to '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log'
+[60.033s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/src/vr_rm75_teleop' returned '0': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/vr_rm75_teleop build --build-base /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build install --record /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log --single-version-externally-managed install_data

@@ -9,6 +9,7 @@ import pytest
 from vr_rm75_teleop.rm75_command_interface import (
     DualArmCommandDispatcher,
     RM75CommandConnectionError,
+    RM75CommandResponseTimeout,
     RM75CommandRejectedError,
     RM75ControllerCommandError,
     RM75LowFollowCommandClient,
@@ -31,11 +32,20 @@ Q = {side: np.deg2rad(values) for side, values in Q_DEG.items()}
 class FakeSocket:
     """Record socket operations without touching the network."""
 
-    def __init__(self, fail_send=False, response=None):
+    def __init__(
+        self,
+        fail_send=False,
+        response=None,
+        *,
+        auto_stop_ack=False,
+    ):
         """Configure an optional synthetic send failure."""
         self.fail_send = fail_send
+        self.auto_stop_ack = auto_stop_ack
         self.timeout = None
+        self.timeout_history = []
         self.payloads = []
+        self.events = []
         self.closed = False
         if response is None:
             response = {
@@ -50,22 +60,48 @@ class FakeSocket:
     def settimeout(self, timeout_s):
         """Record the requested timeout."""
         self.timeout = timeout_s
+        self.timeout_history.append(timeout_s)
 
     def sendall(self, payload):
         """Record a full payload or raise the configured failure."""
         if self.fail_send:
             raise OSError("synthetic send failure")
         self.payloads.append(payload)
+        command = json.loads(payload)["command"]
+        self.events.append(f"send:{command}")
+        if self.auto_stop_ack and command in (
+            "set_arm_slow_stop",
+            "set_arm_stop",
+        ):
+            stop_class = (
+                StopClass.CONTROLLED_STOP
+                if command == "set_arm_slow_stop"
+                else StopClass.SAFETY_STOP
+            )
+            self.queue_response(stop_response(stop_class))
 
     def recv(self, _size):
         """Return one synthetic response or time out."""
         if not self.receive_chunks:
+            self.events.append("recv:timeout")
             raise socket.timeout("synthetic response timeout")
-        return self.receive_chunks.pop(0)
+        chunk = self.receive_chunks.pop(0)
+        if isinstance(chunk, BaseException):
+            self.events.append(f"recv:error:{type(chunk).__name__}")
+            raise chunk
+        if not chunk:
+            self.events.append("recv:eof")
+            return chunk
+        response = json.loads(chunk)
+        self.events.append(
+            f"recv:{response.get('command', response.get('state'))}"
+        )
+        return chunk
 
     def close(self):
         """Record transport closure."""
         self.closed = True
+        self.events.append("close")
 
     def queue_response(self, response):
         """Append one newline-framed synthetic controller response."""
@@ -84,12 +120,21 @@ def stop_response(stop_class, acknowledged=True):
     return {"command": "set_arm_stop", "arm_stop": acknowledged}
 
 
-def client(side, fake_socket, enabled=True):
+def client(
+    side,
+    fake_socket,
+    enabled=True,
+    *,
+    movej_response_timeout_s=0.05,
+    stop_response_timeout_s=0.01,
+):
     """Build one client around a network-free socket factory."""
     return RM75LowFollowCommandClient(
         side,
         f"{side}.invalid",
         enable_robot_motion=enabled,
+        movej_response_timeout_s=movej_response_timeout_s,
+        stop_response_timeout_s=stop_response_timeout_s,
         socket_factory=lambda _address, _timeout: fake_socket,
     )
 
@@ -211,6 +256,32 @@ def test_disabled_client_cannot_open_a_socket_or_send():
 
     assert factory_calls == []
     assert not command_client.connected
+
+
+def test_movej_ack_timeout_preserves_socket_for_safety_stop():
+    """Keep a timed-out channel usable until its stop ACK is collected."""
+    fake_socket = FakeSocket(auto_stop_ack=True)
+    fake_socket.receive_chunks.clear()
+    command_client = client(
+        "left",
+        fake_socket,
+        movej_response_timeout_s=0.05,
+        stop_response_timeout_s=0.012,
+    )
+    command_client.connect()
+    command_client.send_joint_target(Q["left"])
+
+    with pytest.raises(
+        RM75CommandResponseTimeout,
+        match=r"timeout receiving left movej_canfd ACK.*0\.050",
+    ):
+        command_client.receive_joint_result()
+
+    assert command_client.connected
+    assert not fake_socket.closed
+    command_client.send_stop_request(StopClass.SAFETY_STOP)
+    assert command_client.receive_stop_result(StopClass.SAFETY_STOP)
+    assert fake_socket.timeout_history[-1] == pytest.approx(0.012)
 
 
 def test_disabled_dispatcher_returns_dry_run_before_validating_or_sending():
@@ -569,15 +640,20 @@ def test_controller_error_response_closes_both_and_latches_fault():
     assert dispatcher.faulted
 
 
-def test_missing_controller_response_closes_both_and_latches_fault():
-    """Treat a response timeout as a dual-arm command transport fault."""
-    left_socket = FakeSocket()
+def test_movej_timeout_stops_both_then_closes_and_latches_fault():
+    """Stop both retained channels before closing after a left ACK timeout."""
+    left_socket = FakeSocket(auto_stop_ack=True)
     left_socket.receive_chunks.clear()
+    right_socket = FakeSocket(auto_stop_ack=True)
     dispatcher, sockets = connected_dispatcher(
         left_socket=left_socket,
+        right_socket=right_socket,
     )
 
-    with pytest.raises(RM75CommandConnectionError, match="receiving left"):
+    with pytest.raises(
+        RM75CommandResponseTimeout,
+        match="SAFETY_STOP acknowledged by both arms",
+    ):
         dispatcher.dispatch(
             Q,
             Q,
@@ -588,6 +664,17 @@ def test_missing_controller_response_closes_both_and_latches_fault():
 
     assert all(fake_socket.closed for fake_socket in sockets.values())
     assert dispatcher.faulted
+    assert dispatcher.last_stop_result.all_acknowledged
+    for fake_socket in sockets.values():
+        commands = [
+            json.loads(payload)["command"]
+            for payload in fake_socket.payloads
+        ]
+        assert commands == ["movej_canfd", "set_arm_stop"]
+        assert (
+            fake_socket.events.index("recv:set_arm_stop")
+            < fake_socket.events.index("close")
+        )
 
     with pytest.raises(RM75CommandConnectionError, match="latched"):
         dispatcher.dispatch(
@@ -597,6 +684,56 @@ def test_missing_controller_response_closes_both_and_latches_fault():
             safety_command_allowed=True,
             now_monotonic=1.02,
         )
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [b"", ConnectionResetError("synthetic reset")],
+    ids=["eof", "connection_reset"],
+)
+def test_broken_side_reports_physical_estop_and_peer_still_stops(failure):
+    """Close an unavailable left channel but still stop and ACK the right."""
+    left_socket = FakeSocket(auto_stop_ack=True)
+    left_socket.receive_chunks = [failure]
+    right_socket = FakeSocket(auto_stop_ack=True)
+    dispatcher, sockets = connected_dispatcher(
+        left_socket=left_socket,
+        right_socket=right_socket,
+    )
+
+    with pytest.raises(
+        RM75CommandConnectionError,
+        match="stop incomplete; physical E-stop required",
+    ):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    arms = {arm.side: arm for arm in dispatcher.last_stop_result.arms}
+    assert not arms["left"].attempted
+    assert not arms["left"].acknowledged
+    assert "physical E-stop required" in arms["left"].error
+    assert arms["right"].attempted
+    assert arms["right"].acknowledged
+    left_commands = [
+        json.loads(payload)["command"]
+        for payload in left_socket.payloads
+    ]
+    right_commands = [
+        json.loads(payload)["command"]
+        for payload in right_socket.payloads
+    ]
+    assert left_commands == ["movej_canfd"]
+    assert right_commands == [
+        "movej_canfd",
+        "set_arm_stop",
+    ]
+    assert all(fake_socket.closed for fake_socket in sockets.values())
+    assert dispatcher.faulted
 
 
 def test_connect_failure_closes_an_already_connected_peer():

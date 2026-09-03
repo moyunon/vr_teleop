@@ -48,7 +48,11 @@ class RM75CommandRejectedError(RM75CommandError):
 
 
 class RM75CommandConnectionError(RM75CommandError):
-    """A command transport could not connect or send a complete frame."""
+    """A command transport was unavailable or returned a broken stream."""
+
+
+class RM75CommandResponseTimeout(RM75CommandConnectionError):
+    """A controller ACK did not arrive before its response deadline."""
 
 
 class RM75ControllerCommandError(RM75CommandError):
@@ -273,7 +277,7 @@ def encode_low_follow_movej_canfd(q_rad, side):
 
 
 class RM75LowFollowCommandClient:
-    """Send-only TCP transport that cannot connect while motion is disabled."""
+    """Guarded TCP transport that cannot connect while motion is disabled."""
 
     def __init__(
         self,
@@ -281,6 +285,8 @@ class RM75LowFollowCommandClient:
         host,
         port=8080,
         timeout_s=0.01,
+        movej_response_timeout_s=0.05,
+        stop_response_timeout_s=0.01,
         enable_robot_motion=False,
         socket_factory: Optional[Callable[..., socket.socket]] = None,
         monotonic=time.monotonic,
@@ -296,10 +302,30 @@ class RM75LowFollowCommandClient:
         timeout_s = float(timeout_s)
         if not math.isfinite(timeout_s) or timeout_s <= 0.0:
             raise ValueError("timeout_s must be finite and positive")
+        movej_response_timeout_s = float(movej_response_timeout_s)
+        if (
+            not math.isfinite(movej_response_timeout_s)
+            or movej_response_timeout_s <= 0.0
+        ):
+            raise ValueError(
+                "movej_response_timeout_s must be finite and positive"
+            )
+        stop_response_timeout_s = float(stop_response_timeout_s)
+        if (
+            not math.isfinite(stop_response_timeout_s)
+            or stop_response_timeout_s <= 0.0
+        ):
+            raise ValueError(
+                "stop_response_timeout_s must be finite and positive"
+            )
 
         self.host = str(host)
         self.port = int(port)
+        # Connection and send operations retain their own transport bound.
+        # Motion and stop acknowledgements have distinct protocol deadlines.
         self.timeout_s = timeout_s
+        self.movej_response_timeout_s = movej_response_timeout_s
+        self.stop_response_timeout_s = stop_response_timeout_s
         self.enable_robot_motion = bool(enable_robot_motion)
         self._socket_factory = socket_factory or socket.create_connection
         self._monotonic = monotonic
@@ -348,6 +374,7 @@ class RM75LowFollowCommandClient:
             raise RM75CommandConnectionError("command socket is not connected")
         payload = encode_low_follow_movej_canfd(q_rad, self.side)
         try:
+            self._socket.settimeout(self.timeout_s)
             self._socket.sendall(payload)
         except (OSError, socket.timeout) as exc:
             self.close()
@@ -365,7 +392,10 @@ class RM75LowFollowCommandClient:
                 "command socket is not connected"
             )
 
-        frame = self._receive_frame()
+        frame = self._receive_frame(
+            MOVEJ_CANFD,
+            self.movej_response_timeout_s,
+        )
         response = decode_movej_canfd_response(frame, self.side)
         self.last_response_monotonic = self._monotonic()
         return response
@@ -378,6 +408,7 @@ class RM75LowFollowCommandClient:
             raise RM75CommandConnectionError("command socket is not connected")
         payload = encode_stop_request(stop_class)
         try:
+            self._socket.settimeout(self.timeout_s)
             self._socket.sendall(payload)
         except (OSError, socket.timeout) as exc:
             self.close()
@@ -390,7 +421,10 @@ class RM75LowFollowCommandClient:
         """Receive the stop ACK, skipping bounded earlier motion replies."""
         command, _ = stop_command_for_class(stop_class)
         for _ in range(8):
-            frame = self._receive_frame()
+            frame = self._receive_frame(
+                command,
+                self.stop_response_timeout_s,
+            )
             try:
                 response = json.loads(
                     frame.decode("utf-8"),
@@ -423,7 +457,7 @@ class RM75LowFollowCommandClient:
             f"too many earlier responses while awaiting {command}"
         )
 
-    def _receive_frame(self):
+    def _receive_frame(self, response_name, timeout_s):
         """Receive one bounded newline-framed controller JSON response."""
         if not self.enable_robot_motion:
             raise RM75MotionDisabledError("enable_robot_motion is false")
@@ -448,12 +482,21 @@ class RM75LowFollowCommandClient:
                     "command response exceeds size limit"
                 )
             try:
+                self._socket.settimeout(timeout_s)
                 chunk = self._socket.recv(4096)
-            except (OSError, socket.timeout) as exc:
+            except socket.timeout as exc:
+                # The controller may already have accepted/executed the
+                # command. Preserve the channel so the dispatcher can send an
+                # immediate SAFETY_STOP before it closes and latches fault.
+                raise RM75CommandResponseTimeout(
+                    f"timeout receiving {self.side} {response_name} ACK "
+                    f"at timeout_s={timeout_s:.3f}"
+                ) from exc
+            except OSError as exc:
                 self.close()
                 raise RM75CommandConnectionError(
-                    f"timeout or failure receiving {self.side} "
-                    f"{MOVEJ_CANFD} response: {exc}"
+                    f"connection failure receiving {self.side} "
+                    f"{response_name} response: {exc}"
                 ) from exc
             if not chunk:
                 self.close()
@@ -623,7 +666,10 @@ class DualArmCommandDispatcher:
                     attempted=False,
                     acknowledged=False,
                     ack_latency_s=None,
-                    error="existing command channel unavailable",
+                    error=(
+                        "stop incomplete; physical E-stop required: "
+                        "existing command channel unavailable"
+                    ),
                 )
                 continue
             starts[side] = self._monotonic()
@@ -636,7 +682,10 @@ class DualArmCommandDispatcher:
                     attempted=True,
                     acknowledged=False,
                     ack_latency_s=None,
-                    error=str(exc),
+                    error=(
+                        "stop incomplete; physical E-stop required: "
+                        f"{exc}"
+                    ),
                 )
 
         for side in SIDES:
@@ -650,7 +699,10 @@ class DualArmCommandDispatcher:
                     attempted=True,
                     acknowledged=False,
                     ack_latency_s=max(0.0, self._monotonic() - starts[side]),
-                    error=str(exc),
+                    error=(
+                        "stop incomplete; physical E-stop required: "
+                        f"{exc}"
+                    ),
                 )
             else:
                 results[side] = ArmStopResult(
@@ -789,16 +841,24 @@ class DualArmCommandDispatcher:
                 ack_latencies[side] = max(
                     0.0, self._monotonic() - ack_starts[side]
                 )
-        except RM75CommandError:
-            self.request_stop(
+        except RM75CommandError as exc:
+            stop_result = self.request_stop(
                 StopClass.SAFETY_STOP,
                 "dual-arm command send or acknowledgement failure",
                 self._monotonic(),
             )
+            stop_status = (
+                "SAFETY_STOP acknowledged by both arms"
+                if stop_result.all_acknowledged
+                else "stop incomplete; physical E-stop required"
+            )
             self.close()
             self.faulted = True
-            self.last_reason = "dual-arm command send failed; fault latched"
-            raise
+            self.last_reason = (
+                f"dual-arm command failure: {exc}; {stop_status}; "
+                "command sockets closed; fault latched"
+            )
+            raise type(exc)(self.last_reason) from exc
 
         sent_monotonic = self._monotonic()
         send_duration_s = max(0.0, sent_monotonic - transport_start)

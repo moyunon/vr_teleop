@@ -93,6 +93,21 @@ def test_first_motion_profile_keeps_all_runtime_guards_enabled():
     assert parameters["following_persistence_s"] > 0.0
 
 
+def test_movej_and_stop_ack_timeouts_are_separate_and_provisional():
+    """Keep movej acceptance latency distinct from stop ACK latency."""
+    for filename in (
+        "quest_dual_ik_fusion.yaml",
+        "safe_first_motion.yaml",
+    ):
+        parameters = load_parameters(filename)
+        transport_timeout = parameters[
+            "robot_command_transport_timeout_s"
+        ]
+        assert transport_timeout == pytest.approx(0.01)
+        assert parameters["movej_response_timeout_s"] == pytest.approx(0.05)
+        assert parameters["stop_response_timeout_s"] == pytest.approx(0.01)
+
+
 def test_unified_launch_keeps_motion_and_bag_default_off():
     """Statically lock the two side-effecting launch defaults."""
     launch_path = (

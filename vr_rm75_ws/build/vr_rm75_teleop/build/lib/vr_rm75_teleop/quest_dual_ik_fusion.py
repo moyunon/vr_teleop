@@ -145,6 +145,14 @@ class QuestDualIKFusion(Node):
             0.01,
         )
         self.declare_parameter(
+            "movej_response_timeout_s",
+            0.05,
+        )
+        self.declare_parameter(
+            "stop_response_timeout_s",
+            0.01,
+        )
+        self.declare_parameter(
             "max_robot_command_delta_deg",
             0.5,
         )
@@ -292,6 +300,16 @@ class QuestDualIKFusion(Node):
         self.robot_command_transport_timeout_s = float(
             self.get_parameter(
                 "robot_command_transport_timeout_s"
+            ).value
+        )
+        self.movej_response_timeout_s = float(
+            self.get_parameter(
+                "movej_response_timeout_s"
+            ).value
+        )
+        self.stop_response_timeout_s = float(
+            self.get_parameter(
+                "stop_response_timeout_s"
             ).value
         )
         self.max_robot_command_delta_rad = np.deg2rad(
@@ -604,6 +622,12 @@ class QuestDualIKFusion(Node):
                 host=self.command_hosts[side],
                 port=self.robot_command_port,
                 timeout_s=self.robot_command_transport_timeout_s,
+                movej_response_timeout_s=(
+                    self.movej_response_timeout_s
+                ),
+                stop_response_timeout_s=(
+                    self.stop_response_timeout_s
+                ),
                 enable_robot_motion=self.enable_robot_motion,
             )
             for side in ("left", "right")

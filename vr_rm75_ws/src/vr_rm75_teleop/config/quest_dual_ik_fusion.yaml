@@ -13,7 +13,13 @@ quest_dual_ik_fusion:
     left_command_ip: 192.168.127.18
     right_command_ip: 192.168.127.19
     robot_command_port: 8080
+    # TCP connect/write bound; ACK receive deadlines are protocol-specific.
     robot_command_transport_timeout_s: 0.01
+    # Provisional commissioning value. Measure zero-delta joint_state RTT on
+    # both installed controllers before selecting the final movej watchdog.
+    movej_response_timeout_s: 0.05
+    # Stationary Gate C observations are currently about 3-6 ms.
+    stop_response_timeout_s: 0.01
 
     # An unexpected discontinuity is rejected into HOLD, never clipped into
     # a different trajectory. The independent qdot limit below is also
