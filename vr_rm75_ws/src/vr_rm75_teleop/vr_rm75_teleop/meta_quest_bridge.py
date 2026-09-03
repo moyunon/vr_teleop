@@ -47,7 +47,10 @@ class MetaQuestBridge(Node):
 
         self.qos = QoSProfile(
             history=HistoryPolicy.KEEP_LAST,
-            depth=5,
+            # Quest pose, tracking, grip, and freshness are state streams.
+            # Keeping one sample prevents a stalled ROS consumer from
+            # replaying superseded bridge publications after recovery.
+            depth=1,
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.VOLATILE,
         )

@@ -33,6 +33,7 @@ test/test_deadman_fusion_integration.py
 test/test_flake8.py
 test/test_following_error_monitor.py
 test/test_joint_safety.py
+test/test_meta_quest_bridge.py
 test/test_pep257.py
 test/test_rm75_command_interface.py
 test/test_rm75_hardware_interface.py

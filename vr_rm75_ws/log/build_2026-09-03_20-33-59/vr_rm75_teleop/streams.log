@@ -1,0 +1,122 @@
+[60.033s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build
+[60.193s] running develop
+[60.277s] Removing /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr-rm75-teleop.egg-link (link to .)
+[90.036s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop' returned '0': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build
+[90.038s] Invoking command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/src/vr_rm75_teleop': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/vr_rm75_teleop build --build-base /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build install --record /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log --single-version-externally-managed install_data --force
+[90.184s] running egg_info
+[90.184s] writing ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/PKG-INFO
+[90.184s] writing dependency_links to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/dependency_links.txt
+[90.185s] writing entry points to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/entry_points.txt
+[90.185s] writing requirements to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/requires.txt
+[90.185s] writing top-level names to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/top_level.txt
+[90.186s] reading manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'
+[90.186s] adding license file 'LICENSE'
+[90.187s] writing manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'
+[90.187s] running build
+[90.187s] running build_py
+[90.188s] copying vr_rm75_teleop/meta_quest_bridge.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop
+[90.189s] running install
+[90.189s] running install_lib
+[90.190s] creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.190s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/deadman_clutch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.190s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/following_error_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_state_node.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_ik_joint_centering.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/quest_dual_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_hardware_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_backend.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.191s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_adaptive_damping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/se3_rate_limiter.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_urdf_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/robot_feedback_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_vr_pose_mapping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/__init__.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_nullspace.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/meta_quest_bridge.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_jacobian.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_model.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_se3_rate_limiter.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.192s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_controller_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/vr_pose_mapping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/timing_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_target_feasibility.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_singularity_scan.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/stop_policy.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_backend_node.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/quest_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_continuous_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.193s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/safety_supervisor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_jacobian.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/arm_fusion_state.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/joint_safety.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_safety.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_command_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_nullspace.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/target_feasibility.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop
+[90.194s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/deadman_clutch.py to deadman_clutch.cpython-310.pyc
+[90.194s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/following_error_monitor.py to following_error_monitor.cpython-310.pyc
+[90.195s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_state_node.py to rm75_state_node.cpython-310.pyc
+[90.196s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_ik_joint_centering.py to check_ik_joint_centering.cpython-310.pyc
+[90.196s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/quest_dual_ik_fusion.py to quest_dual_ik_fusion.cpython-310.pyc
+[90.205s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_hardware_interface.py to rm75_hardware_interface.cpython-310.pyc
+[90.208s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_backend.py to collision_backend.cpython-310.pyc
+[90.213s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_adaptive_damping.py to check_adaptive_damping.cpython-310.pyc
+[90.214s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_ik.py to rm75_ik.cpython-310.pyc
+[90.215s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/se3_rate_limiter.py to se3_rate_limiter.cpython-310.pyc
+[90.215s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_urdf_fk.py to check_urdf_fk.cpython-310.pyc
+[90.216s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/robot_feedback_monitor.py to robot_feedback_monitor.cpython-310.pyc
+[90.216s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_vr_pose_mapping.py to check_vr_pose_mapping.cpython-310.pyc
+[90.217s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/__init__.py to __init__.cpython-310.pyc
+[90.217s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_nullspace.py to check_nullspace.cpython-310.pyc
+[90.218s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/meta_quest_bridge.py to meta_quest_bridge.cpython-310.pyc
+[90.219s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_jacobian.py to rm75_jacobian.cpython-310.pyc
+[90.219s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_model.py to rm75_model.cpython-310.pyc
+[90.219s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_se3_rate_limiter.py to check_se3_rate_limiter.cpython-310.pyc
+[90.219s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_controller_fk.py to check_controller_fk.cpython-310.pyc
+[90.220s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_fk.py to check_fk.cpython-310.pyc
+[90.220s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/vr_pose_mapping.py to vr_pose_mapping.cpython-310.pyc
+[90.220s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/timing_monitor.py to timing_monitor.cpython-310.pyc
+[90.221s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_target_feasibility.py to check_target_feasibility.cpython-310.pyc
+[90.222s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_singularity_scan.py to check_singularity_scan.cpython-310.pyc
+[90.223s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/stop_policy.py to stop_policy.cpython-310.pyc
+[90.223s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_ik.py to check_ik.cpython-310.pyc
+[90.223s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_backend_node.py to collision_backend_node.cpython-310.pyc
+[90.224s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/quest_ik_fusion.py to quest_ik_fusion.cpython-310.pyc
+[90.225s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_continuous_ik.py to check_continuous_ik.cpython-310.pyc
+[90.226s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_fk.py to rm75_fk.cpython-310.pyc
+[90.227s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/safety_supervisor.py to safety_supervisor.cpython-310.pyc
+[90.229s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_jacobian.py to check_jacobian.cpython-310.pyc
+[90.230s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/arm_fusion_state.py to arm_fusion_state.cpython-310.pyc
+[90.231s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/joint_safety.py to joint_safety.cpython-310.pyc
+[90.232s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_safety.py to collision_safety.cpython-310.pyc
+[90.233s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_command_interface.py to rm75_command_interface.cpython-310.pyc
+[90.236s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_nullspace.py to rm75_nullspace.cpython-310.pyc
+[90.236s] byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/target_feasibility.py to target_feasibility.cpython-310.pyc
+[90.237s] running install_data
+[90.237s] copying resource/vr_rm75_teleop -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/ament_index/resource_index/packages
+[90.238s] copying package.xml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop
+[90.238s] copying config/quest_dual_ik_fusion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.238s] copying config/rm75_state.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.238s] copying config/meta_quest_bridge.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.238s] copying config/collision_geometry.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.238s] copying config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config
+[90.238s] copying launch/rm75_state.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch
+[90.238s] copying launch/commissioning_dry_run.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch
+[90.238s] copying docs/COLLISION_GEOMETRY_AUDIT.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[90.238s] copying docs/COMMISSIONING_STATUS.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[90.238s] copying docs/COMMISSIONING_CHECKLIST.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[90.239s] copying docs/rm75_command_interface.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[90.239s] copying docs/STOP_POLICY.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs
+[90.239s] running install_egg_info
+[90.239s] Copying ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop-0.0.0-py3.10.egg-info
+[90.240s] running install_scripts
+[90.254s] Installing collision_backend script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.254s] Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.254s] Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.255s] Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop
+[90.255s] writing list of installed files to '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log'
+[120.045s] Invoked command in '/home/moyu/workspace/vr_teleop/vr_rm75_ws/src/vr_rm75_teleop' returned '0': PYTHONPATH=/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/vr_rm75_teleop build --build-base /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build install --record /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log --single-version-externally-managed install_data --force

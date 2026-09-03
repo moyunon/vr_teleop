@@ -1,0 +1,339 @@
+[0.000000] (-) TimerEvent: {}
+[0.000312] (-) JobUnselected: {'identifier': 'lsrx_rm75_dual_description'}
+[0.000365] (vr_rm75_teleop) JobQueued: {'identifier': 'vr_rm75_teleop', 'dependencies': OrderedDict()}
+[0.000990] (vr_rm75_teleop) JobStarted: {'identifier': 'vr_rm75_teleop'}
+[0.100012] (-) TimerEvent: {}
+[0.200177] (-) TimerEvent: {}
+[0.300385] (-) TimerEvent: {}
+[0.400542] (-) TimerEvent: {}
+[0.402173] (vr_rm75_teleop) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build', '--no-deps', 'symlink_data', '--force'], 'cwd': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop', 'env': {'GJS_DEBUG_TOPICS': 'JS ERROR;JS LOG', 'LESSOPEN': '| /usr/bin/lesspipe %s', 'CODEX_CI': '1', 'LANGUAGE': 'en_US:en', 'USER': 'moyu', 'LC_TIME': 'zh_CN.UTF-8', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE': 'Codex Desktop', 'CODEX_SHELL': '1', 'XDG_SESSION_TYPE': 'x11', 'NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S': '9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df', 'LOG_FORMAT': 'json', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/moyu', 'CHROME_DESKTOP': 'chatgpt.desktop', 'CONDA_SHLVL': '0', 'DISABLE_AUTO_UPDATE': 'true', 'DESKTOP_SESSION': 'ubuntu', 'GIO_LAUNCHED_DESKTOP_FILE': '/usr/share/applications/chatgpt.desktop', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'PAGER': 'cat', 'LC_MONETARY': 'zh_CN.UTF-8', 'MANAGERPID': '1481', 'LC_CTYPE': 'C.UTF-8', 'SYSTEMD_EXEC_PID': '1822', 'NO_COLOR': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': '', '_CE_M': '', '_CONDA_ROOT': '/home/moyu/miniconda3', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '7127', 'IM_CONFIG_PHASE': '1', 'CODEX_PERMISSION_PROFILE': ':workspace', 'ROS_DISTRO': 'humble', 'GTK_IM_MODULE': 'fcitx', 'ZSH_TMUX_AUTOSTARTED': 'true', 'LOGNAME': 'moyu', 'JOURNAL_STREAM': '8:18581', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'RUST_LOG': 'warn', 'USERNAME': 'moyu', 'TERM': 'dumb', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', '_CE_CONDA': '', 'NODE_REPL_TRUSTED_CODE_PATHS': '/home/moyu/.codex:/usr/lib/chatgpt/resources/cua_node/lib/node_modules', 'FC_FONTATIONS': '1', 'ROS_LOCALHOST_ONLY': '0', 'WINDOWPATH': '2', 'PATH': '/home/moyu/.local/bin:/home/moyu/.codex/tmp/arg0/codex-arg0jM3Jxk:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/moyu/.local/bin:/home/moyu/miniconda3/condabin:/opt/ros/humble/bin:/home/moyu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources', 'SESSION_MANAGER': 'local/moyu-PC:@/tmp/.ICE-unix/1784,unix/moyu-PC:/tmp/.ICE-unix/1784', 'CODEX_SESSION_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'INVOCATION_ID': '6cacfc8492b641b8bb5fc336e66b7fce', 'PAPERSIZE': 'a4', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'zh_CN.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'GDK_BACKEND': 'x11', 'DISPLAY': ':0', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', 'BROWSER_USE_AVAILABLE_BACKENDS': 'chrome,iab', 'LANG': 'C.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'LC_TELEPHONE': 'zh_CN.UTF-8', 'XMODIFIERS': '@im=fcitx', 'GH_PAGER': 'cat', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/gdm/Xauthority', 'LS_COLORS': '', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'CONDA_PYTHON_EXE': '/home/moyu/miniconda3/bin/python', 'SHELL': '/bin/bash', 'LC_NAME': 'zh_CN.UTF-8', 'QT_ACCESSIBILITY': '1', 'NO_AT_BRIDGE': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'CODEX_THREAD_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'LC_MEASUREMENT': 'zh_CN.UTF-8', 'GPG_AGENT_INFO': '/run/user/1000/gnupg/S.gpg-agent:0:1', 'GJS_DEBUG_OUTPUT': 'stderr', '_CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'LC_IDENTIFICATION': 'zh_CN.UTF-8', 'GIT_PAGER': 'cat', 'QT_IM_MODULE': 'fcitx', 'PWD': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop', 'LC_ALL': 'C.UTF-8', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'ZSH_TMUX_AUTOSTART': 'false', 'CLUTTER_IM_MODULE': 'fcitx', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'zh_CN.UTF-8', 'LC_PAPER': 'zh_CN.UTF-8', 'COLCON': '1'}, 'shell': False}
+[0.500670] (-) TimerEvent: {}
+[0.563997] (vr_rm75_teleop) StdoutLine: {'line': b'running develop\n'}
+[0.600795] (-) TimerEvent: {}
+[0.648041] (vr_rm75_teleop) StdoutLine: {'line': b'running egg_info\n'}
+[0.648292] (vr_rm75_teleop) StdoutLine: {'line': b'writing vr_rm75_teleop.egg-info/PKG-INFO\n'}
+[0.648529] (vr_rm75_teleop) StdoutLine: {'line': b'writing dependency_links to vr_rm75_teleop.egg-info/dependency_links.txt\n'}
+[0.648626] (vr_rm75_teleop) StdoutLine: {'line': b'writing entry points to vr_rm75_teleop.egg-info/entry_points.txt\n'}
+[0.648714] (vr_rm75_teleop) StdoutLine: {'line': b'writing requirements to vr_rm75_teleop.egg-info/requires.txt\n'}
+[0.648830] (vr_rm75_teleop) StdoutLine: {'line': b'writing top-level names to vr_rm75_teleop.egg-info/top_level.txt\n'}
+[0.650028] (vr_rm75_teleop) StdoutLine: {'line': b"reading manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'\n"}
+[0.650976] (vr_rm75_teleop) StdoutLine: {'line': b"writing manifest file 'vr_rm75_teleop.egg-info/SOURCES.txt'\n"}
+[0.685816] (vr_rm75_teleop) StdoutLine: {'line': b'running build_ext\n'}
+[0.685993] (vr_rm75_teleop) StdoutLine: {'line': b'Creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr-rm75-teleop.egg-link (link to .)\n'}
+[0.686529] (vr_rm75_teleop) StdoutLine: {'line': b'Installing collision_backend script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[0.686759] (vr_rm75_teleop) StdoutLine: {'line': b'Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[0.686879] (vr_rm75_teleop) StdoutLine: {'line': b'Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[0.686968] (vr_rm75_teleop) StdoutLine: {'line': b'Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[0.687251] (vr_rm75_teleop) StdoutLine: {'line': b'\n'}
+[0.687413] (vr_rm75_teleop) StdoutLine: {'line': b'Installed /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop\n'}
+[0.687494] (vr_rm75_teleop) StdoutLine: {'line': b'running symlink_data\n'}
+[0.687576] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/resource/vr_rm75_teleop -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/ament_index/resource_index/packages\n'}
+[0.687666] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/package.xml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop\n'}
+[0.687756] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/quest_dual_ik_fusion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[0.687851] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/rm75_state.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[0.687958] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/meta_quest_bridge.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[0.688056] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/collision_geometry.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[0.688144] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[0.688224] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/launch/rm75_state.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch\n'}
+[0.688309] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/launch/commissioning_dry_run.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch\n'}
+[0.688393] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/COLLISION_GEOMETRY_AUDIT.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[0.688484] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/COMMISSIONING_STATUS.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[0.688564] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/COMMISSIONING_CHECKLIST.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[0.688640] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/rm75_command_interface.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[0.688716] (vr_rm75_teleop) StdoutLine: {'line': b'symbolically linking /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/docs/STOP_POLICY.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[0.700900] (-) TimerEvent: {}
+[0.801067] (-) TimerEvent: {}
+[0.901264] (-) TimerEvent: {}
+[1.001484] (-) TimerEvent: {}
+[1.101663] (-) TimerEvent: {}
+[1.201856] (-) TimerEvent: {}
+[1.302053] (-) TimerEvent: {}
+[1.402239] (-) TimerEvent: {}
+[1.502521] (-) TimerEvent: {}
+[1.602764] (-) TimerEvent: {}
+[1.702976] (-) TimerEvent: {}
+[1.803159] (-) TimerEvent: {}
+[1.903325] (-) TimerEvent: {}
+[2.003496] (-) TimerEvent: {}
+[2.103733] (-) TimerEvent: {}
+[2.203910] (-) TimerEvent: {}
+[2.304092] (-) TimerEvent: {}
+[2.404273] (-) TimerEvent: {}
+[2.504447] (-) TimerEvent: {}
+[2.604614] (-) TimerEvent: {}
+[2.704812] (-) TimerEvent: {}
+[2.805010] (-) TimerEvent: {}
+[2.905176] (-) TimerEvent: {}
+[3.005354] (-) TimerEvent: {}
+[3.105576] (-) TimerEvent: {}
+[3.205813] (-) TimerEvent: {}
+[3.306055] (-) TimerEvent: {}
+[3.406254] (-) TimerEvent: {}
+[3.506536] (-) TimerEvent: {}
+[3.606740] (-) TimerEvent: {}
+[3.706903] (-) TimerEvent: {}
+[3.807203] (-) TimerEvent: {}
+[3.907378] (-) TimerEvent: {}
+[4.007592] (-) TimerEvent: {}
+[4.107817] (-) TimerEvent: {}
+[4.208084] (-) TimerEvent: {}
+[4.308301] (-) TimerEvent: {}
+[4.408490] (-) TimerEvent: {}
+[4.508708] (-) TimerEvent: {}
+[4.608969] (-) TimerEvent: {}
+[4.709227] (-) TimerEvent: {}
+[4.809502] (-) TimerEvent: {}
+[4.909781] (-) TimerEvent: {}
+[5.010028] (-) TimerEvent: {}
+[5.110297] (-) TimerEvent: {}
+[5.210570] (-) TimerEvent: {}
+[5.310810] (-) TimerEvent: {}
+[5.411076] (-) TimerEvent: {}
+[5.511330] (-) TimerEvent: {}
+[5.611639] (-) TimerEvent: {}
+[5.711935] (-) TimerEvent: {}
+[5.812162] (-) TimerEvent: {}
+[5.912434] (-) TimerEvent: {}
+[6.012732] (-) TimerEvent: {}
+[6.112976] (-) TimerEvent: {}
+[6.213219] (-) TimerEvent: {}
+[6.313502] (-) TimerEvent: {}
+[6.413838] (-) TimerEvent: {}
+[6.514090] (-) TimerEvent: {}
+[6.614347] (-) TimerEvent: {}
+[6.714639] (-) TimerEvent: {}
+[6.814968] (-) TimerEvent: {}
+[6.915271] (-) TimerEvent: {}
+[7.015577] (-) TimerEvent: {}
+[7.115822] (-) TimerEvent: {}
+[7.216064] (-) TimerEvent: {}
+[7.316338] (-) TimerEvent: {}
+[7.416553] (-) TimerEvent: {}
+[7.516762] (-) TimerEvent: {}
+[7.616946] (-) TimerEvent: {}
+[7.717119] (-) TimerEvent: {}
+[7.817317] (-) TimerEvent: {}
+[7.917488] (-) TimerEvent: {}
+[8.017741] (-) TimerEvent: {}
+[8.117935] (-) TimerEvent: {}
+[8.218143] (-) TimerEvent: {}
+[8.318334] (-) TimerEvent: {}
+[8.418618] (-) TimerEvent: {}
+[8.518791] (-) TimerEvent: {}
+[8.618955] (-) TimerEvent: {}
+[8.719134] (-) TimerEvent: {}
+[8.819345] (-) TimerEvent: {}
+[8.919634] (-) TimerEvent: {}
+[9.019916] (-) TimerEvent: {}
+[9.120089] (-) TimerEvent: {}
+[9.220290] (-) TimerEvent: {}
+[9.320644] (-) TimerEvent: {}
+[9.420889] (-) TimerEvent: {}
+[9.521186] (-) TimerEvent: {}
+[9.621385] (-) TimerEvent: {}
+[9.721637] (-) TimerEvent: {}
+[9.821933] (-) TimerEvent: {}
+[9.922101] (-) TimerEvent: {}
+[10.022292] (-) TimerEvent: {}
+[10.122492] (-) TimerEvent: {}
+[10.222672] (-) TimerEvent: {}
+[10.322877] (-) TimerEvent: {}
+[10.423069] (-) TimerEvent: {}
+[10.523229] (-) TimerEvent: {}
+[10.623411] (-) TimerEvent: {}
+[10.723599] (-) TimerEvent: {}
+[10.823849] (-) TimerEvent: {}
+[10.924022] (-) TimerEvent: {}
+[11.024209] (-) TimerEvent: {}
+[11.124423] (-) TimerEvent: {}
+[11.224669] (-) TimerEvent: {}
+[11.324973] (-) TimerEvent: {}
+[11.425201] (-) TimerEvent: {}
+[11.525364] (-) TimerEvent: {}
+[11.625673] (-) TimerEvent: {}
+[11.725964] (-) TimerEvent: {}
+[11.826259] (-) TimerEvent: {}
+[11.926564] (-) TimerEvent: {}
+[12.026850] (-) TimerEvent: {}
+[12.127078] (-) TimerEvent: {}
+[12.227294] (-) TimerEvent: {}
+[12.327527] (-) TimerEvent: {}
+[12.427796] (-) TimerEvent: {}
+[12.528084] (-) TimerEvent: {}
+[12.628340] (-) TimerEvent: {}
+[12.728616] (-) TimerEvent: {}
+[12.828835] (-) TimerEvent: {}
+[12.929068] (-) TimerEvent: {}
+[13.029276] (-) TimerEvent: {}
+[13.129547] (-) TimerEvent: {}
+[13.229917] (-) TimerEvent: {}
+[13.330181] (-) TimerEvent: {}
+[13.430470] (-) TimerEvent: {}
+[13.530840] (-) TimerEvent: {}
+[13.631073] (-) TimerEvent: {}
+[13.731303] (-) TimerEvent: {}
+[13.831584] (-) TimerEvent: {}
+[13.931837] (-) TimerEvent: {}
+[14.032098] (-) TimerEvent: {}
+[14.132452] (-) TimerEvent: {}
+[14.232821] (-) TimerEvent: {}
+[14.333058] (-) TimerEvent: {}
+[14.433295] (-) TimerEvent: {}
+[14.533564] (-) TimerEvent: {}
+[14.633844] (-) TimerEvent: {}
+[14.734128] (-) TimerEvent: {}
+[14.834411] (-) TimerEvent: {}
+[14.934722] (-) TimerEvent: {}
+[15.035002] (-) TimerEvent: {}
+[15.135212] (-) TimerEvent: {}
+[15.235447] (-) TimerEvent: {}
+[15.335679] (-) TimerEvent: {}
+[15.435968] (-) TimerEvent: {}
+[15.536175] (-) TimerEvent: {}
+[15.636410] (-) TimerEvent: {}
+[15.736660] (-) TimerEvent: {}
+[15.836831] (-) TimerEvent: {}
+[15.936984] (-) TimerEvent: {}
+[16.037165] (-) TimerEvent: {}
+[16.137344] (-) TimerEvent: {}
+[16.237578] (-) TimerEvent: {}
+[16.337950] (-) TimerEvent: {}
+[16.438233] (-) TimerEvent: {}
+[16.538566] (-) TimerEvent: {}
+[16.638903] (-) TimerEvent: {}
+[16.739168] (-) TimerEvent: {}
+[16.839341] (-) TimerEvent: {}
+[16.939589] (-) TimerEvent: {}
+[17.039764] (-) TimerEvent: {}
+[17.139900] (-) TimerEvent: {}
+[17.240056] (-) TimerEvent: {}
+[17.340241] (-) TimerEvent: {}
+[17.440447] (-) TimerEvent: {}
+[17.540707] (-) TimerEvent: {}
+[17.640916] (-) TimerEvent: {}
+[17.741114] (-) TimerEvent: {}
+[17.841260] (-) TimerEvent: {}
+[17.941443] (-) TimerEvent: {}
+[18.041613] (-) TimerEvent: {}
+[18.141859] (-) TimerEvent: {}
+[18.242072] (-) TimerEvent: {}
+[18.342249] (-) TimerEvent: {}
+[18.442430] (-) TimerEvent: {}
+[18.542570] (-) TimerEvent: {}
+[18.642835] (-) TimerEvent: {}
+[18.742989] (-) TimerEvent: {}
+[18.843233] (-) TimerEvent: {}
+[18.943400] (-) TimerEvent: {}
+[19.043593] (-) TimerEvent: {}
+[19.143769] (-) TimerEvent: {}
+[19.243941] (-) TimerEvent: {}
+[19.344156] (-) TimerEvent: {}
+[19.444360] (-) TimerEvent: {}
+[19.544523] (-) TimerEvent: {}
+[19.644816] (-) TimerEvent: {}
+[19.745182] (-) TimerEvent: {}
+[19.845387] (-) TimerEvent: {}
+[19.945676] (-) TimerEvent: {}
+[20.045945] (-) TimerEvent: {}
+[20.146131] (-) TimerEvent: {}
+[20.246326] (-) TimerEvent: {}
+[20.346654] (-) TimerEvent: {}
+[20.446920] (-) TimerEvent: {}
+[20.547121] (-) TimerEvent: {}
+[20.647336] (-) TimerEvent: {}
+[20.747557] (-) TimerEvent: {}
+[20.847782] (-) TimerEvent: {}
+[20.948056] (-) TimerEvent: {}
+[21.048249] (-) TimerEvent: {}
+[21.148464] (-) TimerEvent: {}
+[21.248700] (-) TimerEvent: {}
+[21.349002] (-) TimerEvent: {}
+[21.449266] (-) TimerEvent: {}
+[21.549612] (-) TimerEvent: {}
+[21.649955] (-) TimerEvent: {}
+[21.750236] (-) TimerEvent: {}
+[21.850497] (-) TimerEvent: {}
+[21.950725] (-) TimerEvent: {}
+[22.050957] (-) TimerEvent: {}
+[22.151164] (-) TimerEvent: {}
+[22.251547] (-) TimerEvent: {}
+[22.351824] (-) TimerEvent: {}
+[22.452166] (-) TimerEvent: {}
+[22.552460] (-) TimerEvent: {}
+[22.652732] (-) TimerEvent: {}
+[22.753028] (-) TimerEvent: {}
+[22.853294] (-) TimerEvent: {}
+[22.953540] (-) TimerEvent: {}
+[23.053740] (-) TimerEvent: {}
+[23.153942] (-) TimerEvent: {}
+[23.254236] (-) TimerEvent: {}
+[23.354562] (-) TimerEvent: {}
+[23.454933] (-) TimerEvent: {}
+[23.555206] (-) TimerEvent: {}
+[23.655487] (-) TimerEvent: {}
+[23.755816] (-) TimerEvent: {}
+[23.856077] (-) TimerEvent: {}
+[23.956304] (-) TimerEvent: {}
+[24.056528] (-) TimerEvent: {}
+[24.156770] (-) TimerEvent: {}
+[24.256937] (-) TimerEvent: {}
+[24.357082] (-) TimerEvent: {}
+[24.457265] (-) TimerEvent: {}
+[24.557520] (-) TimerEvent: {}
+[24.657869] (-) TimerEvent: {}
+[24.758057] (-) TimerEvent: {}
+[24.858249] (-) TimerEvent: {}
+[24.958413] (-) TimerEvent: {}
+[25.058573] (-) TimerEvent: {}
+[25.158736] (-) TimerEvent: {}
+[25.258907] (-) TimerEvent: {}
+[25.359082] (-) TimerEvent: {}
+[25.459245] (-) TimerEvent: {}
+[25.559422] (-) TimerEvent: {}
+[25.659572] (-) TimerEvent: {}
+[25.759831] (-) TimerEvent: {}
+[25.860103] (-) TimerEvent: {}
+[25.960365] (-) TimerEvent: {}
+[26.060679] (-) TimerEvent: {}
+[26.160865] (-) TimerEvent: {}
+[26.261011] (-) TimerEvent: {}
+[26.361180] (-) TimerEvent: {}
+[26.461402] (-) TimerEvent: {}
+[26.561576] (-) TimerEvent: {}
+[26.661963] (-) TimerEvent: {}
+[26.762125] (-) TimerEvent: {}
+[26.862290] (-) TimerEvent: {}
+[26.962590] (-) TimerEvent: {}
+[27.062739] (-) TimerEvent: {}
+[27.162995] (-) TimerEvent: {}
+[27.263159] (-) TimerEvent: {}
+[27.363354] (-) TimerEvent: {}
+[27.463624] (-) TimerEvent: {}
+[27.563866] (-) TimerEvent: {}
+[27.664152] (-) TimerEvent: {}
+[27.764332] (-) TimerEvent: {}
+[27.864590] (-) TimerEvent: {}
+[27.964765] (-) TimerEvent: {}
+[28.064969] (-) TimerEvent: {}
+[28.165148] (-) TimerEvent: {}
+[28.265328] (-) TimerEvent: {}
+[28.365504] (-) TimerEvent: {}
+[28.465739] (-) TimerEvent: {}
+[28.565905] (-) TimerEvent: {}
+[28.666101] (-) TimerEvent: {}
+[28.766403] (-) TimerEvent: {}
+[28.866670] (-) TimerEvent: {}
+[28.966931] (-) TimerEvent: {}
+[29.067089] (-) TimerEvent: {}
+[29.167263] (-) TimerEvent: {}
+[29.267516] (-) TimerEvent: {}
+[29.367782] (-) TimerEvent: {}
+[29.468046] (-) TimerEvent: {}
+[29.568278] (-) TimerEvent: {}
+[29.668483] (-) TimerEvent: {}
+[29.768710] (-) TimerEvent: {}
+[29.868913] (-) TimerEvent: {}
+[29.969111] (-) TimerEvent: {}
+[30.030384] (vr_rm75_teleop) CommandEnded: {'returncode': 0}
+[30.038537] (vr_rm75_teleop) JobEnded: {'identifier': 'vr_rm75_teleop', 'rc': 0}
+[30.039135] (-) EventReactorShutdown: {}
