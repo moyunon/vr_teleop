@@ -51,14 +51,22 @@ backend. Online transforms use the arms' common `xb_link` frame and require
 only `l_rm75_joint_1..7` and `r_rm75_joint_1..7`. Parent-child and explicitly
 ignored pair filtering remains active.
 
+The one explicit structural ignore is
+`l_rm75_base_link` ↔ `r_rm75_base_link`. Both links are fixed-mounted to
+`xb_link`, so their relative transform cannot change with RM75 J1..J7. This
+ignore does not cover either base against a moving link of the opposite arm;
+all such pairs remain in the inter-arm candidate set.
+
 The audited runtime imports `python-fcl`, parses 56 existing collision
 geometries with no load failure, and reports the narrowed backend geometry
 ready. Disabled categories have no numerical placeholder; diagnostics report
 `DISABLED_BY_CONFIGURATION`.
 
-This readiness is not a motion-clearance result. A 2026-09-02 read-only static
-state sample produced `left_self=0.053036446 m`,
-`right_self=0.053015256 m`, and `inter_arm=0.000000000 m`; the limiting pair was
-`l_rm75_base_link:0` ↔ `r_rm75_base_link:0`. Under the configured 0.05 m stop
-threshold this is STOP. Do not ignore that pair unless its permanent overlap
-and structural relationship are verified against the assembled hardware.
+A 2026-09-02 read-only static state sample, evaluated on 2026-09-03 with that
+structural ignore, produced `left_self=0.053036446 m`,
+`right_self=0.053015256 m`, and `inter_arm=0.137900000 m`. The closest pairs
+were respectively left link 4 ↔ left link 6, right link 4 ↔ right link 6, and
+left link 1 ↔ right base. With the unchanged 0.05 m stop and 0.15 m warning
+thresholds, the resulting collision decision is WARNING, limited by right
+self-clearance; these close self pairs must be checked against the physical
+mechanism before collision thresholds are calibrated.

@@ -1,6 +1,7 @@
 """Tests for fresh, persistent, hysteretic following-error decisions."""
 
 import numpy as np
+import pytest
 
 from vr_rm75_teleop.following_error_monitor import (
     FollowingErrorMonitor,
@@ -92,3 +93,131 @@ def test_reset_allows_release_and_reengage_after_stop():
     result = evaluate(instance, [0.0, 0.0], 1.12)
     assert result.state == FollowingErrorState.NORMAL
     assert not result.hold_required
+
+
+def test_pre_engagement_command_waits_without_holding():
+    """Do not reuse a command timestamp from an earlier engagement epoch."""
+    instance = monitor()
+    result = instance.evaluate(
+        [0.25, 0.0],
+        90.0,
+        [0.0, 0.0],
+        100.0,
+        100.0,
+        engagement_start_monotonic=100.0,
+    )
+
+    assert result.state == FollowingErrorState.NORMAL
+    assert result.ready
+    assert not result.hold_required
+    assert result.error_rad is None
+    assert result.engagement_start_time == 100.0
+    assert result.engagement_age_s == 0.0
+    assert result.command_time == 90.0
+    assert result.command_age_s == 10.0
+    assert result.measurement_age_s == 0.0
+    assert result.timestamp_skew_s == 10.0
+    assert not result.command_is_current_engagement
+    assert result.reason == "awaiting first post-engagement safe command"
+
+
+def test_first_current_engagement_command_starts_comparison():
+    """Start normal following protection on the first epoch-local command."""
+    instance = monitor()
+    result = instance.evaluate(
+        [0.15, 0.0],
+        100.01,
+        [0.0, 0.0],
+        100.01,
+        100.02,
+        engagement_start_monotonic=100.0,
+    )
+
+    assert result.ready
+    assert not result.hold_required
+    assert result.command_is_current_engagement
+    assert result.max_abs_error_rad == 0.15
+    assert result.command_time == 100.01
+    assert result.command_age_s == pytest.approx(0.01)
+
+
+def test_new_engagement_rejects_previous_epoch_command():
+    """Return to awaiting after HOLD/READY starts a later engagement."""
+    instance = monitor()
+    first = instance.evaluate(
+        [0.0, 0.0],
+        100.01,
+        [0.0, 0.0],
+        100.01,
+        100.02,
+        engagement_start_monotonic=100.0,
+    )
+    second = instance.evaluate(
+        [0.25, 0.0],
+        100.01,
+        [0.0, 0.0],
+        110.0,
+        110.0,
+        engagement_start_monotonic=110.0,
+    )
+
+    assert first.command_is_current_engagement
+    assert second.ready
+    assert not second.hold_required
+    assert not second.command_is_current_engagement
+    assert second.reason == "awaiting first post-engagement safe command"
+
+
+def test_current_engagement_command_still_fails_closed_when_stale():
+    """Keep command freshness enforcement after epoch admission."""
+    instance = monitor()
+    result = instance.evaluate(
+        [0.0, 0.0],
+        100.01,
+        [0.0, 0.0],
+        100.30,
+        100.30,
+        engagement_start_monotonic=100.0,
+    )
+
+    assert result.command_is_current_engagement
+    assert not result.ready
+    assert result.hold_required
+    assert result.reason == "following-error command or measurement is stale"
+
+
+def test_epoch_wait_does_not_bypass_stale_measurement():
+    """Fail closed on stale feedback even while awaiting the first command."""
+    instance = monitor()
+    result = instance.evaluate(
+        [0.0, 0.0],
+        90.0,
+        [0.0, 0.0],
+        99.0,
+        100.0,
+        engagement_start_monotonic=100.0,
+    )
+
+    assert not result.command_is_current_engagement
+    assert not result.ready
+    assert result.hold_required
+    assert result.reason == "following-error command or measurement is stale"
+
+
+def test_current_engagement_timestamp_skew_still_fails_closed():
+    """Keep command/measurement alignment enforcement after engagement."""
+    instance = monitor()
+    result = instance.evaluate(
+        [0.0, 0.0],
+        100.10,
+        [0.0, 0.0],
+        100.04,
+        100.10,
+        engagement_start_monotonic=100.0,
+    )
+
+    assert result.command_is_current_engagement
+    assert not result.ready
+    assert result.hold_required
+    assert result.timestamp_skew_s == pytest.approx(0.06)
+    assert result.reason == "following-error timestamps are not aligned"

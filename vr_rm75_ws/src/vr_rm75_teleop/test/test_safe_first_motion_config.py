@@ -45,6 +45,9 @@ def test_collision_config_is_explicitly_rm75_only():
         "robot_body": False,
     }
     assert config["environment"] == []
+    assert config["ignored_collision_pairs"] == [
+        ["l_rm75_base_link", "r_rm75_base_link"]
+    ]
     for prefix, group in (("l", "left"), ("r", "right")):
         assert config["monitored_links"][group] == [
             f"{prefix}_rm75_base_link",
@@ -73,7 +76,9 @@ def test_first_motion_profile_keeps_all_runtime_guards_enabled():
     """Require deadman, collision, singularity, limits, and watchdog values."""
     parameters = load_parameters("safe_first_motion.yaml")
 
-    assert parameters["collision_distance_timeout_s"] > 0.0
+    assert parameters["collision_distance_timeout_s"] == pytest.approx(0.10)
+    assert parameters["collision_stop_distance_m"] == pytest.approx(0.05)
+    assert parameters["collision_warn_distance_m"] == pytest.approx(0.15)
     assert parameters["command_timeout_s"] > 0.0
     assert parameters["deadman_input_timeout_s"] > 0.0
     assert parameters["deadman_grip_on_threshold"] > (

@@ -1,1 +1,4 @@
-/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/config/meta_quest_bridge.yaml
+meta_quest_bridge:
+  ros__parameters:
+    # Fail tracking and grip freshness closed when APK/logcat samples stop.
+    quest_source_timeout_s: 0.20

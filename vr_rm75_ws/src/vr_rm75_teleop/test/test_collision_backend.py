@@ -7,6 +7,7 @@ import pytest
 
 from vr_rm75_teleop.collision_backend import (
     CollisionBackendError,
+    FclDistanceEngine,
     FiveClassCollisionBackend,
     PairDistance,
     UrdfCollisionModel,
@@ -119,7 +120,7 @@ class FakeDistanceEngine:
         return PairDistance(value, ((0.0, 0.0, 0.0), (value, 0.0, 0.0)))
 
 
-def build_backend(tmp_path, engine=None, urdf=URDF):
+def build_backend(tmp_path, engine=None, urdf=URDF, ignored_pairs=()):
     """Create one complete primitive-only model without external libraries."""
     path = tmp_path / "robot.urdf"
     path.write_text(urdf)
@@ -138,6 +139,7 @@ def build_backend(tmp_path, engine=None, urdf=URDF):
         model,
         engine or FakeDistanceEngine(),
         environment,
+        ignored_pairs=ignored_pairs,
     )
 
 
@@ -156,6 +158,14 @@ def test_complete_snapshot_has_all_categories_and_mount_transforms(tmp_path):
         (0.2, 0.3, 0.4, 0.5, 0.6)
     )
     assert snapshot.closest_category == CollisionSource.LEFT_SELF
+    category_results = {
+        result.source: result for result in snapshot.category_results
+    }
+    for source, distance in zip(tuple(CollisionSource), snapshot.distances_m):
+        result = category_results[source]
+        assert result.distance_m == pytest.approx(distance)
+        assert len(result.closest_pair) == 2
+        assert result.closest_points is not None
     inter_calls = [
         call for call in engine.calls
         if {call[0].group, call[2].group} == {"left", "right"}
@@ -177,6 +187,30 @@ def test_structurally_adjacent_links_are_excluded(tmp_path):
     assert frozenset(("l_rm75_base_link", "l_rm75_link_1")) not in called_pairs
     assert frozenset(("l_rm75_link_1", "l_rm75_link_2")) not in called_pairs
     assert frozenset(("l_rm75_base_link", "l_rm75_link_2")) in called_pairs
+
+
+def test_configured_base_pair_ignore_excludes_only_base_base(tmp_path):
+    """Keep both cross-arm base-to-moving-link directions monitored."""
+    engine = FakeDistanceEngine()
+    backend = build_backend(
+        tmp_path,
+        engine,
+        ignored_pairs=(("l_rm75_base_link", "r_rm75_base_link"),),
+    )
+    backend.evaluate({"l_rm75_joint_1": 0.0, "r_rm75_joint_1": 0.0})
+
+    called_pairs = {
+        frozenset((call[0].link, call[2].link)) for call in engine.calls
+    }
+    assert frozenset(
+        ("l_rm75_base_link", "r_rm75_base_link")
+    ) not in called_pairs
+    assert frozenset(
+        ("l_rm75_base_link", "r_rm75_link_1")
+    ) in called_pairs
+    assert frozenset(
+        ("r_rm75_base_link", "l_rm75_link_1")
+    ) in called_pairs
 
 
 @pytest.mark.parametrize(
@@ -244,7 +278,7 @@ def test_missing_transform_or_nan_invalidates_whole_snapshot(
 
 
 def test_rm75_only_real_urdf_ignores_out_of_scope_camera_geometry():
-    """Six missing camera collisions and empty environment do not block arms."""
+    """Missing camera collisions and empty environment do not block arms."""
     source_root = Path(__file__).resolve().parents[2]
     description = source_root / "lsrx_rm75_dual_description"
     model = UrdfCollisionModel(
@@ -288,7 +322,84 @@ def test_disabled_categories_have_no_placeholder_distance():
 
     assert diagnostics["left_self"]["status"] == "ENABLED"
     for name in ("environment", "robot_body"):
-        assert diagnostics[name] == {
-            "status": "DISABLED_BY_CONFIGURATION",
-            "distance_m": None,
-        }
+        assert diagnostics[name]["status"] == "DISABLED_BY_CONFIGURATION"
+        assert diagnostics[name]["distance_m"] is None
+        assert diagnostics[name]["closest_pair"] is None
+        assert diagnostics[name]["closest_points"] is None
+
+
+def test_category_diagnostics_report_each_enabled_witness(tmp_path):
+    """Expose per-category minima without replacing the global witness."""
+    snapshot = build_backend(tmp_path).evaluate(
+        {"l_rm75_joint_1": 0.0, "r_rm75_joint_1": 0.0}
+    )
+    diagnostics = collision_category_diagnostics(snapshot.sources, snapshot)
+
+    for source, expected_distance in zip(
+        tuple(CollisionSource), (0.2, 0.3, 0.4, 0.5, 0.6)
+    ):
+        category = diagnostics[source.value]
+        assert category["status"] == "ENABLED"
+        assert category["distance_m"] == pytest.approx(expected_distance)
+        assert len(category["closest_pair"]) == 2
+        assert category["closest_points"] is not None
+    assert snapshot.closest_pair == diagnostics["left_self"]["closest_pair"]
+    assert snapshot.closest_points == (
+        diagnostics["left_self"]["closest_points"]
+    )
+
+
+def test_fcl_reuses_one_collision_object_per_geometry(tmp_path):
+    """Preload once and update persistent CollisionObjects in steady state."""
+    engine = FclDistanceEngine()
+    if not engine.available:
+        pytest.skip(engine.unavailable_reason)
+    backend = build_backend(tmp_path, engine)
+    assert backend.ready, backend.readiness_reason
+    object_ids = {name: id(value) for name, value in engine._objects.items()}
+
+    joints = {"l_rm75_joint_1": 0.0, "r_rm75_joint_1": 0.0}
+    backend.evaluate(joints)
+    backend.evaluate(joints)
+
+    assert len(engine._objects) == len(backend._query_geometries)
+    assert {name: id(value) for name, value in engine._objects.items()} == (
+        object_ids
+    )
+
+
+def test_aabb_pruning_preserves_signed_minimum(monkeypatch):
+    """Evaluate every overlapping AABB when searching penetration minima."""
+    engine = FclDistanceEngine()
+    specs = [SimpleSpec(name) for name in "abcdef"]
+    for spec in specs[:4]:
+        engine._world_bounds[spec.name] = (np.zeros(3), np.ones(3))
+    engine._world_bounds["e"] = (np.full(3, 10.0), np.ones(3))
+    engine._world_bounds["f"] = (np.full(3, 12.5), np.ones(3))
+    values = {
+        frozenset(("a", "b")): -0.1,
+        frozenset(("c", "d")): -0.3,
+        frozenset(("e", "f")): 0.5,
+    }
+    calls = []
+
+    def prepared_distance(first, second):
+        calls.append((first.name, second.name))
+        return PairDistance(values[frozenset((first.name, second.name))], None)
+
+    monkeypatch.setattr(engine, "_prepared_distance", prepared_distance)
+    first, second, result = engine.minimum_distance(
+        ((specs[0], specs[1]), (specs[2], specs[3]), (specs[4], specs[5]))
+    )
+
+    assert (first.name, second.name) == ("c", "d")
+    assert result.distance_m == pytest.approx(-0.3)
+    assert calls == [("a", "b"), ("c", "d")]
+
+
+class SimpleSpec:
+    """Minimal geometry identity used by the AABB unit test."""
+
+    def __init__(self, name):
+        """Store the lookup key used by the distance engine."""
+        self.name = name

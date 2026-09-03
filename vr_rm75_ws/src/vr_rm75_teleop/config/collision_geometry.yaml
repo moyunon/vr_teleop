@@ -35,9 +35,13 @@ monitored_links:
 # world-frame geometry before re-enabling that category.
 environment: []
 
-# Parent-child URDF pairs are excluded automatically. Add only pairs whose
-# permanent contact has been verified against the assembled hardware.
-ignored_collision_pairs: []
+# Parent-child URDF pairs are excluded automatically. The two RM75 base links
+# are also ignored because both are fixed-mounted to xb_link: their relative
+# transform is independent of RM75 J1..J7 and their meshes permanently touch.
+# This excludes only base-base. Every left-base/right-moving-link and
+# right-base/left-moving-link pair remains monitored.
+ignored_collision_pairs:
+  - [l_rm75_base_link, r_rm75_base_link]
 
 # RM75-only transforms are evaluated in the arms' common xb_link frame and
 # therefore require only the fourteen l/r_rm75_joint_1..7 values.

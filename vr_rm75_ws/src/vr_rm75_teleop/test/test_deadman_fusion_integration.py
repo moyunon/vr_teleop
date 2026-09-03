@@ -1,6 +1,8 @@
 """ROS callback integration tests for dual-grip clutch re-anchoring."""
 
+import json
 import time
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -124,6 +126,125 @@ def engage_and_anchor(node):
     node.left_pose_callback(pose(0.0, 0.0, 0.0))
     node.right_pose_callback(pose(0.0, 0.0, 0.0))
     assert all(state.anchored for state in node.arms.values())
+
+
+def engage_with_historical_commands(node):
+    """Enter a new epoch while retaining commands from an earlier epoch."""
+    initialize_ready_node(node)
+    historical_time = time.perf_counter() - 10.0
+    for state in node.arms.values():
+        state.last_safe_command_time = historical_time
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    assert node.safety_supervisor.state == SafetyState.ENGAGED
+    assert node.robot_command_gate_open_since is not None
+    return historical_time, node.robot_command_gate_open_since
+
+
+def test_following_error_waits_for_each_arm_current_epoch_command(
+    fusion_node,
+    monkeypatch,
+):
+    """Track left/right post-engagement command admission independently."""
+    node = fusion_node
+    historical_time, engagement_start = engage_with_historical_commands(node)
+    now = time.perf_counter()
+    for state in node.arms.values():
+        state.last_robot_state_rx_time = now
+    node.arms["left"].last_safe_command_time = historical_time
+    node.arms["right"].last_safe_command_time = engagement_start
+    published = []
+    monkeypatch.setattr(
+        node,
+        "following_error_pub",
+        SimpleNamespace(publish=published.append),
+    )
+
+    node.refresh_following_safety(now)
+
+    left = node.last_following_decisions["left"]
+    right = node.last_following_decisions["right"]
+    assert left.ready and not left.hold_required
+    assert not left.command_is_current_engagement
+    assert left.reason == "awaiting first post-engagement safe command"
+    assert right.ready and not right.hold_required
+    assert right.command_is_current_engagement
+    assert right.error_rad is not None
+    assert node.safety_supervisor.following_ready
+    assert not node.safety_supervisor.following_hold_required
+    assert node.safety_supervisor.following_reason.startswith("left awaiting")
+    diagnostics = json.loads(published[-1].data)
+    required_fields = {
+        "engagement_start_time",
+        "engagement_age",
+        "command_time",
+        "command_age_s",
+        "measurement_age_s",
+        "timestamp_skew_s",
+        "command_is_current_engagement",
+        "reason",
+    }
+    assert required_fields <= set(diagnostics["left"])
+    assert diagnostics["left"]["engagement_start_time"] == pytest.approx(
+        engagement_start
+    )
+    assert not diagnostics["left"]["command_is_current_engagement"]
+    assert diagnostics["right"]["command_is_current_engagement"]
+
+    node.arms["left"].last_safe_command_time = engagement_start
+    node.arms["right"].last_safe_command_time = historical_time
+    node.refresh_following_safety(now)
+
+    assert node.last_following_decisions[
+        "left"
+    ].command_is_current_engagement
+    assert not node.last_following_decisions[
+        "right"
+    ].command_is_current_engagement
+    assert node.safety_supervisor.following_reason.startswith("right awaiting")
+
+
+def test_reengagement_does_not_reuse_previous_epoch_commands(fusion_node):
+    """Require new commands after ENGAGED to HOLD/READY to ENGAGED."""
+    node = fusion_node
+    _, first_engagement = engage_with_historical_commands(node)
+    first_command_time = time.perf_counter()
+    for state in node.arms.values():
+        state.last_safe_command_time = first_command_time
+        state.last_robot_state_rx_time = first_command_time
+    node.refresh_following_safety(first_command_time)
+    assert all(
+        item.command_is_current_engagement
+        for item in node.last_following_decisions.values()
+    )
+
+    grip(node, "left", 0.0)
+    assert node.safety_supervisor.state == SafetyState.HOLD
+    grip(node, "right", 0.0)
+    decision = node.update_safety_supervisor(time.perf_counter())
+    assert decision.state == SafetyState.READY
+
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    node.left_pose_callback(pose(0.0, 0.0, 0.0))
+    node.right_pose_callback(pose(0.0, 0.0, 0.0))
+    decision = node.update_safety_supervisor(time.perf_counter())
+    assert decision.state == SafetyState.ENGAGED
+    second_engagement = node.robot_command_gate_open_since
+    assert second_engagement > first_engagement
+    assert first_command_time < second_engagement
+
+    now = time.perf_counter()
+    for state in node.arms.values():
+        state.last_robot_state_rx_time = now
+    decision = node.update_safety_supervisor(now)
+
+    assert decision.state == SafetyState.ENGAGED
+    assert all(
+        item.reason == "awaiting first post-engagement safe command"
+        for item in node.last_following_decisions.values()
+    )
+    assert not node.safety_supervisor.following_hold_required
 
 
 def test_release_move_repress_captures_new_coincident_anchors(fusion_node):
