@@ -43,6 +43,7 @@ class FakeEnabledCommandDispatcher:
         self.last_stop_result = None
         self.motion_armed = False
         self.dispatch_calls = []
+        self.prime_calls = []
         self.stop_calls = []
 
     def dispatch(self, q_commands, q_measured, **kwargs):
@@ -55,6 +56,13 @@ class FakeEnabledCommandDispatcher:
             reason="fake dual-arm send succeeded",
             ack_latency_s=None,
         )
+
+    def prime_zero_motion(self, q_commands, q_measured, **kwargs):
+        """Record PRIME separately while retaining normal send behavior."""
+        self.prime_calls.append((q_commands, q_measured, kwargs))
+        for side in ("left", "right"):
+            assert np.array_equal(q_commands[side], q_measured[side])
+        return self.dispatch(q_commands, q_measured, **kwargs)
 
     def request_stop(self, stop_class, reason, requested_monotonic):
         """Record the software-stop request and return two fake ACKs."""
@@ -190,6 +198,21 @@ def command_allowed_decision():
     )
 
 
+def prepare_enabled_engagement_for_prime(node):
+    """Reach anchored ENGAGED using only callbacks and a fake actuator."""
+    initialize_ready_node(node)
+    node.collision_protection_enabled = True
+    collision_snapshot(node, [0.30, 0.30, 0.30])
+    dispatcher = enable_fake_command_mode(node)
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    assert node.safety_supervisor.state == SafetyState.ENGAGED
+    node.left_pose_callback(pose(0.0, 0.0, 0.0))
+    node.right_pose_callback(pose(0.0, 0.0, 0.0))
+    assert all(state.anchored for state in node.arms.values())
+    return dispatcher
+
+
 def test_fusion_node_defaults_to_network_disconnected_dry_run(fusion_node):
     """Keep the integrated actuator boundary unreachable by default."""
     node = fusion_node
@@ -309,15 +332,18 @@ def test_dispatch_rejects_previous_engagement_timestamps_without_hold(
     ] == {"left": False, "right": False}
 
 
-def test_dispatch_allows_first_dual_current_engagement_command(fusion_node):
-    """Allow the first dispatch only after both safe-command epochs match."""
+def test_dispatch_first_dual_current_engagement_command_is_prime(fusion_node):
+    """Make the first current-epoch dispatch the strict zero-motion PRIME."""
     node = fusion_node
     initialize_ready_node(node)
     dispatcher = enable_fake_command_mode(node)
     node.safety_supervisor.state = SafetyState.ENGAGED
     node.robot_command_gate_open_since = 400.0
+    node.actuator_prime_prepared = True
     node.arms["left"].last_safe_command_time = 400.001
     node.arms["right"].last_safe_command_time = 400.002
+    for state in node.arms.values():
+        state.last_safe_command_dt_s = 0.02
 
     result = node.dispatch_robot_commands(
         command_allowed_decision(),
@@ -325,14 +351,83 @@ def test_dispatch_allows_first_dual_current_engagement_command(fusion_node):
     )
 
     assert result.sent
+    assert node.actuator_primed
+    assert len(dispatcher.prime_calls) == 1
     assert len(dispatcher.dispatch_calls) == 1
     assert dispatcher.dispatch_calls[0][2][
         "generated_monotonic"
     ] == pytest.approx(400.001)
-    assert node.last_robot_command_status["status"] == "SENT"
+    assert node.last_robot_command_status["status"] == "PRIMED"
+    assert "zero-motion actuator prime sent" in (
+        node.last_robot_command_status["reason"]
+    )
+    assert not node.last_robot_command_status["actuator_prime_prepared"]
+    assert node.last_robot_command_status["actuator_primed"]
+    assert node.last_robot_command_status["command_dt_s"] == pytest.approx(
+        0.02
+    )
     assert node.last_robot_command_status[
         "current_engagement_command_ready"
     ] == {"left": True, "right": True}
+
+    for state in node.arms.values():
+        state.last_safe_command_time = 400.02
+    normal_result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        400.03,
+    )
+    assert normal_result.sent
+    assert len(dispatcher.prime_calls) == 1
+    assert len(dispatcher.dispatch_calls) == 2
+    assert node.last_robot_command_status["status"] == "SENT"
+
+
+def test_current_commands_wait_in_actuator_priming_until_prepared(fusion_node):
+    """Expose ACTUATOR_PRIMING without sending a non-PRIME first target."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.robot_command_gate_open_since = 450.0
+    for state in node.arms.values():
+        state.last_safe_command_time = 450.001
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        450.01,
+    )
+
+    assert result is None
+    assert not dispatcher.dispatch_calls
+    assert node.last_robot_command_status["status"] == "ACTUATOR_PRIMING"
+    assert not node.last_robot_command_status["actuator_prime_prepared"]
+    assert not node.last_robot_command_status["actuator_primed"]
+
+
+def test_dual_arm_command_rejects_mismatched_canonical_dt(fusion_node):
+    """Require both arm targets to originate in one control interval."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    engagement_start = time.perf_counter()
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.deadman_active = True
+    node.robot_command_gate_open_since = engagement_start
+    node.actuator_primed = True
+    for state in node.arms.values():
+        state.last_safe_command_time = engagement_start + 0.001
+    node.arms["left"].last_safe_command_dt_s = 0.020
+    node.arms["right"].last_safe_command_dt_s = 0.019
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        engagement_start + 0.002,
+    )
+
+    assert result is None
+    assert not dispatcher.dispatch_calls
+    assert node.robot_command_hold_required
+    assert "canonical command_dt_s" in node.robot_command_hold_reason
 
 
 def test_bootstrap_timeout_still_holds_and_requests_safety_stop(fusion_node):
@@ -371,14 +466,17 @@ def test_post_first_dispatch_stale_watchdog_remains_active(fusion_node):
     grip(node, "right", 0.8)
     engagement_start = node.robot_command_gate_open_since
     first_command_time = engagement_start + 0.001
+    node.actuator_prime_prepared = True
     for state in node.arms.values():
         state.last_safe_command_time = first_command_time
+        state.last_safe_command_dt_s = 0.02
 
     result = node.dispatch_robot_commands(
         command_allowed_decision(),
         first_command_time + 0.001,
     )
     assert result.sent
+    assert node.actuator_primed
     first_send_time = dispatcher.last_send_monotonic
 
     decision = node.update_safety_supervisor(
@@ -391,6 +489,97 @@ def test_post_first_dispatch_stale_watchdog_remains_active(fusion_node):
     )
     assert len(dispatcher.stop_calls) == 1
     assert dispatcher.stop_calls[0][0] == StopClass.SAFETY_STOP
+
+
+def test_control_cycle_primes_exact_latest_measured_without_ik_progress(
+    fusion_node,
+    monkeypatch,
+):
+    """Freeze both fusion histories on the latest feedback for PRIME."""
+    node = fusion_node
+    dispatcher = prepare_enabled_engagement_for_prime(node)
+    measured_at_prime = {}
+    for index, (side, state) in enumerate(node.arms.items(), start=1):
+        updated_q = state.q_measured.copy()
+        updated_q[0] += index * 1e-6
+        state.update_measured_q(updated_q, time.perf_counter())
+        measured_at_prime[side] = updated_q.copy()
+
+    update_arm_calls = []
+    monkeypatch.setattr(
+        node,
+        "update_arm",
+        lambda **kwargs: update_arm_calls.append(kwargs),
+    )
+
+    node.control_update()
+
+    assert not update_arm_calls
+    assert node.actuator_primed
+    assert not node.actuator_prime_prepared
+    assert len(dispatcher.prime_calls) == 1
+    q_commands, q_measured, kwargs = dispatcher.prime_calls[0]
+    assert kwargs["command_dt_s"] == pytest.approx(node.control_period_s)
+    for side, state in node.arms.items():
+        assert np.array_equal(q_commands[side], measured_at_prime[side])
+        assert np.array_equal(q_measured[side], measured_at_prime[side])
+        assert np.array_equal(state.q_safe, measured_at_prime[side])
+        assert np.array_equal(state.q_command, measured_at_prime[side])
+        assert np.array_equal(state.joint_velocity, np.zeros(7))
+        assert np.array_equal(state.joint_acceleration, np.zeros(7))
+        assert state.last_safe_command_dt_s == pytest.approx(
+            node.control_period_s
+        )
+    assert node.last_robot_command_status["status"] == "PRIMED"
+
+
+def test_hold_then_reengage_requires_a_new_actuator_prime(
+    fusion_node,
+    monkeypatch,
+):
+    """Clear PRIME and continuity on exit from every engagement epoch."""
+    node = fusion_node
+    dispatcher = prepare_enabled_engagement_for_prime(node)
+    monkeypatch.setattr(node, "update_arm", lambda **_kwargs: None)
+    node.control_update()
+    assert node.actuator_primed
+    assert len(dispatcher.prime_calls) == 1
+
+    grip(node, "left", 0.0)
+    assert node.safety_supervisor.state == SafetyState.HOLD
+    assert not node.actuator_primed
+    assert not node.actuator_prime_prepared
+    grip(node, "right", 0.0)
+    assert node.update_safety_supervisor(
+        time.perf_counter()
+    ).state == SafetyState.READY
+
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    node.left_pose_callback(pose(0.2, 0.0, 0.0))
+    node.right_pose_callback(pose(-0.2, 0.0, 0.0))
+    assert node.update_safety_supervisor(
+        time.perf_counter()
+    ).state == SafetyState.ENGAGED
+    node.left_pose_callback(pose(0.2, 0.0, 0.0))
+    node.right_pose_callback(pose(-0.2, 0.0, 0.0))
+    assert all(state.anchored for state in node.arms.values()), {
+        side: {
+            "anchored": state.anchored,
+            "tracking": state.tracking_valid,
+            "robot_ready": state.robot_state_ready(
+                node.robot_state_timeout_s,
+                time.perf_counter(),
+            ),
+            "soft": state.q_within_soft_limits(state.q_measured),
+        }
+        for side, state in node.arms.items()
+    }
+    collision_snapshot(node, [0.30, 0.30, 0.30])
+    node.control_update()
+
+    assert node.actuator_primed
+    assert len(dispatcher.prime_calls) == 2
 
 
 def test_explicit_demo_profile_resolves_category_thresholds(
@@ -929,6 +1118,7 @@ def test_online_candidate_is_rate_limited_then_fk_and_sigma_recomputed(
     assert state.last_result["joint_rate_limited"] is False
     assert state.last_result["joint_acceleration_limited"] is True
     assert state.last_result["joint_limit_dt_s"] == pytest.approx(0.02)
+    assert state.last_safe_command_dt_s == pytest.approx(0.02)
 
 
 def test_unsafe_limited_intermediate_configuration_holds_previous_safe_state(
@@ -1029,6 +1219,9 @@ def test_control_update_rate_limits_both_arms_with_one_cycle_period(
         expected_delta = expected_velocity * node.control_period_s
         assert np.allclose(state.q_safe, q_before[side] + expected_delta)
         assert state.last_joint_limit_dt_s == pytest.approx(
+            node.control_period_s
+        )
+        assert state.last_safe_command_dt_s == pytest.approx(
             node.control_period_s
         )
         assert np.all(

@@ -28,8 +28,8 @@ quest_dual_ik_fusion:
     joint_acceleration_limit_deg_s2:
       [30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0]
 
-    max_cartesian_translation_rate_m_s: 0.05
-    max_cartesian_rotation_rate_rad_s: 0.30
+    max_cartesian_translation_rate_m_s: 0.10
+    max_cartesian_rotation_rate_rad_s: 0.60
 
     collision_protection_enabled: true
     collision_enabled_categories:

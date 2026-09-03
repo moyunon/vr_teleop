@@ -75,6 +75,7 @@ class CommandDispatchResult:
     sent_monotonic: Optional[float]
     response_expected: bool
     feedback_supervised: bool
+    command_dt_s: Optional[float] = None
     ack_latency_s: Optional[Tuple[float, float]] = None
     send_duration_s: Optional[float] = None
 
@@ -750,12 +751,50 @@ class DualArmCommandDispatcher:
         )
         return result
 
+    def prime_zero_motion(
+        self,
+        q_commands,
+        q_measured,
+        *,
+        generated_monotonic,
+        command_dt_s,
+        safety_command_allowed,
+        now_monotonic=None,
+    ):
+        """Send an exact measured-state target through the full boundary."""
+        if (
+            self._last_generated_monotonic is not None
+            or self._last_sent_q
+            or self._last_sent_velocity
+            or self.last_send_monotonic is not None
+        ):
+            raise RM75CommandRejectedError(
+                "actuator prime requires empty command continuity history"
+            )
+        commands = self._normalize_dual_q(q_commands, "q_commands")
+        measured = self._normalize_dual_q(q_measured, "q_measured")
+        for side in SIDES:
+            if not np.array_equal(commands[side], measured[side]):
+                raise RM75CommandRejectedError(
+                    f"{side} actuator prime target must exactly equal "
+                    "fresh q_measured"
+                )
+        return self.dispatch(
+            commands,
+            measured,
+            generated_monotonic=generated_monotonic,
+            command_dt_s=command_dt_s,
+            safety_command_allowed=safety_command_allowed,
+            now_monotonic=now_monotonic,
+        )
+
     def dispatch(
         self,
         q_commands,
         q_measured,
         *,
         generated_monotonic,
+        command_dt_s,
         safety_command_allowed,
         now_monotonic=None,
     ):
@@ -810,6 +849,7 @@ class DualArmCommandDispatcher:
                 "safe command timestamp is unavailable"
             )
         generated_monotonic = self._finite_time(generated_monotonic)
+        command_dt_s = self._validate_command_dt_s(command_dt_s)
         age_s = max(0.0, now_monotonic - generated_monotonic)
         if age_s > self.command_timeout_s:
             raise RM75CommandRejectedError(
@@ -830,18 +870,11 @@ class DualArmCommandDispatcher:
                     == MOVEJ_RESPONSE_JOINT_STATE_ACK
                 ),
                 feedback_supervised=self.feedback_supervised,
+                command_dt_s=command_dt_s,
             )
 
         commands = self._normalize_dual_q(q_commands, "q_commands")
         measured = self._normalize_dual_q(q_measured, "q_measured")
-        if self._last_generated_monotonic is None:
-            dt_s = self.nominal_period_s
-        else:
-            dt_s = generated_monotonic - self._last_generated_monotonic
-            if not math.isfinite(dt_s) or dt_s <= 0.0:
-                raise RM75CommandRejectedError(
-                    "safe command timestamp did not advance"
-                )
 
         command_velocities = {}
         for side in SIDES:
@@ -851,7 +884,7 @@ class DualArmCommandDispatcher:
                 raise RM75CommandRejectedError(
                     f"{side} command jump exceeds configured maximum"
                 )
-            qdot = delta / dt_s
+            qdot = delta / command_dt_s
             command_velocities[side] = qdot
             if np.any(
                 np.abs(qdot) > self._velocity_limits[side] + 1e-12
@@ -863,13 +896,24 @@ class DualArmCommandDispatcher:
                 side,
                 np.zeros(7),
             )
-            qddot = (qdot - previous_qdot) / dt_s
-            if np.any(
+            qddot = (qdot - previous_qdot) / command_dt_s
+            acceleration_excess = np.flatnonzero(
                 np.abs(qddot)
                 > self._acceleration_limits[side] + 1e-12
-            ):
+            )
+            if acceleration_excess.size:
+                joint_index = int(acceleration_excess[0])
                 raise RM75CommandRejectedError(
-                    f"{side} command acceleration exceeds configured maximum"
+                    self._format_acceleration_rejection(
+                        side=side,
+                        joint_index=joint_index,
+                        command_dt_s=command_dt_s,
+                        delta=delta[joint_index],
+                        qdot=qdot[joint_index],
+                        previous_qdot=previous_qdot[joint_index],
+                        qddot=qddot[joint_index],
+                        limit=self._acceleration_limits[side][joint_index],
+                    )
                 )
 
         # Encoding both commands before the first socket write makes all
@@ -944,12 +988,60 @@ class DualArmCommandDispatcher:
             sent_monotonic=sent_monotonic,
             response_expected=response_expected,
             feedback_supervised=self.feedback_supervised,
+            command_dt_s=command_dt_s,
             ack_latency_s=(
                 tuple(ack_latencies[side] for side in SIDES)
                 if ack_latencies is not None
                 else None
             ),
             send_duration_s=send_duration_s,
+        )
+
+    def _validate_command_dt_s(self, value):
+        """Accept only a finite positive limiter interval at most nominal."""
+        try:
+            command_dt_s = float(value)
+        except (TypeError, ValueError) as exc:
+            raise RM75CommandRejectedError(
+                "command_dt_s must be finite and positive"
+            ) from exc
+        tolerance_s = max(1e-12, self.nominal_period_s * 1e-9)
+        if not math.isfinite(command_dt_s) or command_dt_s <= 0.0:
+            raise RM75CommandRejectedError(
+                "command_dt_s must be finite and positive"
+            )
+        if command_dt_s > self.nominal_period_s + tolerance_s:
+            raise RM75CommandRejectedError(
+                "command_dt_s exceeds nominal control period: "
+                f"command_dt_s={command_dt_s:.9f}s, "
+                f"nominal_period_s={self.nominal_period_s:.9f}s"
+            )
+        return command_dt_s
+
+    @staticmethod
+    def _format_acceleration_rejection(
+        *,
+        side,
+        joint_index,
+        command_dt_s,
+        delta,
+        qdot,
+        previous_qdot,
+        qddot,
+        limit,
+    ):
+        """Describe the exact derivative sample rejected at the boundary."""
+        return (
+            f"{side.upper()} J{joint_index + 1} "
+            f"qddot={math.degrees(qddot):.6f} deg/s2 > "
+            f"{math.degrees(limit):.6f} deg/s2, "
+            f"command_dt_s={command_dt_s:.9f}, "
+            f"delta_deg={math.degrees(delta):.6f}, "
+            f"qdot_deg_s={math.degrees(qdot):.6f}, "
+            "previous_qdot_deg_s="
+            f"{math.degrees(previous_qdot):.6f}, "
+            f"qddot_deg_s2={math.degrees(qddot):.6f}, "
+            f"limit_deg_s2={math.degrees(limit):.6f}"
         )
 
     @staticmethod

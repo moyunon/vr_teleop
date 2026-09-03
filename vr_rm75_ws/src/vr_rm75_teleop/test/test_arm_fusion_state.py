@@ -71,6 +71,7 @@ def test_arbitrary_measured_q_initializes_safe_state_exactly():
     assert np.array_equal(state.q_command, Q_LEFT_A)
     assert np.array_equal(state.q_preferred, Q_LEFT_A)
     assert state.last_safe_command_time is None
+    assert state.last_safe_command_dt_s is None
     assert np.allclose(
         state.T_safe,
         forward_kinematics(Q_LEFT_A, model=state.model),
@@ -112,6 +113,7 @@ def test_tracking_recovery_reanchors_at_new_measured_state():
     make_ready(state, Q_LEFT_A, 30.0)
     T_vr_first = make_transform([0.0, 1.0, 0.0])
     assert state.capture_vr_anchor(T_vr_first, True, 0.25, 30.0)
+    state.last_safe_command_dt_s = 0.02
 
     state.invalidate_anchor()
     state.update_measured_q(Q_LEFT_B, 30.1)
@@ -128,6 +130,7 @@ def test_tracking_recovery_reanchors_at_new_measured_state():
     )
     expected = forward_kinematics(Q_LEFT_B, model=state.model)
     assert np.array_equal(state.q_safe, Q_LEFT_B)
+    assert state.last_safe_command_dt_s is None
     assert np.allclose(state.T_safe, expected, atol=1e-12)
     assert np.allclose(T_target, expected, atol=1e-12)
 

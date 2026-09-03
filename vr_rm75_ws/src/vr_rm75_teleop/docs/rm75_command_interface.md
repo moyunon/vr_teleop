@@ -87,6 +87,16 @@ joint velocity scale must be at most 10%, and the control rate must be at least
 soft-limit, singularity, velocity, safe-command watchdog, command-channel, and
 output-watchdog checks.
 
+Each new engagement has a mandatory zero-motion actuator PRIME after both VR
+anchors are captured. The PRIME cycle does not consume relative VR motion: it
+sets both fusion commands exactly to current fresh measured joints, with zero
+velocity and acceleration, and passes that pair through the same numeric,
+hard/soft-limit, jump, velocity, acceleration, encoding, and transport gates.
+Only a successful dual send initializes `_last_sent_q`, zero
+`_last_sent_velocity`, and the command timestamps. Subsequent commands are
+checked against that sent PRIME rather than against newer feedback samples.
+HOLD, FAULT, or deadman release clears the PRIME and continuity state.
+
 The final pre-send boundary independently rejects:
 
 - malformed, non-finite, or hard-limit joint values;
@@ -95,6 +105,17 @@ The final pre-send boundary independently rejects:
 - joint acceleration greater than `joint_acceleration_limit_deg_s2`;
 - stale or repeated safe targets;
 - a closed Safety Supervisor command gate.
+
+Every accepted safe command carries a separate `command_dt_s`, copied from
+the exact `joint_limit_dt_s` used by the Fusion acceleration and velocity
+limiters for that control cycle. Both arms must report the same interval. The
+dispatcher recomputes delta, qdot, and qddot with this canonical interval and
+requires it to be finite, positive, and no greater than the nominal control
+period (apart from a floating-point-scale bound check tolerance).
+`generated_monotonic` remains independent: it is used only for freshness,
+strict ordering, duplicate prevention, and watchdog behavior. It is never a
+derivative interval. An acceleration rejection reports the side, joint,
+`command_dt_s`, delta, qdot, previous qdot, qddot, and configured limit.
 
 An abnormal joint jump is rejected into HOLD. It is not clipped into a hidden
 trajectory. During normal engaged motion, a stateful limiter bounds the change

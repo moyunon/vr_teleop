@@ -696,6 +696,8 @@ class QuestDualIKFusion(Node):
         self.robot_command_transport_fault = False
         self.robot_command_hold_reason = "command output healthy"
         self.robot_command_gate_open_since = None
+        self.actuator_prime_prepared = False
+        self.actuator_primed = False
         self.last_robot_command_status = None
 
         if self.enable_robot_motion:
@@ -1657,11 +1659,24 @@ class QuestDualIKFusion(Node):
             current_engagement_command_ready = (
                 self.current_engagement_command_readiness()
             )
+        command_dts = [
+            state.last_safe_command_dt_s for state in self.arms.values()
+        ]
+        command_dt_s = (
+            command_dts[0]
+            if all(value == command_dts[0] for value in command_dts)
+            else None
+        )
         payload = {
             "status": str(status),
             "sent": bool(sent),
             "reason": str(reason),
             "engagement_start_time": self.robot_command_gate_open_since,
+            "actuator_prime_prepared": bool(
+                self.actuator_prime_prepared
+            ),
+            "actuator_primed": bool(self.actuator_primed),
+            "command_dt_s": command_dt_s,
             "current_engagement_command_ready": {
                 side: bool(current_engagement_command_ready[side])
                 for side in ("left", "right")
@@ -1686,6 +1701,109 @@ class QuestDualIKFusion(Node):
             )
             for side, state in self.arms.items()
         }
+
+    def actuator_prime_prerequisites_met(
+        self,
+        safety_decision,
+        now_monotonic,
+    ):
+        """Require a complete live engagement before preparing PRIME."""
+        if (
+            not self.enable_robot_motion
+            or self.actuator_primed
+            or self.actuator_prime_prepared
+            or safety_decision.state != SafetyState.ENGAGED
+            or not safety_decision.command_allowed
+            or not self.deadman_active
+            or not self.robot_system_ready
+        ):
+            return False
+
+        if self.collision_protection_enabled:
+            collision = self.last_collision_decision
+            if (
+                collision is None
+                or not collision.ready
+                or collision.hold_required
+            ):
+                return False
+
+        for state in self.arms.values():
+            if (
+                not state.anchored
+                or not state.tracking_valid
+                or not state.robot_state_ready(
+                    self.robot_state_timeout_s,
+                    now_monotonic,
+                )
+                or state.q_measured is None
+                or not state.q_within_soft_limits(state.q_measured)
+            ):
+                return False
+        return True
+
+    def prepare_zero_motion_actuator_prime(
+        self,
+        safety_decision,
+        now_monotonic,
+        command_dt_s,
+    ):
+        """Freeze both fusion states at fresh feedback for one PRIME cycle."""
+        if not self.actuator_prime_prerequisites_met(
+            safety_decision,
+            now_monotonic,
+        ):
+            return False
+
+        synchronized = {
+            side: state.synchronize_safe_to_measured(
+                self.robot_state_timeout_s,
+                now_monotonic,
+            )
+            for side, state in self.arms.items()
+        }
+        if not all(synchronized.values()):
+            raise RuntimeError(
+                "actuator prime lost fresh dual-arm measured state"
+            )
+
+        generated_monotonic = time.perf_counter()
+        for state in self.arms.values():
+            state.last_safe_command_time = generated_monotonic
+            state.last_safe_command_dt_s = float(command_dt_s)
+            state.command_numeric_valid = True
+        self.actuator_prime_prepared = True
+        return True
+
+    def actuator_prime_is_strictly_zero_motion(self):
+        """Verify that PRIME cannot contain a fusion or actuator delta."""
+        for state in self.arms.values():
+            if any(
+                value is None
+                for value in (
+                    state.q_measured,
+                    state.q_safe,
+                    state.q_command,
+                    state.joint_velocity,
+                    state.joint_acceleration,
+                )
+            ):
+                return False
+            if not np.array_equal(state.q_safe, state.q_measured):
+                return False
+            if not np.array_equal(state.q_command, state.q_measured):
+                return False
+            if not np.array_equal(
+                state.joint_velocity,
+                np.zeros_like(state.joint_velocity),
+            ):
+                return False
+            if not np.array_equal(
+                state.joint_acceleration,
+                np.zeros_like(state.joint_acceleration),
+            ):
+                return False
+        return True
 
     def handle_stop_transition(self, decision, now_monotonic):
         """Issue at most one dual-arm software stop per ENGAGED exit edge."""
@@ -1799,6 +1917,20 @@ class QuestDualIKFusion(Node):
             )
             return None
 
+        prime_dispatch = not self.actuator_primed
+        if prime_dispatch and not self.actuator_prime_prepared:
+            reason = (
+                "actuator PRIME is awaiting fresh dual-arm measured-state "
+                "synchronization"
+            )
+            self.publish_robot_command_status(
+                False,
+                reason,
+                "ACTUATOR_PRIMING",
+                current_command_ready,
+            )
+            return None
+
         q_commands = {
             side: state.q_safe
             for side, state in self.arms.items()
@@ -1812,14 +1944,49 @@ class QuestDualIKFusion(Node):
             for state in self.arms.values()
         ]
         generated_monotonic = min(generated_times)
+        command_dts = [
+            state.last_safe_command_dt_s for state in self.arms.values()
+        ]
         try:
-            result = self.robot_command_dispatcher.dispatch(
-                q_commands,
-                q_measured,
-                generated_monotonic=generated_monotonic,
-                safety_command_allowed=safety_decision.command_allowed,
-                now_monotonic=now_monotonic,
-            )
+            if any(value is None for value in command_dts):
+                raise RM75CommandRejectedError(
+                    "dual-arm safe command_dt_s is unavailable"
+                )
+            command_dt_s = float(command_dts[0])
+            if any(float(value) != command_dt_s for value in command_dts[1:]):
+                raise RM75CommandRejectedError(
+                    "left/right safe commands do not share one "
+                    "canonical command_dt_s"
+                )
+            if prime_dispatch:
+                if not self.actuator_prime_is_strictly_zero_motion():
+                    raise RM75CommandRejectedError(
+                        "actuator PRIME is not an exact zero-motion "
+                        "dual-arm command"
+                    )
+                self.publish_robot_command_status(
+                    False,
+                    "sending exact fresh measured-state actuator PRIME",
+                    "ACTUATOR_PRIMING",
+                    current_command_ready,
+                )
+                result = self.robot_command_dispatcher.prime_zero_motion(
+                    q_commands,
+                    q_measured,
+                    generated_monotonic=generated_monotonic,
+                    command_dt_s=command_dt_s,
+                    safety_command_allowed=safety_decision.command_allowed,
+                    now_monotonic=now_monotonic,
+                )
+            else:
+                result = self.robot_command_dispatcher.dispatch(
+                    q_commands,
+                    q_measured,
+                    generated_monotonic=generated_monotonic,
+                    command_dt_s=command_dt_s,
+                    safety_command_allowed=safety_decision.command_allowed,
+                    now_monotonic=now_monotonic,
+                )
         except RM75CommandRejectedError as exc:
             self.robot_command_hold_required = True
             self.robot_command_hold_reason = str(exc)
@@ -1837,10 +2004,27 @@ class QuestDualIKFusion(Node):
             self.publish_robot_command_status(False, reason, "FAULT")
             return None
 
-        status = "SENT" if result.sent else "READY_TO_DISPATCH"
+        if prime_dispatch and result.sent:
+            self.actuator_prime_prepared = False
+            self.actuator_primed = True
+            status = "PRIMED"
+            reason = (
+                "dual-arm zero-motion actuator prime sent; "
+                f"{result.reason}"
+            )
+            self.get_logger().info(
+                "dual-arm zero-motion actuator prime sent"
+            )
+        elif prime_dispatch:
+            self.actuator_prime_prepared = False
+            status = "ACTUATOR_PRIMING"
+            reason = result.reason
+        else:
+            status = "SENT" if result.sent else "READY_TO_DISPATCH"
+            reason = result.reason
         self.publish_robot_command_status(
             result.sent,
-            result.reason,
+            reason,
             status,
             current_command_ready,
         )
@@ -2191,8 +2375,12 @@ class QuestDualIKFusion(Node):
             # A new engagement must begin with measured-state continuity;
             # prior-epoch send history cannot seed dispatch or its watchdog.
             self.robot_command_dispatcher.disarm()
+            self.actuator_prime_prepared = False
+            self.actuator_primed = False
         elif decision.state != SafetyState.ENGAGED:
             self.robot_command_gate_open_since = None
+            self.actuator_prime_prepared = False
+            self.actuator_primed = False
 
         if decision.changed:
             message = (
@@ -2470,18 +2658,27 @@ class QuestDualIKFusion(Node):
             cycle_start
         )
 
-        self.update_safety_supervisor(
+        pre_command_decision = self.update_safety_supervisor(
             cycle_start
         )
+
+        if self.enable_robot_motion and not self.actuator_primed:
+            self.prepare_zero_motion_actuator_prime(
+                pre_command_decision,
+                cycle_start,
+                joint_limit_dt_s,
+            )
 
         # =====================================================
         # LEFT / RIGHT 使用同一个函数处理。
         # =====================================================
 
-        for side in (
-            "left",
-            "right",
-        ):
+        sides_to_update = (
+            ()
+            if self.enable_robot_motion and not self.actuator_primed
+            else ("left", "right")
+        )
+        for side in sides_to_update:
 
             state = self.arms[
                 side
@@ -2613,6 +2810,7 @@ class QuestDualIKFusion(Node):
                     state.last_joint_acceleration_limited
                 ),
                 "joint_soft_limited": state.last_joint_soft_limited,
+                "command_dt_s": state.last_safe_command_dt_s,
                 "measured_velocity_source": (
                     state.measured_velocity_source
                 ),
@@ -3302,6 +3500,7 @@ class QuestDualIKFusion(Node):
         )
         state.consecutive_ik_failures = 0
         state.last_safe_command_time = time.perf_counter()
+        state.last_safe_command_dt_s = float(joint_limit_dt_s)
 
         result = dict(result)
         result["candidate_sigma_min"] = sigma_min

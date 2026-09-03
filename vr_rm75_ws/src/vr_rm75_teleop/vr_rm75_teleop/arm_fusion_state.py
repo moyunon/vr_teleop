@@ -92,6 +92,7 @@ class ArmFusionState:
         self.singularity_hold = False
         self.last_sigma_min = None
         self.last_safe_command_time = None
+        self.last_safe_command_dt_s = None
         self.consecutive_ik_failures = 0
         self.command_numeric_valid = True
 
@@ -255,6 +256,7 @@ class ArmFusionState:
         self.last_singularity_speed_scale = None
         self.singularity_hold = False
         self.last_safe_command_time = None
+        self.last_safe_command_dt_s = None
         self.consecutive_ik_failures = 0
         return True
 
@@ -317,6 +319,7 @@ class ArmFusionState:
         self.last_singularity_speed_scale = None
         self.singularity_hold = False
         self.last_safe_command_time = None
+        self.last_safe_command_dt_s = None
         self.consecutive_ik_failures = 0
         self.robot_state_initialized = True
         self.initialized_from_robot = bool(from_robot)

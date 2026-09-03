@@ -111,6 +111,13 @@ class MetaQuestReader:
         self._latest_buttons: dict[str, Any] = {}
         self._last_sample_monotonic: float | None = None
 
+        # Stream diagnostics.  A "commit" is one coherent latest-state
+        # update, not one logcat line parsed from an accumulated backlog.
+        self.lines_received = 0
+        self.lines_committed = 0
+        self.backlog_lines_dropped = 0
+        self.last_batch_line_count = 0
+
         self.device = self.get_device()
         self.install(verbose=False)
         if run:
@@ -160,12 +167,11 @@ class MetaQuestReader:
     def _read_logcat_subprocess(self, cmd: list[str]) -> None:
         """Read logcat output from adb shell subprocess.
 
-        Reads the pipe in large chunks (one read() per select() wake-up, not
-        one per byte as readline() on an unbuffered pipe would do) and
-        processes every complete line in the chunk.  This keeps the reader
-        ahead of the logcat stream even when other busy threads hold the GIL;
-        with byte-wise reads the thread falls behind, the pipe backs up, and
-        consumers see controller poses that are seconds stale.
+        Each select wake-up drains every byte currently available from the
+        local pipe, keeps any incomplete trailing line, and commits only the
+        newest valid complete teleop sample.  The adb child may continue
+        filling this pipe while Python is stalled, so processing every line
+        after recovery would replay an old controller trajectory as fresh.
         """
         try:
             with subprocess.Popen(
@@ -178,48 +184,18 @@ class MetaQuestReader:
             ) as proc:
                 assert proc.stdout is not None
                 fd = proc.stdout.fileno()
+                os.set_blocking(fd, False)
                 buffer = b""
                 while self.running:
                     # Timeout so self.running is re-checked while logcat is quiet
                     readable, _, _ = select.select([fd], [], [], 1.0)
                     if not readable:
                         continue
-                    chunk = os.read(fd, 65536)
-                    if not chunk:
+                    chunk, pipe_closed = self._drain_logcat_pipe(fd)
+                    if chunk:
+                        buffer = self._consume_logcat_bytes(buffer, chunk)
+                    if pipe_closed:
                         break
-                    buffer += chunk
-                    if b"\n" not in buffer:
-                        continue
-                    complete, buffer = buffer.rsplit(b"\n", 1)
-                    for raw_line in complete.split(b"\n"):
-                        data = self.extract_data(
-                            raw_line.decode("utf-8", errors="replace").strip()
-                        )
-                        if not data:
-                            continue
-                        transforms, buttons = MetaQuestReader.process_data(data)
-                        validated_transforms = {}
-                        if transforms is not None:
-                            for key, matrix in transforms.items():
-                                validated = self._validate_transform(matrix)
-                                if validated is not None:
-                                    validated_transforms[key] = validated
-
-                        with self._lock:
-                            self.last_transforms, self.last_buttons = (
-                                transforms,
-                                buttons,
-                            )
-                            self._latest_transforms.update(
-                                validated_transforms
-                            )
-                            if buttons is not None:
-                                self._latest_buttons = buttons
-                            if transforms is not None and buttons is not None:
-                                self._last_sample_monotonic = time.monotonic()
-
-                        if buttons is not None:
-                            self._handle_button_events(buttons)
                 proc.terminate()
                 proc.wait(timeout=5)
         except FileNotFoundError:
@@ -230,6 +206,97 @@ class MetaQuestReader:
             eprint(f"⚠️ Failed to start adb logcat subprocess: {e}")
         except subprocess.SubprocessError as e:
             eprint(f"⚠️ adb subprocess error: {e}")
+
+    @staticmethod
+    def _drain_logcat_pipe(fd: int) -> tuple[bytes, bool]:
+        """Drain all bytes immediately available on a nonblocking pipe."""
+        chunks = []
+        pipe_closed = False
+        while True:
+            try:
+                chunk = os.read(fd, 65536)
+            except BlockingIOError:
+                break
+            if not chunk:
+                pipe_closed = True
+                break
+            chunks.append(chunk)
+            readable, _, _ = select.select([fd], [], [], 0.0)
+            if not readable:
+                break
+        return b"".join(chunks), pipe_closed
+
+    def _consume_logcat_bytes(self, pending: bytes, chunk: bytes) -> bytes:
+        """Consume complete lines and return an unmodified trailing fragment."""
+        combined = pending + chunk
+        if b"\n" not in combined:
+            self._process_complete_logcat_lines([])
+            return combined
+        complete, trailing = combined.rsplit(b"\n", 1)
+        self._process_complete_logcat_lines(complete.split(b"\n"))
+        return trailing
+
+    def _process_complete_logcat_lines(self, raw_lines: list[bytes]) -> None:
+        """Parse one drained batch and commit only its newest valid sample."""
+        latest_sample = None
+        valid_sample_count = 0
+        for raw_line in raw_lines:
+            data = self.extract_data(
+                raw_line.decode("utf-8", errors="replace").strip()
+            )
+            if not data:
+                continue
+            try:
+                transforms, buttons = MetaQuestReader.process_data(data)
+            except (TypeError, ValueError):
+                # A torn or malformed logcat line is not a valid candidate;
+                # retain the newest earlier valid sample from this batch.
+                continue
+            if transforms is None or buttons is None:
+                continue
+            latest_sample = (transforms, buttons)
+            valid_sample_count += 1
+
+        with self._lock:
+            self.lines_received += len(raw_lines)
+            self.last_batch_line_count = len(raw_lines)
+            self.backlog_lines_dropped += max(0, valid_sample_count - 1)
+
+        if latest_sample is None:
+            return
+
+        transforms, buttons = latest_sample
+        validated_transforms = {}
+        for key, matrix in transforms.items():
+            validated = self._validate_transform(matrix)
+            if validated is not None:
+                validated_transforms[key] = validated
+
+        # This timestamp is deliberately sampled once, at the only commit in
+        # the batch.  It represents when the latest state became visible to
+        # the PC process; APK payloads currently contain no reliable source
+        # timestamp or sequence suitable for cross-device age calculations.
+        committed_monotonic = time.monotonic()
+        with self._lock:
+            self.last_transforms, self.last_buttons = transforms, buttons
+            self._latest_transforms = validated_transforms
+            self._latest_buttons = buttons
+            self._last_sample_monotonic = committed_monotonic
+            self.lines_committed += 1
+
+        # Grip/button input is state, not an event stream: only the latest
+        # state may drive callbacks after a stall.
+        self._handle_button_events(buttons)
+
+    def get_stream_diagnostics(self) -> dict[str, int]:
+        """Return a thread-safe snapshot of latest-state stream counters."""
+        with self._lock:
+            return {
+                "lines_received": self.lines_received,
+                "lines_committed": self.lines_committed,
+                "backlog_lines_dropped": self.backlog_lines_dropped,
+                "last_batch_line_count": self.last_batch_line_count,
+            }
 
     def stop(self) -> None:
         """Stop reading data from the Meta Quest device."""

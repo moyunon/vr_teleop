@@ -26,8 +26,17 @@
   `AWAITING_FIRST_SAFE_COMMAND` with per-arm readiness, sends no `movej_canfd`,
   and does not request a stop. The unchanged command-output watchdog remains
   bounded by `command_timeout_s`; expiry still causes SAFETY_STOP and HOLD.
-  Only safe commands genuinely generated after anchor capture and IK/limiting
-  can carry a current-epoch timestamp into the first dual-arm dispatch.
+  Once both anchors and every live safety prerequisite are ready, one
+  `ACTUATOR_PRIMING` cycle synchronizes both fusion states to fresh measured
+  joints and skips VR/IK progression. The first sent targets therefore equal
+  `q_measured` exactly with zero qdot/qddot. A successful full-boundary send
+  reports `PRIMED`, seeds dispatcher continuity from those actual targets, and
+  permits later normal `SENT` cycles. Every ENGAGED exit clears PRIME and
+  continuity, so re-engagement repeats the same sequence.
+- Fusion and the final actuator boundary share one canonical `command_dt_s`
+  for every safe dual-arm command. It is the clamped `joint_limit_dt_s` used by
+  the upstream qddot/qdot limiters; dispatcher timestamps remain freshness and
+  ordering metadata and are no longer reused as a derivative interval.
 
 ## Simulated test pass
 

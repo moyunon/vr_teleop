@@ -302,6 +302,7 @@ def test_disabled_dispatcher_returns_dry_run_before_validating_or_sending():
         {"bad": np.full(7, np.nan)},
         {},
         generated_monotonic=None,
+        command_dt_s=0.02,
         safety_command_allowed=True,
     )
 
@@ -433,6 +434,7 @@ def test_send_only_dual_command_sends_once_without_receiving():
         Q,
         Q,
         generated_monotonic=1.0,
+        command_dt_s=0.02,
         safety_command_allowed=True,
         now_monotonic=1.001,
     )
@@ -462,6 +464,7 @@ def test_send_only_dual_command_sends_once_without_receiving():
         Q,
         Q,
         generated_monotonic=1.0,
+        command_dt_s=0.02,
         safety_command_allowed=True,
         now_monotonic=1.002,
     )
@@ -483,6 +486,7 @@ def test_optional_joint_state_ack_mode_still_validates_responses():
         Q,
         Q,
         generated_monotonic=1.0,
+        command_dt_s=0.02,
         safety_command_allowed=True,
         now_monotonic=1.001,
     )
@@ -506,6 +510,7 @@ def test_closed_safety_gate_disarms_without_sending():
         Q,
         Q,
         generated_monotonic=1.0,
+        command_dt_s=0.02,
         safety_command_allowed=False,
         now_monotonic=1.0,
     )
@@ -535,6 +540,7 @@ def test_missing_stale_or_nonfinite_command_timestamp_is_rejected(
             Q,
             Q,
             generated_monotonic=generated,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=now,
         )
@@ -553,6 +559,7 @@ def test_dual_numeric_validation_finishes_before_either_write():
             invalid,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -574,6 +581,7 @@ def test_abnormal_command_jump_is_rejected_instead_of_clipped():
             jumped,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -595,6 +603,7 @@ def test_command_velocity_is_checked_independently_of_jump_limit():
             too_fast,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -613,17 +622,19 @@ def test_command_acceleration_is_checked_at_final_send_boundary():
         Q,
         Q,
         generated_monotonic=1.0,
+        command_dt_s=0.02,
         safety_command_allowed=True,
         now_monotonic=1.0,
     )
     accelerated = {side: values.copy() for side, values in Q.items()}
     accelerated["left"][1] += np.deg2rad(0.1)
 
-    with pytest.raises(RM75CommandRejectedError, match="acceleration"):
+    with pytest.raises(RM75CommandRejectedError, match="LEFT J2 qddot"):
         dispatcher.dispatch(
             accelerated,
             Q,
             generated_monotonic=1.02,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.02,
         )
@@ -632,6 +643,224 @@ def test_command_acceleration_is_checked_at_final_send_boundary():
         len(fake_socket.payloads) == 1
         for fake_socket in sockets.values()
     )
+
+
+def test_zero_motion_prime_initializes_exact_zero_continuity():
+    """Seed dispatcher history only by a fully validated measured target."""
+    dispatcher, sockets = connected_dispatcher(
+        velocity_limit_deg_s=18.0,
+        acceleration_limit_deg_s2=30.0,
+    )
+
+    result = dispatcher.prime_zero_motion(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        command_dt_s=0.02,
+        safety_command_allowed=True,
+        now_monotonic=1.0,
+    )
+
+    assert result.sent
+    assert dispatcher._last_generated_monotonic == pytest.approx(1.0)
+    assert dispatcher.last_send_monotonic == pytest.approx(1.01)
+    for side in ("left", "right"):
+        assert np.array_equal(dispatcher._last_sent_q[side], Q[side])
+        assert np.array_equal(
+            dispatcher._last_sent_velocity[side],
+            np.zeros(7),
+        )
+        assert len(sockets[side].payloads) == 1
+
+
+def test_canonical_dt_passes_fusion_limit_despite_timestamp_spacing():
+    """Use Fusion's 20 ms interval despite a 17 ms timestamp spacing."""
+    dispatcher, _sockets = connected_dispatcher(
+        velocity_limit_deg_s=18.0,
+        acceleration_limit_deg_s2=30.0,
+    )
+    dispatcher.prime_zero_motion(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        command_dt_s=0.02,
+        safety_command_allowed=True,
+        now_monotonic=1.0,
+    )
+    measured_after_prime = {
+        side: values + np.deg2rad(0.010)
+        for side, values in Q.items()
+    }
+    next_command = {side: values.copy() for side, values in Q.items()}
+    next_command["left"][0] += np.deg2rad(0.012)
+
+    result = dispatcher.dispatch(
+        next_command,
+        measured_after_prime,
+        generated_monotonic=1.017,
+        command_dt_s=0.02,
+        safety_command_allowed=True,
+        now_monotonic=1.017,
+    )
+
+    assert result.sent
+    assert result.command_dt_s == pytest.approx(0.02)
+    assert np.rad2deg(dispatcher._last_sent_velocity["left"][0]) == (
+        pytest.approx(0.6)
+    )
+    assert np.array_equal(
+        dispatcher._last_sent_q["right"],
+        Q["right"],
+    )
+
+
+def test_true_post_prime_acceleration_excess_has_detailed_diagnostics():
+    """Do not weaken the independent 30 deg/s^2 actuator boundary."""
+    dispatcher, sockets = connected_dispatcher(
+        velocity_limit_deg_s=18.0,
+        acceleration_limit_deg_s2=30.0,
+    )
+    dispatcher.prime_zero_motion(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        command_dt_s=0.02,
+        safety_command_allowed=True,
+        now_monotonic=1.0,
+    )
+    accelerated = {side: values.copy() for side, values in Q.items()}
+    accelerated["left"][0] += np.deg2rad(0.013)
+
+    with pytest.raises(RM75CommandRejectedError) as caught:
+        dispatcher.dispatch(
+            accelerated,
+            Q,
+            generated_monotonic=1.02,
+            command_dt_s=0.02,
+            safety_command_allowed=True,
+            now_monotonic=1.02,
+        )
+
+    message = str(caught.value)
+    assert "LEFT J1" in message
+    assert "qddot=" in message
+    assert "> 30.000000 deg/s2" in message
+    assert "command_dt_s=0.020000000" in message
+    assert "delta_deg=" in message
+    assert "qdot_deg_s=" in message
+    assert "previous_qdot_deg_s=" in message
+    assert "qddot_deg_s2=" in message
+    assert "limit_deg_s2=30.000000" in message
+    assert all(len(sock.payloads) == 1 for sock in sockets.values())
+
+
+def test_second_and_third_commands_keep_canonical_velocity_history():
+    """Carry qdot continuously across several canonical-dt commands."""
+    dispatcher, _sockets = connected_dispatcher(
+        velocity_limit_deg_s=18.0,
+        acceleration_limit_deg_s2=30.0,
+    )
+    dispatcher.prime_zero_motion(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        command_dt_s=0.02,
+        safety_command_allowed=True,
+        now_monotonic=1.0,
+    )
+    cumulative_positions_deg = (0.012, 0.036, 0.060)
+    expected_velocities_deg_s = (0.6, 1.2, 1.2)
+    generated_times = (1.017, 1.035, 1.054)
+
+    for position_deg, expected_qdot, generated in zip(
+        cumulative_positions_deg,
+        expected_velocities_deg_s,
+        generated_times,
+    ):
+        command = {side: values.copy() for side, values in Q.items()}
+        command["left"][0] += np.deg2rad(position_deg)
+        result = dispatcher.dispatch(
+            command,
+            Q,
+            generated_monotonic=generated,
+            command_dt_s=0.02,
+            safety_command_allowed=True,
+            now_monotonic=generated,
+        )
+        assert result.sent
+        assert np.rad2deg(
+            dispatcher._last_sent_velocity["left"][0]
+        ) == pytest.approx(expected_qdot)
+
+
+@pytest.mark.parametrize(
+    "command_dt_s",
+    [None, np.nan, np.inf, 0.0, -0.01, 0.020001],
+)
+def test_invalid_command_dt_is_rejected(command_dt_s):
+    """Reject missing, non-finite, non-positive, or over-period dt."""
+    dispatcher, sockets = connected_dispatcher(
+        acceleration_limit_deg_s2=30.0,
+    )
+
+    with pytest.raises(RM75CommandRejectedError, match="command_dt_s"):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            command_dt_s=command_dt_s,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(sock.payloads == [] for sock in sockets.values())
+
+
+def test_prime_rejects_any_target_measurement_delta_before_send():
+    """Make equality to fresh measured state an explicit PRIME invariant."""
+    dispatcher, sockets = connected_dispatcher(
+        acceleration_limit_deg_s2=30.0,
+    )
+    nonzero = {side: values.copy() for side, values in Q.items()}
+    nonzero["right"][6] += 1e-12
+
+    with pytest.raises(RM75CommandRejectedError, match="exactly equal"):
+        dispatcher.prime_zero_motion(
+            nonzero,
+            Q,
+            generated_monotonic=1.0,
+            command_dt_s=0.02,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert all(sock.payloads == [] for sock in sockets.values())
+
+
+def test_prime_send_failure_uses_existing_dual_safety_stop_path():
+    """Retain fail-closed two-arm stop handling during PRIME transport."""
+    left_socket = FakeSocket(auto_stop_ack=True)
+    right_socket = FakeSocket(fail_send=True)
+    dispatcher, _sockets = connected_dispatcher(
+        left_socket=left_socket,
+        right_socket=right_socket,
+        acceleration_limit_deg_s2=30.0,
+    )
+
+    with pytest.raises(RM75CommandConnectionError, match="failed sending"):
+        dispatcher.prime_zero_motion(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            command_dt_s=0.02,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    assert dispatcher.faulted
+    assert left_socket.closed and right_socket.closed
+    assert "send:set_arm_stop" in left_socket.events
+    assert "send:set_arm_stop" in right_socket.events
 
 
 def test_partial_transport_failure_closes_both_and_latches_fault():
@@ -648,6 +877,7 @@ def test_partial_transport_failure_closes_both_and_latches_fault():
             Q,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -685,6 +915,7 @@ def test_controller_error_response_closes_both_and_latches_fault():
             Q,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -712,6 +943,7 @@ def test_movej_timeout_stops_both_then_closes_and_latches_fault():
             Q,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -735,6 +967,7 @@ def test_movej_timeout_stops_both_then_closes_and_latches_fault():
             Q,
             Q,
             generated_monotonic=1.02,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.02,
         )
@@ -759,6 +992,7 @@ def test_stop_ack_timeout_after_movej_failure_still_latches_fault():
             Q,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
@@ -796,6 +1030,7 @@ def test_broken_side_reports_physical_estop_and_peer_still_stops(failure):
             Q,
             Q,
             generated_monotonic=1.0,
+            command_dt_s=0.02,
             safety_command_allowed=True,
             now_monotonic=1.0,
         )
