@@ -696,6 +696,7 @@ class QuestDualIKFusion(Node):
         self.robot_command_transport_fault = False
         self.robot_command_hold_reason = "command output healthy"
         self.robot_command_gate_open_since = None
+        self.last_robot_command_status = None
 
         if self.enable_robot_motion:
             try:
@@ -1601,11 +1602,15 @@ class QuestDualIKFusion(Node):
             self.robot_command_dispatcher.disarm()
 
         if self.safety_supervisor.state == SafetyState.ENGAGED:
-            watchdog_reference = (
-                self.robot_command_dispatcher.last_send_monotonic
-            )
-            if watchdog_reference is None:
-                watchdog_reference = self.robot_command_gate_open_since
+            engagement_start = self.robot_command_gate_open_since
+            last_send = self.robot_command_dispatcher.last_send_monotonic
+            watchdog_reference = engagement_start
+            if (
+                engagement_start is not None
+                and last_send is not None
+                and last_send >= engagement_start
+            ):
+                watchdog_reference = last_send
             if (
                 watchdog_reference is not None
                 and now_monotonic - watchdog_reference
@@ -1644,14 +1649,43 @@ class QuestDualIKFusion(Node):
         self,
         sent,
         reason,
+        status,
+        current_engagement_command_ready=None,
     ):
         """Publish whether this cycle crossed the actuator boundary."""
+        if current_engagement_command_ready is None:
+            current_engagement_command_ready = (
+                self.current_engagement_command_readiness()
+            )
+        payload = {
+            "status": str(status),
+            "sent": bool(sent),
+            "reason": str(reason),
+            "engagement_start_time": self.robot_command_gate_open_since,
+            "current_engagement_command_ready": {
+                side: bool(current_engagement_command_ready[side])
+                for side in ("left", "right")
+            },
+        }
+        self.last_robot_command_status = payload
         self.robot_command_sent_pub.publish(
             Bool(data=bool(sent))
         )
         self.robot_command_status_pub.publish(
-            String(data=str(reason))
+            String(data=json.dumps(payload, sort_keys=True))
         )
+
+    def current_engagement_command_readiness(self):
+        """Return per-arm admission into the current engagement epoch."""
+        engagement_start = self.robot_command_gate_open_since
+        return {
+            side: bool(
+                engagement_start is not None
+                and state.last_safe_command_time is not None
+                and state.last_safe_command_time >= engagement_start
+            )
+            for side, state in self.arms.items()
+        }
 
     def handle_stop_transition(self, decision, now_monotonic):
         """Issue at most one dual-arm software stop per ENGAGED exit edge."""
@@ -1727,7 +1761,7 @@ class QuestDualIKFusion(Node):
         """Dispatch one fully guarded dual-arm target, or remain dry-run."""
         if not self.enable_robot_motion:
             reason = "enable_robot_motion=false; dry-run only"
-            self.publish_robot_command_status(False, reason)
+            self.publish_robot_command_status(False, reason, "DRY_RUN")
             return None
 
         if not safety_decision.command_allowed:
@@ -1736,7 +1770,33 @@ class QuestDualIKFusion(Node):
                 "Safety Supervisor command gate closed: "
                 f"{safety_decision.reason}"
             )
-            self.publish_robot_command_status(False, reason)
+            status = (
+                "FAULT"
+                if safety_decision.state == SafetyState.FAULT
+                else "HOLD"
+            )
+            self.publish_robot_command_status(False, reason, status)
+            return None
+
+        current_command_ready = (
+            self.current_engagement_command_readiness()
+        )
+        if not all(current_command_ready.values()):
+            readiness = ", ".join(
+                f"{side.upper()} current_engagement_command_ready="
+                f"{str(current_command_ready[side]).lower()}"
+                for side in ("left", "right")
+            )
+            reason = (
+                "awaiting first current-engagement safe dual-arm command; "
+                + readiness
+            )
+            self.publish_robot_command_status(
+                False,
+                reason,
+                "AWAITING_FIRST_SAFE_COMMAND",
+                current_command_ready,
+            )
             return None
 
         q_commands = {
@@ -1751,18 +1811,6 @@ class QuestDualIKFusion(Node):
             state.last_safe_command_time
             for state in self.arms.values()
         ]
-        if any(value is None for value in generated_times):
-            self.robot_command_hold_required = True
-            self.robot_command_hold_reason = (
-                "safe dual-arm command timestamp unavailable"
-            )
-            self.update_safety_supervisor(now_monotonic)
-            self.publish_robot_command_status(
-                False,
-                self.robot_command_hold_reason,
-            )
-            return None
-
         generated_monotonic = min(generated_times)
         try:
             result = self.robot_command_dispatcher.dispatch(
@@ -1776,7 +1824,7 @@ class QuestDualIKFusion(Node):
             self.robot_command_hold_required = True
             self.robot_command_hold_reason = str(exc)
             self.update_safety_supervisor(now_monotonic)
-            self.publish_robot_command_status(False, exc)
+            self.publish_robot_command_status(False, exc, "HOLD")
             return None
         except (
             RM75CommandConnectionError,
@@ -1786,10 +1834,16 @@ class QuestDualIKFusion(Node):
             self.robot_command_transport_fault = True
             self.robot_command_dispatcher.latch_transport_fault(reason)
             self.update_safety_supervisor(now_monotonic)
-            self.publish_robot_command_status(False, reason)
+            self.publish_robot_command_status(False, reason, "FAULT")
             return None
 
-        self.publish_robot_command_status(result.sent, result.reason)
+        status = "SENT" if result.sent else "READY_TO_DISPATCH"
+        self.publish_robot_command_status(
+            result.sent,
+            result.reason,
+            status,
+            current_command_ready,
+        )
         return result
 
     def quest_input_source_is_fresh(
@@ -2134,6 +2188,9 @@ class QuestDualIKFusion(Node):
             and decision.previous_state != SafetyState.ENGAGED
         ):
             self.robot_command_gate_open_since = now_monotonic
+            # A new engagement must begin with measured-state continuity;
+            # prior-epoch send history cannot seed dispatch or its watchdog.
+            self.robot_command_dispatcher.disarm()
         elif decision.state != SafetyState.ENGAGED:
             self.robot_command_gate_open_since = None
 

@@ -17,6 +17,7 @@ import vr_rm75_teleop.quest_dual_ik_fusion as fusion_module
 from vr_rm75_teleop.quest_dual_ik_fusion import QuestDualIKFusion
 from vr_rm75_teleop.rm75_fk import forward_kinematics
 from vr_rm75_teleop.safety_supervisor import SafetyState
+from vr_rm75_teleop.stop_policy import StopClass
 from vr_rm75_teleop.target_feasibility import (
     minimum_singular_value,
     singularity_speed_scale,
@@ -29,6 +30,75 @@ ROBOT_Q_DEG = {
 }
 
 CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+
+
+class FakeEnabledCommandDispatcher:
+    """Observe real-mode dispatch/stop lifecycle without any socket."""
+
+    def __init__(self):
+        self.connected = True
+        self.faulted = False
+        self.last_reason = "fake command channels connected"
+        self.last_send_monotonic = None
+        self.last_stop_result = None
+        self.motion_armed = False
+        self.dispatch_calls = []
+        self.stop_calls = []
+
+    def dispatch(self, q_commands, q_measured, **kwargs):
+        """Record a fully guarded dispatch without crossing a transport."""
+        self.dispatch_calls.append((q_commands, q_measured, kwargs))
+        self.last_send_monotonic = kwargs["now_monotonic"]
+        self.motion_armed = True
+        return SimpleNamespace(
+            sent=True,
+            reason="fake dual-arm send succeeded",
+            ack_latency_s=None,
+        )
+
+    def request_stop(self, stop_class, reason, requested_monotonic):
+        """Record the software-stop request and return two fake ACKs."""
+        self.stop_calls.append((stop_class, reason, requested_monotonic))
+        request = SimpleNamespace(
+            stop_class=StopClass(stop_class),
+            reason=str(reason),
+            requested_monotonic=float(requested_monotonic),
+        )
+        arms = tuple(
+            SimpleNamespace(
+                side=side,
+                attempted=True,
+                acknowledged=True,
+                ack_latency_s=0.001,
+                error=None,
+            )
+            for side in ("left", "right")
+        )
+        result = SimpleNamespace(
+            request=request,
+            arms=arms,
+            dry_run=False,
+            all_acknowledged=True,
+        )
+        self.last_stop_result = result
+        self.motion_armed = False
+        return result
+
+    def disarm(self):
+        """Match the production dispatcher's epoch reset behavior."""
+        self.last_send_monotonic = None
+        self.motion_armed = False
+
+    def close(self):
+        """Close only the fake lifecycle; no transport exists."""
+        self.connected = False
+        self.disarm()
+
+    def latch_transport_fault(self, reason):
+        """Expose an unexpected fault as a failed testable fake channel."""
+        self.faulted = True
+        self.connected = False
+        self.last_reason = str(reason)
 
 
 @pytest.fixture
@@ -99,6 +169,27 @@ def collision_snapshot(node, values):
     )
 
 
+def enable_fake_command_mode(node):
+    """Enable actuator integration paths while retaining zero network I/O."""
+    dispatcher = FakeEnabledCommandDispatcher()
+    node.enable_robot_motion = True
+    node.robot_command_dispatcher = dispatcher
+    node.safety_supervisor.require_actuator_safety = True
+    node.robot_command_hold_required = False
+    node.robot_command_transport_fault = False
+    node.refresh_actuator_safety(time.perf_counter())
+    return dispatcher
+
+
+def command_allowed_decision():
+    """Build the minimum immutable gate result used by direct dispatch tests."""
+    return SimpleNamespace(
+        command_allowed=True,
+        state=SafetyState.ENGAGED,
+        reason="all safety guards satisfied",
+    )
+
+
 def test_fusion_node_defaults_to_network_disconnected_dry_run(fusion_node):
     """Keep the integrated actuator boundary unreachable by default."""
     node = fusion_node
@@ -124,6 +215,182 @@ def test_fusion_node_defaults_to_network_disconnected_dry_run(fusion_node):
         time.perf_counter(),
     ) is None
     assert not node.robot_command_dispatcher.connected
+
+
+def test_dispatch_awaits_both_first_epoch_commands_without_hold(
+    fusion_node,
+    monkeypatch,
+):
+    """Treat two missing bootstrap commands as bounded normal lifecycle."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.robot_command_gate_open_since = 100.0
+    for state in node.arms.values():
+        state.last_safe_command_time = None
+    published_status = []
+    monkeypatch.setattr(
+        node,
+        "robot_command_status_pub",
+        SimpleNamespace(publish=published_status.append),
+    )
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        100.01,
+    )
+
+    assert result is None
+    assert not node.robot_command_hold_required
+    assert not dispatcher.dispatch_calls
+    assert not dispatcher.stop_calls
+    assert node.last_robot_command_status["status"] == (
+        "AWAITING_FIRST_SAFE_COMMAND"
+    )
+    assert node.last_robot_command_status[
+        "current_engagement_command_ready"
+    ] == {"left": False, "right": False}
+    assert json.loads(published_status[-1].data) == (
+        node.last_robot_command_status
+    )
+
+
+def test_dispatch_awaits_when_only_left_command_is_current(fusion_node):
+    """Never split a dual-arm dispatch while right remains in bootstrap."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.robot_command_gate_open_since = 200.0
+    node.arms["left"].last_safe_command_time = 200.001
+    node.arms["right"].last_safe_command_time = None
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        200.01,
+    )
+
+    assert result is None
+    assert not node.robot_command_hold_required
+    assert not dispatcher.dispatch_calls
+    assert not dispatcher.stop_calls
+    assert node.last_robot_command_status[
+        "current_engagement_command_ready"
+    ] == {"left": True, "right": False}
+
+
+def test_dispatch_rejects_previous_engagement_timestamps_without_hold(
+    fusion_node,
+):
+    """Old dual commands remain awaiting rather than crossing a new epoch."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.robot_command_gate_open_since = 300.0
+    for state in node.arms.values():
+        state.last_safe_command_time = 290.0
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        300.01,
+    )
+
+    assert result is None
+    assert not node.robot_command_hold_required
+    assert not dispatcher.dispatch_calls
+    assert not dispatcher.stop_calls
+    assert "awaiting first current-engagement" in (
+        node.last_robot_command_status["reason"]
+    )
+    assert node.last_robot_command_status[
+        "current_engagement_command_ready"
+    ] == {"left": False, "right": False}
+
+
+def test_dispatch_allows_first_dual_current_engagement_command(fusion_node):
+    """Allow the first dispatch only after both safe-command epochs match."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    node.safety_supervisor.state = SafetyState.ENGAGED
+    node.robot_command_gate_open_since = 400.0
+    node.arms["left"].last_safe_command_time = 400.001
+    node.arms["right"].last_safe_command_time = 400.002
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        400.01,
+    )
+
+    assert result.sent
+    assert len(dispatcher.dispatch_calls) == 1
+    assert dispatcher.dispatch_calls[0][2][
+        "generated_monotonic"
+    ] == pytest.approx(400.001)
+    assert node.last_robot_command_status["status"] == "SENT"
+    assert node.last_robot_command_status[
+        "current_engagement_command_ready"
+    ] == {"left": True, "right": True}
+
+
+def test_bootstrap_timeout_still_holds_and_requests_safety_stop(fusion_node):
+    """Bound bootstrap waiting with the unchanged actuator watchdog."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    dispatcher.last_send_monotonic = time.perf_counter() - 10.0
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    engagement_start = node.robot_command_gate_open_since
+    assert node.safety_supervisor.state == SafetyState.ENGAGED
+    assert engagement_start is not None
+    assert dispatcher.last_send_monotonic is None
+
+    decision = node.update_safety_supervisor(
+        engagement_start + node.command_timeout_s + 0.001
+    )
+
+    assert decision.state == SafetyState.HOLD
+    assert node.robot_command_hold_required
+    assert node.robot_command_hold_reason == (
+        "real-robot command output watchdog expired"
+    )
+    assert len(dispatcher.stop_calls) == 1
+    assert dispatcher.stop_calls[0][0] == StopClass.SAFETY_STOP
+    assert not dispatcher.dispatch_calls
+
+
+def test_post_first_dispatch_stale_watchdog_remains_active(fusion_node):
+    """Continue guarding output cadence after bootstrap has completed."""
+    node = fusion_node
+    initialize_ready_node(node)
+    dispatcher = enable_fake_command_mode(node)
+    grip(node, "left", 0.8)
+    grip(node, "right", 0.8)
+    engagement_start = node.robot_command_gate_open_since
+    first_command_time = engagement_start + 0.001
+    for state in node.arms.values():
+        state.last_safe_command_time = first_command_time
+
+    result = node.dispatch_robot_commands(
+        command_allowed_decision(),
+        first_command_time + 0.001,
+    )
+    assert result.sent
+    first_send_time = dispatcher.last_send_monotonic
+
+    decision = node.update_safety_supervisor(
+        first_send_time + node.command_timeout_s + 0.001
+    )
+
+    assert decision.state == SafetyState.HOLD
+    assert node.robot_command_hold_reason == (
+        "real-robot command output watchdog expired"
+    )
+    assert len(dispatcher.stop_calls) == 1
+    assert dispatcher.stop_calls[0][0] == StopClass.SAFETY_STOP
 
 
 def test_explicit_demo_profile_resolves_category_thresholds(

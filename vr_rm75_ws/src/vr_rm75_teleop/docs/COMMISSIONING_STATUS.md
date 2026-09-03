@@ -21,6 +21,13 @@
   cannot enter the comparison. Once admitted, the existing command/measurement
   freshness, timestamp-skew, persistence, and tracking-error protections remain
   fail-closed.
+- Actuator engagement bootstrap uses that same epoch. While either arm lacks a
+  current-engagement safe command, dispatch reports
+  `AWAITING_FIRST_SAFE_COMMAND` with per-arm readiness, sends no `movej_canfd`,
+  and does not request a stop. The unchanged command-output watchdog remains
+  bounded by `command_timeout_s`; expiry still causes SAFETY_STOP and HOLD.
+  Only safe commands genuinely generated after anchor capture and IK/limiting
+  can carry a current-epoch timestamp into the first dual-arm dispatch.
 
 ## Simulated test pass
 
