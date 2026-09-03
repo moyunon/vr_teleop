@@ -1,6 +1,7 @@
 """ROS callback integration tests for dual-grip clutch re-anchoring."""
 
 import json
+from pathlib import Path
 import time
 from types import SimpleNamespace
 
@@ -27,6 +28,8 @@ ROBOT_Q_DEG = {
     "right": [20.0, 35.0, 25.0, 60.0, 15.0, 40.0, -120.0],
 }
 
+CONFIG_DIR = Path(__file__).resolve().parents[1] / "config"
+
 
 @pytest.fixture
 def fusion_node(tmp_path, monkeypatch):
@@ -39,6 +42,27 @@ def fusion_node(tmp_path, monkeypatch):
     node.timer.cancel()
     node.robot_state_timeout_s = 2.0
     node.collision_protection_enabled = False
+    yield node
+    node.destroy_node()
+    if rclpy.ok():
+        rclpy.shutdown()
+
+
+@pytest.fixture
+def demo_collision_fusion_node(tmp_path, monkeypatch):
+    """Create a dry-run fusion node with the explicit demo profile."""
+    monkeypatch.setenv("ROS_LOG_DIR", str(tmp_path))
+    monkeypatch.setenv("ROS_LOCALHOST_ONLY", "1")
+    if not rclpy.ok():
+        rclpy.init(
+            args=[
+                "--ros-args",
+                "--params-file",
+                str(CONFIG_DIR / "demo_collision_profile.yaml"),
+            ]
+        )
+    node = QuestDualIKFusion()
+    node.timer.cancel()
     yield node
     node.destroy_node()
     if rclpy.ok():
@@ -81,6 +105,13 @@ def test_fusion_node_defaults_to_network_disconnected_dry_run(fusion_node):
 
     assert node.enable_robot_motion is False
     assert node.safety_supervisor.require_actuator_safety is False
+    assert node.robot_command_dispatcher.movej_response_mode == "send_only"
+    assert node.robot_command_dispatcher.feedback_supervised
+    assert node.safety_supervisor.require_following_safety
+    assert set(node.following_monitors) == {"left", "right"}
+    for command_client in node.robot_command_dispatcher.clients.values():
+        assert command_client.movej_response_timeout_s == pytest.approx(0.05)
+        assert command_client.stop_response_timeout_s == pytest.approx(0.01)
     assert not node.robot_command_dispatcher.connected
     assert all(
         not command_client.connected
@@ -93,6 +124,45 @@ def test_fusion_node_defaults_to_network_disconnected_dry_run(fusion_node):
         time.perf_counter(),
     ) is None
     assert not node.robot_command_dispatcher.connected
+
+
+def test_explicit_demo_profile_resolves_category_thresholds(
+    demo_collision_fusion_node,
+):
+    """Load demo YAML through ROS and expose its resolved safety decision."""
+    node = demo_collision_fusion_node
+    assert node.enable_robot_motion is False
+    assert not node.robot_command_dispatcher.connected
+    node.collision_monitor.update_snapshot(
+        {
+            "left_self": 0.053036446398235126,
+            "right_self": 0.05301525627829068,
+            "inter_arm": 0.13789999956812155,
+        },
+        received_monotonic=20.0,
+    )
+
+    decision = node.collision_monitor.evaluate(20.0)
+    diagnostics = node.collision_monitor.category_diagnostics()
+    assert decision.region.value == "warning"
+    assert not decision.hold_required
+    assert decision.limiting_source.value == "right_self"
+    assert decision.speed_scale == pytest.approx(0.3530988, abs=1e-6)
+    assert diagnostics["left_self"]["stop_distance_m"] == pytest.approx(
+        0.045
+    )
+    assert diagnostics["right_self"]["warn_distance_m"] == pytest.approx(
+        0.065
+    )
+    assert diagnostics["inter_arm"]["stop_distance_m"] == pytest.approx(
+        0.05
+    )
+    assert diagnostics["inter_arm"]["warn_distance_m"] == pytest.approx(
+        0.15
+    )
+    assert diagnostics["environment"]["status"] == (
+        "DISABLED_BY_CONFIGURATION"
+    )
 
 
 def initialize_ready_node(node):

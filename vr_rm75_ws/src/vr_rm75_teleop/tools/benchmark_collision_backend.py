@@ -47,6 +47,11 @@ def parse_arguments():
     parser.add_argument("--description-root", type=Path, required=True)
     parser.add_argument("--left-q-deg", type=float, nargs=7, required=True)
     parser.add_argument("--right-q-deg", type=float, nargs=7, required=True)
+    parser.add_argument(
+        "--threshold-profile",
+        type=Path,
+        help="ROS YAML collision threshold override to evaluate",
+    )
     parser.add_argument("--warm-runs", type=int, default=100)
     parser.add_argument("--verify-exhaustive", action="store_true")
     return parser.parse_args()
@@ -67,6 +72,27 @@ def category_payload(snapshot):
         }
         for result in snapshot.category_results
     }
+
+
+def threshold_parameters(profile_path, enabled_sources):
+    """Load global and per-category values from one explicit ROS profile."""
+    if profile_path is None:
+        return 0.05, 0.15, None
+    with profile_path.open(encoding="utf-8") as stream:
+        document = yaml.safe_load(stream) or {}
+    parameters = document["quest_dual_ik_fusion"]["ros__parameters"]
+    default_stop = float(parameters["collision_stop_distance_m"])
+    default_warn = float(parameters["collision_warn_distance_m"])
+    overrides = {}
+    for source in enabled_sources:
+        stop = parameters.get(
+            f"collision_{source.value}_stop_distance_m", default_stop
+        )
+        warn = parameters.get(
+            f"collision_{source.value}_warn_distance_m", default_warn
+        )
+        overrides[source] = (float(stop), float(warn))
+    return default_stop, default_warn, overrides
 
 
 def main():
@@ -120,11 +146,15 @@ def main():
         snapshot = backend.evaluate(joints, measured_monotonic=0.0)
         warm_ms.append((time.perf_counter() - started) * 1000.0)
 
+    default_stop, default_warn, threshold_overrides = threshold_parameters(
+        arguments.threshold_profile, backend.enabled_sources
+    )
     monitor = CollisionSafetyMonitor(
-        d_stop_m=0.05,
-        d_warn_m=0.15,
+        d_stop_m=default_stop,
+        d_warn_m=default_warn,
         timeout_s=0.10,
         enabled_sources=backend.enabled_sources,
+        thresholds_by_source=threshold_overrides,
     )
     monitor.update_snapshot(
         dict(zip(backend.enabled_sources, snapshot.distances_m)),
@@ -163,6 +193,7 @@ def main():
             "points": snapshot.closest_points,
         },
         "collision_safety_decision": decision,
+        "collision_safety_diagnostics": monitor.category_diagnostics(),
     }
     if arguments.verify_exhaustive:
         exhaustive_backend = FiveClassCollisionBackend(

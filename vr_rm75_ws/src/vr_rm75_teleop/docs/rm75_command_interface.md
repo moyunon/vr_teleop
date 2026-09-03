@@ -24,34 +24,45 @@ Official references:
 - <https://develop.realman-robotics.com/robot/json/readme/>
 - <https://develop.realman-robotics.com/robot/demo/python/movejCANFD/>
 
-The exact controller model, firmware/API generation, and its low-follow
-behavior still have to be confirmed against both physical RM75 controllers
-before first motion. A version mismatch is a commissioning blocker.
+Every installation must confirm its controller model, firmware/API generation,
+and low-follow behavior against both physical RM75 controllers before motion.
+A version mismatch is a commissioning blocker.
+
+Gate C raw-protocol commissioning confirmed RM75-6FB controller generation
+4.0, firmware V1.0.4.t11: successful `movej_canfd` with `follow=false` emits no
+per-frame TCP response, while `set_arm_stop` returns its documented ACK. The
+production response mode for this firmware is therefore `send_only`.
 
 ## Timing and transport behavior
 
 TCP connect/write operations are bounded by
-`robot_command_transport_timeout_s` (default 10 ms). ACK reads use separate
-protocol deadlines: provisional `movej_response_timeout_s=50 ms` for the
-documented `joint_state` response, and `stop_response_timeout_s=10 ms` for a
-software-stop ACK. The 50 ms value must be replaced only after measuring
-zero-delta `movej_canfd` RTT on both installed controllers. It is not the 50 Hz
-command cadence. Both targets are sent before the two movej responses are
-consumed. This confirms controller acceptance, not completion of motion. A
-missing, non-finite, duplicate, or older-than-`command_timeout_s` generated
-timestamp is never transmitted.
+`robot_command_transport_timeout_s` (default 10 ms). With the default
+`movej_response_mode=send_only`, LEFT and RIGHT are written in that order and
+successful `sendall()` calls report only transport-send success. They do not
+mean the controller accepted a target or that the robot physically reached
+it. Direct read-only RM75 feedback and the following-error monitor provide the
+independent motion supervision.
+
+`movej_response_mode=joint_state_ack` remains available as an explicit
+diagnostic/compatibility mode for firmware that returns the documented
+`joint_state`. It uses the separate provisional
+`movej_response_timeout_s=50 ms`; it is not part of the current production
+command cadence. Software stops always retain their independent ACK and use
+`stop_response_timeout_s=10 ms`.
 
 The command payload contains seven controller-joint angles in integer 0.001
 degrees and always includes `"follow": false`. Both complete messages are
 encoded and validated before either socket is written.
 
 The response frame, seven reported joints, and integer `arm_err` are validated.
-An ACK receive timeout leaves that socket temporarily open because the
-controller may already have executed the command. The dispatcher immediately
-attempts `SAFETY_STOP` on both still-open channels, collects the stop ACKs,
-then closes both channels and latches a global FAULT. EOF, reset, or another
-broken-socket error closes the unavailable side immediately; the peer is still
-stopped. Any incomplete stop result explicitly requires the physical E-stop.
+In optional movej ACK mode, an ACK receive timeout leaves that socket
+temporarily open because the controller may already have executed the command.
+The dispatcher immediately attempts `SAFETY_STOP` on both still-open channels,
+collects the stop ACKs, then closes both channels and latches a global FAULT.
+The same stop-before-close sequence applies to a send failure wherever a
+channel remains usable. EOF, reset, or another broken-socket error closes the
+unavailable side immediately; the peer is still stopped. Any incomplete stop
+result explicitly requires the physical E-stop.
 
 The two robot controllers are independent network endpoints, so a truly atomic
 dual-arm network commit is impossible. If one write succeeds and its peer
@@ -109,9 +120,10 @@ motion disabled.
 
 ## Commissioning status
 
-Synchronous socket timing and controller response latency must be measured
-during dry-run commissioning before first motion. Deadline jitter that cannot
-fit the 20 ms cycle is a blocker for this transport design.
+Zero-delta commissioning must measure LEFT/RIGHT `sendall()` duration and the
+independent feedback delay. `send_only` removes a nonexistent movej ACK from
+the 50 Hz cadence; it does not remove feedback freshness, following-error, or
+any other safety requirement. Stop ACK latency remains separately measured.
 
 This implementation and its automated tests use fake sockets only. No test in
 this stage connects to either real controller or transmits a motion command.

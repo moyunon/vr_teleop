@@ -14,8 +14,11 @@ quest_dual_ik_fusion:
     robot_command_port: 8080
     # TCP connect/write bound; ACK receive deadlines are protocol-specific.
     robot_command_transport_timeout_s: 0.01
-    # PROVISIONAL: replace only after measuring zero-delta movej ACK RTT.
+    # Used only by optional joint_state_ack mode on other firmware.
     movej_response_timeout_s: 0.05
+    # Verified for RM75-6FB controller 4.0 firmware V1.0.4.t11: successful
+    # movej_canfd follow=false has no per-frame TCP response.
+    movej_response_mode: send_only
     # Current stationary stop ACK measurements are approximately 3-6 ms.
     stop_response_timeout_s: 0.01
     max_robot_command_delta_deg: 0.25

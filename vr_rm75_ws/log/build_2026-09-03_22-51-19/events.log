@@ -1,0 +1,729 @@
+[0.000000] (-) TimerEvent: {}
+[0.000204] (-) JobUnselected: {'identifier': 'lsrx_rm75_dual_description'}
+[0.000284] (vr_rm75_teleop) JobQueued: {'identifier': 'vr_rm75_teleop', 'dependencies': OrderedDict()}
+[0.000440] (vr_rm75_teleop) JobStarted: {'identifier': 'vr_rm75_teleop'}
+[0.099695] (-) TimerEvent: {}
+[0.199951] (-) TimerEvent: {}
+[0.300381] (-) TimerEvent: {}
+[0.400774] (-) TimerEvent: {}
+[0.501280] (-) TimerEvent: {}
+[0.601709] (-) TimerEvent: {}
+[0.702203] (-) TimerEvent: {}
+[0.802458] (-) TimerEvent: {}
+[0.902807] (-) TimerEvent: {}
+[1.003205] (-) TimerEvent: {}
+[1.103490] (-) TimerEvent: {}
+[1.203784] (-) TimerEvent: {}
+[1.304197] (-) TimerEvent: {}
+[1.404634] (-) TimerEvent: {}
+[1.504936] (-) TimerEvent: {}
+[1.605226] (-) TimerEvent: {}
+[1.705467] (-) TimerEvent: {}
+[1.805793] (-) TimerEvent: {}
+[1.906063] (-) TimerEvent: {}
+[2.006397] (-) TimerEvent: {}
+[2.106617] (-) TimerEvent: {}
+[2.206937] (-) TimerEvent: {}
+[2.307257] (-) TimerEvent: {}
+[2.407584] (-) TimerEvent: {}
+[2.507915] (-) TimerEvent: {}
+[2.608294] (-) TimerEvent: {}
+[2.708655] (-) TimerEvent: {}
+[2.808985] (-) TimerEvent: {}
+[2.909240] (-) TimerEvent: {}
+[3.009409] (-) TimerEvent: {}
+[3.109650] (-) TimerEvent: {}
+[3.209989] (-) TimerEvent: {}
+[3.310237] (-) TimerEvent: {}
+[3.410493] (-) TimerEvent: {}
+[3.510769] (-) TimerEvent: {}
+[3.611139] (-) TimerEvent: {}
+[3.711436] (-) TimerEvent: {}
+[3.811706] (-) TimerEvent: {}
+[3.911934] (-) TimerEvent: {}
+[4.012180] (-) TimerEvent: {}
+[4.112493] (-) TimerEvent: {}
+[4.212914] (-) TimerEvent: {}
+[4.313329] (-) TimerEvent: {}
+[4.413620] (-) TimerEvent: {}
+[4.514003] (-) TimerEvent: {}
+[4.614317] (-) TimerEvent: {}
+[4.714574] (-) TimerEvent: {}
+[4.814874] (-) TimerEvent: {}
+[4.915182] (-) TimerEvent: {}
+[5.015531] (-) TimerEvent: {}
+[5.115734] (-) TimerEvent: {}
+[5.216049] (-) TimerEvent: {}
+[5.316462] (-) TimerEvent: {}
+[5.416808] (-) TimerEvent: {}
+[5.517086] (-) TimerEvent: {}
+[5.617377] (-) TimerEvent: {}
+[5.717743] (-) TimerEvent: {}
+[5.818055] (-) TimerEvent: {}
+[5.918372] (-) TimerEvent: {}
+[6.018665] (-) TimerEvent: {}
+[6.119007] (-) TimerEvent: {}
+[6.219295] (-) TimerEvent: {}
+[6.319519] (-) TimerEvent: {}
+[6.419870] (-) TimerEvent: {}
+[6.520240] (-) TimerEvent: {}
+[6.620512] (-) TimerEvent: {}
+[6.720882] (-) TimerEvent: {}
+[6.821235] (-) TimerEvent: {}
+[6.921435] (-) TimerEvent: {}
+[7.021693] (-) TimerEvent: {}
+[7.122016] (-) TimerEvent: {}
+[7.222249] (-) TimerEvent: {}
+[7.322464] (-) TimerEvent: {}
+[7.422749] (-) TimerEvent: {}
+[7.523121] (-) TimerEvent: {}
+[7.623417] (-) TimerEvent: {}
+[7.723659] (-) TimerEvent: {}
+[7.824023] (-) TimerEvent: {}
+[7.924311] (-) TimerEvent: {}
+[8.024568] (-) TimerEvent: {}
+[8.124944] (-) TimerEvent: {}
+[8.225313] (-) TimerEvent: {}
+[8.325544] (-) TimerEvent: {}
+[8.425842] (-) TimerEvent: {}
+[8.526213] (-) TimerEvent: {}
+[8.626577] (-) TimerEvent: {}
+[8.726934] (-) TimerEvent: {}
+[8.827279] (-) TimerEvent: {}
+[8.927505] (-) TimerEvent: {}
+[9.027795] (-) TimerEvent: {}
+[9.128171] (-) TimerEvent: {}
+[9.228421] (-) TimerEvent: {}
+[9.328674] (-) TimerEvent: {}
+[9.428951] (-) TimerEvent: {}
+[9.529345] (-) TimerEvent: {}
+[9.629642] (-) TimerEvent: {}
+[9.730002] (-) TimerEvent: {}
+[9.830303] (-) TimerEvent: {}
+[9.930598] (-) TimerEvent: {}
+[10.030967] (-) TimerEvent: {}
+[10.131318] (-) TimerEvent: {}
+[10.231627] (-) TimerEvent: {}
+[10.331988] (-) TimerEvent: {}
+[10.432343] (-) TimerEvent: {}
+[10.532566] (-) TimerEvent: {}
+[10.632926] (-) TimerEvent: {}
+[10.733211] (-) TimerEvent: {}
+[10.833447] (-) TimerEvent: {}
+[10.933658] (-) TimerEvent: {}
+[11.033913] (-) TimerEvent: {}
+[11.134212] (-) TimerEvent: {}
+[11.234490] (-) TimerEvent: {}
+[11.334726] (-) TimerEvent: {}
+[11.435068] (-) TimerEvent: {}
+[11.535338] (-) TimerEvent: {}
+[11.635624] (-) TimerEvent: {}
+[11.735989] (-) TimerEvent: {}
+[11.836302] (-) TimerEvent: {}
+[11.936571] (-) TimerEvent: {}
+[12.036820] (-) TimerEvent: {}
+[12.137144] (-) TimerEvent: {}
+[12.237370] (-) TimerEvent: {}
+[12.337662] (-) TimerEvent: {}
+[12.438001] (-) TimerEvent: {}
+[12.538299] (-) TimerEvent: {}
+[12.638542] (-) TimerEvent: {}
+[12.738817] (-) TimerEvent: {}
+[12.839193] (-) TimerEvent: {}
+[12.939433] (-) TimerEvent: {}
+[13.039705] (-) TimerEvent: {}
+[13.140047] (-) TimerEvent: {}
+[13.240319] (-) TimerEvent: {}
+[13.340557] (-) TimerEvent: {}
+[13.440890] (-) TimerEvent: {}
+[13.541214] (-) TimerEvent: {}
+[13.641423] (-) TimerEvent: {}
+[13.741711] (-) TimerEvent: {}
+[13.842059] (-) TimerEvent: {}
+[13.942275] (-) TimerEvent: {}
+[14.042626] (-) TimerEvent: {}
+[14.142969] (-) TimerEvent: {}
+[14.243297] (-) TimerEvent: {}
+[14.343565] (-) TimerEvent: {}
+[14.443913] (-) TimerEvent: {}
+[14.544299] (-) TimerEvent: {}
+[14.644563] (-) TimerEvent: {}
+[14.744924] (-) TimerEvent: {}
+[14.845273] (-) TimerEvent: {}
+[14.945623] (-) TimerEvent: {}
+[15.045976] (-) TimerEvent: {}
+[15.146311] (-) TimerEvent: {}
+[15.246687] (-) TimerEvent: {}
+[15.347059] (-) TimerEvent: {}
+[15.447444] (-) TimerEvent: {}
+[15.547794] (-) TimerEvent: {}
+[15.648119] (-) TimerEvent: {}
+[15.748474] (-) TimerEvent: {}
+[15.848877] (-) TimerEvent: {}
+[15.949167] (-) TimerEvent: {}
+[16.049528] (-) TimerEvent: {}
+[16.149892] (-) TimerEvent: {}
+[16.250295] (-) TimerEvent: {}
+[16.350585] (-) TimerEvent: {}
+[16.450879] (-) TimerEvent: {}
+[16.551160] (-) TimerEvent: {}
+[16.651483] (-) TimerEvent: {}
+[16.751806] (-) TimerEvent: {}
+[16.852153] (-) TimerEvent: {}
+[16.952436] (-) TimerEvent: {}
+[17.052717] (-) TimerEvent: {}
+[17.153078] (-) TimerEvent: {}
+[17.253370] (-) TimerEvent: {}
+[17.353638] (-) TimerEvent: {}
+[17.453982] (-) TimerEvent: {}
+[17.554298] (-) TimerEvent: {}
+[17.654651] (-) TimerEvent: {}
+[17.754914] (-) TimerEvent: {}
+[17.855250] (-) TimerEvent: {}
+[17.955511] (-) TimerEvent: {}
+[18.055756] (-) TimerEvent: {}
+[18.156108] (-) TimerEvent: {}
+[18.256356] (-) TimerEvent: {}
+[18.356616] (-) TimerEvent: {}
+[18.456948] (-) TimerEvent: {}
+[18.557166] (-) TimerEvent: {}
+[18.657403] (-) TimerEvent: {}
+[18.757647] (-) TimerEvent: {}
+[18.857974] (-) TimerEvent: {}
+[18.958279] (-) TimerEvent: {}
+[19.058533] (-) TimerEvent: {}
+[19.158877] (-) TimerEvent: {}
+[19.259244] (-) TimerEvent: {}
+[19.359495] (-) TimerEvent: {}
+[19.459733] (-) TimerEvent: {}
+[19.560011] (-) TimerEvent: {}
+[19.660288] (-) TimerEvent: {}
+[19.760552] (-) TimerEvent: {}
+[19.860907] (-) TimerEvent: {}
+[19.961269] (-) TimerEvent: {}
+[20.061529] (-) TimerEvent: {}
+[20.161874] (-) TimerEvent: {}
+[20.262236] (-) TimerEvent: {}
+[20.362485] (-) TimerEvent: {}
+[20.462834] (-) TimerEvent: {}
+[20.563149] (-) TimerEvent: {}
+[20.663540] (-) TimerEvent: {}
+[20.763925] (-) TimerEvent: {}
+[20.864283] (-) TimerEvent: {}
+[20.964579] (-) TimerEvent: {}
+[21.064936] (-) TimerEvent: {}
+[21.165313] (-) TimerEvent: {}
+[21.265673] (-) TimerEvent: {}
+[21.366032] (-) TimerEvent: {}
+[21.466405] (-) TimerEvent: {}
+[21.566704] (-) TimerEvent: {}
+[21.667155] (-) TimerEvent: {}
+[21.767449] (-) TimerEvent: {}
+[21.867793] (-) TimerEvent: {}
+[21.968111] (-) TimerEvent: {}
+[22.068298] (-) TimerEvent: {}
+[22.168584] (-) TimerEvent: {}
+[22.268934] (-) TimerEvent: {}
+[22.369343] (-) TimerEvent: {}
+[22.469625] (-) TimerEvent: {}
+[22.569970] (-) TimerEvent: {}
+[22.670288] (-) TimerEvent: {}
+[22.770572] (-) TimerEvent: {}
+[22.870938] (-) TimerEvent: {}
+[22.971298] (-) TimerEvent: {}
+[23.071635] (-) TimerEvent: {}
+[23.171974] (-) TimerEvent: {}
+[23.272352] (-) TimerEvent: {}
+[23.372687] (-) TimerEvent: {}
+[23.473040] (-) TimerEvent: {}
+[23.573351] (-) TimerEvent: {}
+[23.673702] (-) TimerEvent: {}
+[23.774046] (-) TimerEvent: {}
+[23.874354] (-) TimerEvent: {}
+[23.974737] (-) TimerEvent: {}
+[24.075001] (-) TimerEvent: {}
+[24.175394] (-) TimerEvent: {}
+[24.275747] (-) TimerEvent: {}
+[24.376059] (-) TimerEvent: {}
+[24.476467] (-) TimerEvent: {}
+[24.576783] (-) TimerEvent: {}
+[24.677149] (-) TimerEvent: {}
+[24.777451] (-) TimerEvent: {}
+[24.877783] (-) TimerEvent: {}
+[24.978158] (-) TimerEvent: {}
+[25.078454] (-) TimerEvent: {}
+[25.178695] (-) TimerEvent: {}
+[25.278957] (-) TimerEvent: {}
+[25.379207] (-) TimerEvent: {}
+[25.479546] (-) TimerEvent: {}
+[25.579965] (-) TimerEvent: {}
+[25.680278] (-) TimerEvent: {}
+[25.780499] (-) TimerEvent: {}
+[25.880764] (-) TimerEvent: {}
+[25.981159] (-) TimerEvent: {}
+[26.081454] (-) TimerEvent: {}
+[26.181703] (-) TimerEvent: {}
+[26.282011] (-) TimerEvent: {}
+[26.382358] (-) TimerEvent: {}
+[26.482690] (-) TimerEvent: {}
+[26.583018] (-) TimerEvent: {}
+[26.683323] (-) TimerEvent: {}
+[26.783668] (-) TimerEvent: {}
+[26.883965] (-) TimerEvent: {}
+[26.984602] (-) TimerEvent: {}
+[27.084905] (-) TimerEvent: {}
+[27.185253] (-) TimerEvent: {}
+[27.285468] (-) TimerEvent: {}
+[27.385709] (-) TimerEvent: {}
+[27.485976] (-) TimerEvent: {}
+[27.586277] (-) TimerEvent: {}
+[27.686513] (-) TimerEvent: {}
+[27.786811] (-) TimerEvent: {}
+[27.887153] (-) TimerEvent: {}
+[27.987438] (-) TimerEvent: {}
+[28.087786] (-) TimerEvent: {}
+[28.188130] (-) TimerEvent: {}
+[28.288356] (-) TimerEvent: {}
+[28.388574] (-) TimerEvent: {}
+[28.488870] (-) TimerEvent: {}
+[28.589218] (-) TimerEvent: {}
+[28.689577] (-) TimerEvent: {}
+[28.789825] (-) TimerEvent: {}
+[28.890050] (-) TimerEvent: {}
+[28.990410] (-) TimerEvent: {}
+[29.090682] (-) TimerEvent: {}
+[29.191024] (-) TimerEvent: {}
+[29.291297] (-) TimerEvent: {}
+[29.391578] (-) TimerEvent: {}
+[29.491912] (-) TimerEvent: {}
+[29.592257] (-) TimerEvent: {}
+[29.692531] (-) TimerEvent: {}
+[29.792861] (-) TimerEvent: {}
+[29.893213] (-) TimerEvent: {}
+[29.993538] (-) TimerEvent: {}
+[30.093755] (-) TimerEvent: {}
+[30.193988] (-) TimerEvent: {}
+[30.266824] (vr_rm75_teleop) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--uninstall', '--editable', '--build-directory', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build'], 'cwd': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop', 'env': {'GJS_DEBUG_TOPICS': 'JS ERROR;JS LOG', 'LESSOPEN': '| /usr/bin/lesspipe %s', 'CODEX_CI': '1', 'LANGUAGE': 'en_US:en', 'USER': 'moyu', 'LC_TIME': 'zh_CN.UTF-8', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE': 'Codex Desktop', 'CODEX_SHELL': '1', 'XDG_SESSION_TYPE': 'x11', 'NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S': '9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df', 'LOG_FORMAT': 'json', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/moyu', 'CHROME_DESKTOP': 'chatgpt.desktop', 'CONDA_SHLVL': '0', 'DISABLE_AUTO_UPDATE': 'true', 'DESKTOP_SESSION': 'ubuntu', 'GIO_LAUNCHED_DESKTOP_FILE': '/usr/share/applications/chatgpt.desktop', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'PAGER': 'cat', 'LC_MONETARY': 'zh_CN.UTF-8', 'MANAGERPID': '1481', 'LC_CTYPE': 'C.UTF-8', 'SYSTEMD_EXEC_PID': '1822', 'NO_COLOR': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': '', '_CE_M': '', '_CONDA_ROOT': '/home/moyu/miniconda3', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '7127', 'IM_CONFIG_PHASE': '1', 'CODEX_PERMISSION_PROFILE': ':workspace', 'ROS_DISTRO': 'humble', 'GTK_IM_MODULE': 'fcitx', 'ZSH_TMUX_AUTOSTARTED': 'true', 'LOGNAME': 'moyu', 'JOURNAL_STREAM': '8:18581', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'RUST_LOG': 'warn', 'USERNAME': 'moyu', 'TERM': 'dumb', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', '_CE_CONDA': '', 'NODE_REPL_TRUSTED_CODE_PATHS': '/home/moyu/.codex:/usr/lib/chatgpt/resources/cua_node/lib/node_modules', 'FC_FONTATIONS': '1', 'ROS_LOCALHOST_ONLY': '0', 'WINDOWPATH': '2', 'PATH': '/home/moyu/.local/bin:/home/moyu/.codex/tmp/arg0/codex-arg0jM3Jxk:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/moyu/.local/bin:/home/moyu/miniconda3/condabin:/opt/ros/humble/bin:/home/moyu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources', 'SESSION_MANAGER': 'local/moyu-PC:@/tmp/.ICE-unix/1784,unix/moyu-PC:/tmp/.ICE-unix/1784', 'CODEX_SESSION_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'INVOCATION_ID': '6cacfc8492b641b8bb5fc336e66b7fce', 'PAPERSIZE': 'a4', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'zh_CN.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'GDK_BACKEND': 'x11', 'DISPLAY': ':0', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', 'BROWSER_USE_AVAILABLE_BACKENDS': 'chrome,iab', 'LANG': 'C.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'LC_TELEPHONE': 'zh_CN.UTF-8', 'XMODIFIERS': '@im=fcitx', 'GH_PAGER': 'cat', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/gdm/Xauthority', 'LS_COLORS': '', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'CONDA_PYTHON_EXE': '/home/moyu/miniconda3/bin/python', 'SHELL': '/bin/bash', 'LC_NAME': 'zh_CN.UTF-8', 'QT_ACCESSIBILITY': '1', 'NO_AT_BRIDGE': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'CODEX_THREAD_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'LC_MEASUREMENT': 'zh_CN.UTF-8', 'GPG_AGENT_INFO': '/run/user/1000/gnupg/S.gpg-agent:0:1', 'GJS_DEBUG_OUTPUT': 'stderr', '_CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'LC_IDENTIFICATION': 'zh_CN.UTF-8', 'GIT_PAGER': 'cat', 'QT_IM_MODULE': 'fcitx', 'PWD': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop', 'LC_ALL': 'C.UTF-8', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'ZSH_TMUX_AUTOSTART': 'false', 'CLUTTER_IM_MODULE': 'fcitx', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'zh_CN.UTF-8', 'LC_PAPER': 'zh_CN.UTF-8', 'COLCON': '1'}, 'shell': False}
+[30.294169] (-) TimerEvent: {}
+[30.394305] (-) TimerEvent: {}
+[30.419363] (vr_rm75_teleop) StdoutLine: {'line': b'running develop\n'}
+[30.494388] (-) TimerEvent: {}
+[30.501463] (vr_rm75_teleop) StdoutLine: {'line': b'Removing /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr-rm75-teleop.egg-link (link to .)\n'}
+[30.594539] (-) TimerEvent: {}
+[30.694822] (-) TimerEvent: {}
+[30.795136] (-) TimerEvent: {}
+[30.895414] (-) TimerEvent: {}
+[30.995746] (-) TimerEvent: {}
+[31.096136] (-) TimerEvent: {}
+[31.196422] (-) TimerEvent: {}
+[31.296687] (-) TimerEvent: {}
+[31.397046] (-) TimerEvent: {}
+[31.497279] (-) TimerEvent: {}
+[31.597564] (-) TimerEvent: {}
+[31.697853] (-) TimerEvent: {}
+[31.798141] (-) TimerEvent: {}
+[31.898392] (-) TimerEvent: {}
+[31.998669] (-) TimerEvent: {}
+[32.098960] (-) TimerEvent: {}
+[32.199325] (-) TimerEvent: {}
+[32.299650] (-) TimerEvent: {}
+[32.400022] (-) TimerEvent: {}
+[32.500242] (-) TimerEvent: {}
+[32.600570] (-) TimerEvent: {}
+[32.700973] (-) TimerEvent: {}
+[32.801291] (-) TimerEvent: {}
+[32.901489] (-) TimerEvent: {}
+[33.001794] (-) TimerEvent: {}
+[33.102088] (-) TimerEvent: {}
+[33.202504] (-) TimerEvent: {}
+[33.302889] (-) TimerEvent: {}
+[33.403276] (-) TimerEvent: {}
+[33.503544] (-) TimerEvent: {}
+[33.603801] (-) TimerEvent: {}
+[33.704230] (-) TimerEvent: {}
+[33.804502] (-) TimerEvent: {}
+[33.904765] (-) TimerEvent: {}
+[34.005215] (-) TimerEvent: {}
+[34.105530] (-) TimerEvent: {}
+[34.205949] (-) TimerEvent: {}
+[34.306347] (-) TimerEvent: {}
+[34.406765] (-) TimerEvent: {}
+[34.507213] (-) TimerEvent: {}
+[34.607464] (-) TimerEvent: {}
+[34.707824] (-) TimerEvent: {}
+[34.808215] (-) TimerEvent: {}
+[34.908473] (-) TimerEvent: {}
+[35.008813] (-) TimerEvent: {}
+[35.109242] (-) TimerEvent: {}
+[35.209557] (-) TimerEvent: {}
+[35.309990] (-) TimerEvent: {}
+[35.410416] (-) TimerEvent: {}
+[35.510831] (-) TimerEvent: {}
+[35.611079] (-) TimerEvent: {}
+[35.711423] (-) TimerEvent: {}
+[35.811834] (-) TimerEvent: {}
+[35.912213] (-) TimerEvent: {}
+[36.012669] (-) TimerEvent: {}
+[36.113152] (-) TimerEvent: {}
+[36.213496] (-) TimerEvent: {}
+[36.313919] (-) TimerEvent: {}
+[36.414347] (-) TimerEvent: {}
+[36.514705] (-) TimerEvent: {}
+[36.615054] (-) TimerEvent: {}
+[36.715331] (-) TimerEvent: {}
+[36.815650] (-) TimerEvent: {}
+[36.915969] (-) TimerEvent: {}
+[37.016416] (-) TimerEvent: {}
+[37.116750] (-) TimerEvent: {}
+[37.217119] (-) TimerEvent: {}
+[37.317478] (-) TimerEvent: {}
+[37.417867] (-) TimerEvent: {}
+[37.518315] (-) TimerEvent: {}
+[37.618746] (-) TimerEvent: {}
+[37.719061] (-) TimerEvent: {}
+[37.819337] (-) TimerEvent: {}
+[37.919638] (-) TimerEvent: {}
+[38.020083] (-) TimerEvent: {}
+[38.120442] (-) TimerEvent: {}
+[38.220790] (-) TimerEvent: {}
+[38.321267] (-) TimerEvent: {}
+[38.421571] (-) TimerEvent: {}
+[38.521888] (-) TimerEvent: {}
+[38.622263] (-) TimerEvent: {}
+[38.722597] (-) TimerEvent: {}
+[38.822937] (-) TimerEvent: {}
+[38.923287] (-) TimerEvent: {}
+[39.023872] (-) TimerEvent: {}
+[39.124275] (-) TimerEvent: {}
+[39.224536] (-) TimerEvent: {}
+[39.324863] (-) TimerEvent: {}
+[39.425215] (-) TimerEvent: {}
+[39.525471] (-) TimerEvent: {}
+[39.625743] (-) TimerEvent: {}
+[39.726128] (-) TimerEvent: {}
+[39.826363] (-) TimerEvent: {}
+[39.926575] (-) TimerEvent: {}
+[40.026922] (-) TimerEvent: {}
+[40.127295] (-) TimerEvent: {}
+[40.227580] (-) TimerEvent: {}
+[40.327945] (-) TimerEvent: {}
+[40.428265] (-) TimerEvent: {}
+[40.528518] (-) TimerEvent: {}
+[40.628822] (-) TimerEvent: {}
+[40.729229] (-) TimerEvent: {}
+[40.829470] (-) TimerEvent: {}
+[40.929701] (-) TimerEvent: {}
+[41.030075] (-) TimerEvent: {}
+[41.130458] (-) TimerEvent: {}
+[41.230830] (-) TimerEvent: {}
+[41.331263] (-) TimerEvent: {}
+[41.431611] (-) TimerEvent: {}
+[41.531979] (-) TimerEvent: {}
+[41.632326] (-) TimerEvent: {}
+[41.732700] (-) TimerEvent: {}
+[41.833049] (-) TimerEvent: {}
+[41.933300] (-) TimerEvent: {}
+[42.033608] (-) TimerEvent: {}
+[42.133941] (-) TimerEvent: {}
+[42.234275] (-) TimerEvent: {}
+[42.334576] (-) TimerEvent: {}
+[42.434925] (-) TimerEvent: {}
+[42.535278] (-) TimerEvent: {}
+[42.635624] (-) TimerEvent: {}
+[42.735971] (-) TimerEvent: {}
+[42.836344] (-) TimerEvent: {}
+[42.936717] (-) TimerEvent: {}
+[43.037047] (-) TimerEvent: {}
+[43.137419] (-) TimerEvent: {}
+[43.237755] (-) TimerEvent: {}
+[43.338148] (-) TimerEvent: {}
+[43.438504] (-) TimerEvent: {}
+[43.538848] (-) TimerEvent: {}
+[43.639197] (-) TimerEvent: {}
+[43.739550] (-) TimerEvent: {}
+[43.839900] (-) TimerEvent: {}
+[43.940186] (-) TimerEvent: {}
+[44.040463] (-) TimerEvent: {}
+[44.140769] (-) TimerEvent: {}
+[44.241155] (-) TimerEvent: {}
+[44.341713] (-) TimerEvent: {}
+[44.442062] (-) TimerEvent: {}
+[44.542471] (-) TimerEvent: {}
+[44.642912] (-) TimerEvent: {}
+[44.743377] (-) TimerEvent: {}
+[44.843822] (-) TimerEvent: {}
+[44.944239] (-) TimerEvent: {}
+[45.044654] (-) TimerEvent: {}
+[45.145023] (-) TimerEvent: {}
+[45.245441] (-) TimerEvent: {}
+[45.345898] (-) TimerEvent: {}
+[45.446381] (-) TimerEvent: {}
+[45.546853] (-) TimerEvent: {}
+[45.647368] (-) TimerEvent: {}
+[45.747730] (-) TimerEvent: {}
+[45.848236] (-) TimerEvent: {}
+[45.948591] (-) TimerEvent: {}
+[46.049023] (-) TimerEvent: {}
+[46.149429] (-) TimerEvent: {}
+[46.249835] (-) TimerEvent: {}
+[46.350332] (-) TimerEvent: {}
+[46.450802] (-) TimerEvent: {}
+[46.551271] (-) TimerEvent: {}
+[46.651756] (-) TimerEvent: {}
+[46.752215] (-) TimerEvent: {}
+[46.852666] (-) TimerEvent: {}
+[46.953159] (-) TimerEvent: {}
+[47.053623] (-) TimerEvent: {}
+[47.154010] (-) TimerEvent: {}
+[47.254452] (-) TimerEvent: {}
+[47.354757] (-) TimerEvent: {}
+[47.455216] (-) TimerEvent: {}
+[47.555674] (-) TimerEvent: {}
+[47.656164] (-) TimerEvent: {}
+[47.756622] (-) TimerEvent: {}
+[47.857050] (-) TimerEvent: {}
+[47.957503] (-) TimerEvent: {}
+[48.057943] (-) TimerEvent: {}
+[48.158370] (-) TimerEvent: {}
+[48.258691] (-) TimerEvent: {}
+[48.359038] (-) TimerEvent: {}
+[48.459438] (-) TimerEvent: {}
+[48.559818] (-) TimerEvent: {}
+[48.660397] (-) TimerEvent: {}
+[48.760757] (-) TimerEvent: {}
+[48.861137] (-) TimerEvent: {}
+[48.961406] (-) TimerEvent: {}
+[49.061689] (-) TimerEvent: {}
+[49.161961] (-) TimerEvent: {}
+[49.262366] (-) TimerEvent: {}
+[49.362691] (-) TimerEvent: {}
+[49.463018] (-) TimerEvent: {}
+[49.563411] (-) TimerEvent: {}
+[49.663755] (-) TimerEvent: {}
+[49.764157] (-) TimerEvent: {}
+[49.864526] (-) TimerEvent: {}
+[49.964901] (-) TimerEvent: {}
+[50.065245] (-) TimerEvent: {}
+[50.165563] (-) TimerEvent: {}
+[50.265917] (-) TimerEvent: {}
+[50.366160] (-) TimerEvent: {}
+[50.466463] (-) TimerEvent: {}
+[50.566764] (-) TimerEvent: {}
+[50.667134] (-) TimerEvent: {}
+[50.767446] (-) TimerEvent: {}
+[50.867741] (-) TimerEvent: {}
+[50.967969] (-) TimerEvent: {}
+[51.068166] (-) TimerEvent: {}
+[51.168379] (-) TimerEvent: {}
+[51.268688] (-) TimerEvent: {}
+[51.369031] (-) TimerEvent: {}
+[51.469264] (-) TimerEvent: {}
+[51.569513] (-) TimerEvent: {}
+[51.669745] (-) TimerEvent: {}
+[51.770062] (-) TimerEvent: {}
+[51.870347] (-) TimerEvent: {}
+[51.970567] (-) TimerEvent: {}
+[52.070754] (-) TimerEvent: {}
+[52.170988] (-) TimerEvent: {}
+[52.271281] (-) TimerEvent: {}
+[52.371656] (-) TimerEvent: {}
+[52.471958] (-) TimerEvent: {}
+[52.572194] (-) TimerEvent: {}
+[52.672452] (-) TimerEvent: {}
+[52.772724] (-) TimerEvent: {}
+[52.873073] (-) TimerEvent: {}
+[52.973352] (-) TimerEvent: {}
+[53.073602] (-) TimerEvent: {}
+[53.173876] (-) TimerEvent: {}
+[53.274240] (-) TimerEvent: {}
+[53.374527] (-) TimerEvent: {}
+[53.474816] (-) TimerEvent: {}
+[53.575145] (-) TimerEvent: {}
+[53.675398] (-) TimerEvent: {}
+[53.775750] (-) TimerEvent: {}
+[53.876134] (-) TimerEvent: {}
+[53.976414] (-) TimerEvent: {}
+[54.076704] (-) TimerEvent: {}
+[54.177066] (-) TimerEvent: {}
+[54.277357] (-) TimerEvent: {}
+[54.377646] (-) TimerEvent: {}
+[54.477983] (-) TimerEvent: {}
+[54.578266] (-) TimerEvent: {}
+[54.678473] (-) TimerEvent: {}
+[54.778808] (-) TimerEvent: {}
+[54.879158] (-) TimerEvent: {}
+[54.979448] (-) TimerEvent: {}
+[55.079807] (-) TimerEvent: {}
+[55.180186] (-) TimerEvent: {}
+[55.280452] (-) TimerEvent: {}
+[55.380692] (-) TimerEvent: {}
+[55.480970] (-) TimerEvent: {}
+[55.581247] (-) TimerEvent: {}
+[55.681515] (-) TimerEvent: {}
+[55.781828] (-) TimerEvent: {}
+[55.882181] (-) TimerEvent: {}
+[55.982554] (-) TimerEvent: {}
+[56.082828] (-) TimerEvent: {}
+[56.183121] (-) TimerEvent: {}
+[56.283428] (-) TimerEvent: {}
+[56.383707] (-) TimerEvent: {}
+[56.484001] (-) TimerEvent: {}
+[56.584265] (-) TimerEvent: {}
+[56.684479] (-) TimerEvent: {}
+[56.784679] (-) TimerEvent: {}
+[56.884941] (-) TimerEvent: {}
+[56.985168] (-) TimerEvent: {}
+[57.085405] (-) TimerEvent: {}
+[57.185670] (-) TimerEvent: {}
+[57.286021] (-) TimerEvent: {}
+[57.386334] (-) TimerEvent: {}
+[57.486621] (-) TimerEvent: {}
+[57.587001] (-) TimerEvent: {}
+[57.687282] (-) TimerEvent: {}
+[57.787491] (-) TimerEvent: {}
+[57.887732] (-) TimerEvent: {}
+[57.988164] (-) TimerEvent: {}
+[58.088421] (-) TimerEvent: {}
+[58.188686] (-) TimerEvent: {}
+[58.289022] (-) TimerEvent: {}
+[58.389334] (-) TimerEvent: {}
+[58.489623] (-) TimerEvent: {}
+[58.589978] (-) TimerEvent: {}
+[58.690276] (-) TimerEvent: {}
+[58.790458] (-) TimerEvent: {}
+[58.890689] (-) TimerEvent: {}
+[58.991042] (-) TimerEvent: {}
+[59.091319] (-) TimerEvent: {}
+[59.191607] (-) TimerEvent: {}
+[59.291897] (-) TimerEvent: {}
+[59.392261] (-) TimerEvent: {}
+[59.492626] (-) TimerEvent: {}
+[59.592898] (-) TimerEvent: {}
+[59.693306] (-) TimerEvent: {}
+[59.793661] (-) TimerEvent: {}
+[59.893935] (-) TimerEvent: {}
+[59.994252] (-) TimerEvent: {}
+[60.032886] (vr_rm75_teleop) CommandEnded: {'returncode': 0}
+[60.035903] (vr_rm75_teleop) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/vr_rm75_teleop', 'build', '--build-base', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build', 'install', '--record', '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log', '--single-version-externally-managed', 'install_data', '--force'], 'cwd': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/src/vr_rm75_teleop', 'env': {'GJS_DEBUG_TOPICS': 'JS ERROR;JS LOG', 'LESSOPEN': '| /usr/bin/lesspipe %s', 'CODEX_CI': '1', 'LANGUAGE': 'en_US:en', 'USER': 'moyu', 'LC_TIME': 'zh_CN.UTF-8', 'CODEX_INTERNAL_ORIGINATOR_OVERRIDE': 'Codex Desktop', 'CODEX_SHELL': '1', 'XDG_SESSION_TYPE': 'x11', 'NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S': '9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df', 'LOG_FORMAT': 'json', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/moyu', 'CHROME_DESKTOP': 'chatgpt.desktop', 'CONDA_SHLVL': '0', 'DISABLE_AUTO_UPDATE': 'true', 'DESKTOP_SESSION': 'ubuntu', 'GIO_LAUNCHED_DESKTOP_FILE': '/usr/share/applications/chatgpt.desktop', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'PAGER': 'cat', 'LC_MONETARY': 'zh_CN.UTF-8', 'MANAGERPID': '1481', 'LC_CTYPE': 'C.UTF-8', 'SYSTEMD_EXEC_PID': '1822', 'NO_COLOR': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': '', '_CE_M': '', '_CONDA_ROOT': '/home/moyu/miniconda3', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '7127', 'IM_CONFIG_PHASE': '1', 'CODEX_PERMISSION_PROFILE': ':workspace', 'ROS_DISTRO': 'humble', 'GTK_IM_MODULE': 'fcitx', 'ZSH_TMUX_AUTOSTARTED': 'true', 'LOGNAME': 'moyu', 'JOURNAL_STREAM': '8:18581', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'RUST_LOG': 'warn', 'USERNAME': 'moyu', 'TERM': 'dumb', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', '_CE_CONDA': '', 'NODE_REPL_TRUSTED_CODE_PATHS': '/home/moyu/.codex:/usr/lib/chatgpt/resources/cua_node/lib/node_modules', 'FC_FONTATIONS': '1', 'ROS_LOCALHOST_ONLY': '0', 'WINDOWPATH': '2', 'PATH': '/home/moyu/.local/bin:/home/moyu/.codex/tmp/arg0/codex-arg0jM3Jxk:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/moyu/.local/bin:/home/moyu/miniconda3/condabin:/opt/ros/humble/bin:/home/moyu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/moyu/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources', 'SESSION_MANAGER': 'local/moyu-PC:@/tmp/.ICE-unix/1784,unix/moyu-PC:/tmp/.ICE-unix/1784', 'CODEX_SESSION_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'INVOCATION_ID': '6cacfc8492b641b8bb5fc336e66b7fce', 'PAPERSIZE': 'a4', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'zh_CN.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'GDK_BACKEND': 'x11', 'DISPLAY': ':0', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', 'BROWSER_USE_AVAILABLE_BACKENDS': 'chrome,iab', 'LANG': 'C.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'LC_TELEPHONE': 'zh_CN.UTF-8', 'XMODIFIERS': '@im=fcitx', 'GH_PAGER': 'cat', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/gdm/Xauthority', 'LS_COLORS': '', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'CONDA_PYTHON_EXE': '/home/moyu/miniconda3/bin/python', 'SHELL': '/bin/bash', 'LC_NAME': 'zh_CN.UTF-8', 'QT_ACCESSIBILITY': '1', 'NO_AT_BRIDGE': '1', 'GDMSESSION': 'ubuntu', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'CODEX_THREAD_ID': '01a05d61-310c-76b3-9a74-e31a69285b09', 'LC_MEASUREMENT': 'zh_CN.UTF-8', 'GPG_AGENT_INFO': '/run/user/1000/gnupg/S.gpg-agent:0:1', 'GJS_DEBUG_OUTPUT': 'stderr', '_CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'LC_IDENTIFICATION': 'zh_CN.UTF-8', 'GIT_PAGER': 'cat', 'QT_IM_MODULE': 'fcitx', 'PWD': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop', 'LC_ALL': 'C.UTF-8', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'CONDA_EXE': '/home/moyu/miniconda3/bin/conda', 'ZSH_TMUX_AUTOSTART': 'false', 'CLUTTER_IM_MODULE': 'fcitx', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'zh_CN.UTF-8', 'LC_PAPER': 'zh_CN.UTF-8', 'COLCON': '1'}, 'shell': False}
+[60.094324] (-) TimerEvent: {}
+[60.184977] (vr_rm75_teleop) StdoutLine: {'line': b'running egg_info\n'}
+[60.185348] (vr_rm75_teleop) StdoutLine: {'line': b'writing ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/PKG-INFO\n'}
+[60.185436] (vr_rm75_teleop) StdoutLine: {'line': b'writing dependency_links to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/dependency_links.txt\n'}
+[60.185690] (vr_rm75_teleop) StdoutLine: {'line': b'writing entry points to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/entry_points.txt\n'}
+[60.185774] (vr_rm75_teleop) StdoutLine: {'line': b'writing requirements to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/requires.txt\n'}
+[60.185817] (vr_rm75_teleop) StdoutLine: {'line': b'writing top-level names to ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/top_level.txt\n'}
+[60.186990] (vr_rm75_teleop) StdoutLine: {'line': b"reading manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'\n"}
+[60.187079] (vr_rm75_teleop) StdoutLine: {'line': b"adding license file 'LICENSE'\n"}
+[60.187834] (vr_rm75_teleop) StdoutLine: {'line': b"writing manifest file '../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/SOURCES.txt'\n"}
+[60.187920] (vr_rm75_teleop) StdoutLine: {'line': b'running build\n'}
+[60.187966] (vr_rm75_teleop) StdoutLine: {'line': b'running build_py\n'}
+[60.188043] (vr_rm75_teleop) StdoutLine: {'line': b'copying vr_rm75_teleop/quest_dual_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop\n'}
+[60.189024] (vr_rm75_teleop) StdoutLine: {'line': b'copying vr_rm75_teleop/rm75_command_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop\n'}
+[60.189406] (vr_rm75_teleop) StdoutLine: {'line': b'running install\n'}
+[60.189494] (vr_rm75_teleop) StdoutLine: {'line': b'running install_lib\n'}
+[60.190027] (vr_rm75_teleop) StdoutLine: {'line': b'creating /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190194] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/deadman_clutch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190277] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/following_error_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190345] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_state_node.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190457] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_ik_joint_centering.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190541] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/quest_dual_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190623] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_hardware_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190728] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_backend.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190818] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_adaptive_damping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190882] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.190964] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/se3_rate_limiter.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191043] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_urdf_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191124] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/robot_feedback_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191206] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_vr_pose_mapping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191297] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/__init__.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191360] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_nullspace.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191418] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/meta_quest_bridge.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191496] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_jacobian.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191553] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_model.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191631] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_se3_rate_limiter.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191687] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_controller_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191743] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191773] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/vr_pose_mapping.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191806] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/timing_monitor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191839] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_target_feasibility.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191873] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_singularity_scan.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191904] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/stop_policy.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191937] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.191968] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_backend_node.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192028] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/quest_ik_fusion.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192059] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_continuous_ik.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192092] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_fk.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192130] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/safety_supervisor.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192165] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/check_jacobian.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192200] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/arm_fusion_state.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192234] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/joint_safety.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192267] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/collision_safety.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192304] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_command_interface.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192347] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/rm75_nullspace.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192383] (vr_rm75_teleop) StdoutLine: {'line': b'copying /home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/build/lib/vr_rm75_teleop/target_feasibility.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop\n'}
+[60.192419] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/deadman_clutch.py to deadman_clutch.cpython-310.pyc\n'}
+[60.192963] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/following_error_monitor.py to following_error_monitor.cpython-310.pyc\n'}
+[60.194115] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_state_node.py to rm75_state_node.cpython-310.pyc\n'}
+[60.194374] (-) TimerEvent: {}
+[60.195430] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_ik_joint_centering.py to check_ik_joint_centering.cpython-310.pyc\n'}
+[60.195953] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/quest_dual_ik_fusion.py to quest_dual_ik_fusion.cpython-310.pyc\n'}
+[60.203350] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_hardware_interface.py to rm75_hardware_interface.cpython-310.pyc\n'}
+[60.206124] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_backend.py to collision_backend.cpython-310.pyc\n'}
+[60.209844] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_adaptive_damping.py to check_adaptive_damping.cpython-310.pyc\n'}
+[60.211301] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_ik.py to rm75_ik.cpython-310.pyc\n'}
+[60.212076] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/se3_rate_limiter.py to se3_rate_limiter.cpython-310.pyc\n'}
+[60.212352] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_urdf_fk.py to check_urdf_fk.cpython-310.pyc\n'}
+[60.212945] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/robot_feedback_monitor.py to robot_feedback_monitor.cpython-310.pyc\n'}
+[60.213492] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_vr_pose_mapping.py to check_vr_pose_mapping.cpython-310.pyc\n'}
+[60.214159] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/__init__.py to __init__.cpython-310.pyc\n'}
+[60.214254] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_nullspace.py to check_nullspace.cpython-310.pyc\n'}
+[60.214738] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/meta_quest_bridge.py to meta_quest_bridge.cpython-310.pyc\n'}
+[60.215495] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_jacobian.py to rm75_jacobian.cpython-310.pyc\n'}
+[60.215678] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_model.py to rm75_model.cpython-310.pyc\n'}
+[60.215985] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_se3_rate_limiter.py to check_se3_rate_limiter.cpython-310.pyc\n'}
+[60.216260] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_controller_fk.py to check_controller_fk.cpython-310.pyc\n'}
+[60.216814] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_fk.py to check_fk.cpython-310.pyc\n'}
+[60.217069] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/vr_pose_mapping.py to vr_pose_mapping.cpython-310.pyc\n'}
+[60.217625] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/timing_monitor.py to timing_monitor.cpython-310.pyc\n'}
+[60.218038] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_target_feasibility.py to check_target_feasibility.cpython-310.pyc\n'}
+[60.218853] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_singularity_scan.py to check_singularity_scan.cpython-310.pyc\n'}
+[60.219483] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/stop_policy.py to stop_policy.cpython-310.pyc\n'}
+[60.219650] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_ik.py to check_ik.cpython-310.pyc\n'}
+[60.220154] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_backend_node.py to collision_backend_node.cpython-310.pyc\n'}
+[60.221143] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/quest_ik_fusion.py to quest_ik_fusion.cpython-310.pyc\n'}
+[60.222222] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_continuous_ik.py to check_continuous_ik.cpython-310.pyc\n'}
+[60.223103] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_fk.py to rm75_fk.cpython-310.pyc\n'}
+[60.223373] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/safety_supervisor.py to safety_supervisor.cpython-310.pyc\n'}
+[60.225626] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/check_jacobian.py to check_jacobian.cpython-310.pyc\n'}
+[60.226112] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/arm_fusion_state.py to arm_fusion_state.cpython-310.pyc\n'}
+[60.227131] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/joint_safety.py to joint_safety.cpython-310.pyc\n'}
+[60.227918] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/collision_safety.py to collision_safety.cpython-310.pyc\n'}
+[60.228830] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_command_interface.py to rm75_command_interface.cpython-310.pyc\n'}
+[60.231652] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/rm75_nullspace.py to rm75_nullspace.cpython-310.pyc\n'}
+[60.232191] (vr_rm75_teleop) StdoutLine: {'line': b'byte-compiling /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop/target_feasibility.py to target_feasibility.cpython-310.pyc\n'}
+[60.233012] (vr_rm75_teleop) StdoutLine: {'line': b'running install_data\n'}
+[60.233350] (vr_rm75_teleop) StdoutLine: {'line': b'copying resource/vr_rm75_teleop -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/ament_index/resource_index/packages\n'}
+[60.233741] (vr_rm75_teleop) StdoutLine: {'line': b'copying package.xml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop\n'}
+[60.233792] (vr_rm75_teleop) StdoutLine: {'line': b'copying config/quest_dual_ik_fusion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[60.233839] (vr_rm75_teleop) StdoutLine: {'line': b'copying config/rm75_state.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[60.233876] (vr_rm75_teleop) StdoutLine: {'line': b'copying config/meta_quest_bridge.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[60.233912] (vr_rm75_teleop) StdoutLine: {'line': b'copying config/collision_geometry.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[60.233948] (vr_rm75_teleop) StdoutLine: {'line': b'copying config/safe_first_motion.yaml -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/config\n'}
+[60.234072] (vr_rm75_teleop) StdoutLine: {'line': b'copying launch/rm75_state.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch\n'}
+[60.234122] (vr_rm75_teleop) StdoutLine: {'line': b'copying launch/commissioning_dry_run.launch.py -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/launch\n'}
+[60.234161] (vr_rm75_teleop) StdoutLine: {'line': b'copying docs/COLLISION_GEOMETRY_AUDIT.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[60.234196] (vr_rm75_teleop) StdoutLine: {'line': b'copying docs/COMMISSIONING_STATUS.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[60.234232] (vr_rm75_teleop) StdoutLine: {'line': b'copying docs/COMMISSIONING_CHECKLIST.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[60.234275] (vr_rm75_teleop) StdoutLine: {'line': b'copying docs/rm75_command_interface.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[60.234313] (vr_rm75_teleop) StdoutLine: {'line': b'copying docs/STOP_POLICY.md -> /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/share/vr_rm75_teleop/docs\n'}
+[60.234352] (vr_rm75_teleop) StdoutLine: {'line': b'running install_egg_info\n'}
+[60.235127] (vr_rm75_teleop) StdoutLine: {'line': b'Copying ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/python3.10/site-packages/vr_rm75_teleop-0.0.0-py3.10.egg-info\n'}
+[60.235655] (vr_rm75_teleop) StdoutLine: {'line': b'running install_scripts\n'}
+[60.247959] (vr_rm75_teleop) StdoutLine: {'line': b'Installing collision_backend script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[60.248100] (vr_rm75_teleop) StdoutLine: {'line': b'Installing meta_quest_bridge script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[60.248154] (vr_rm75_teleop) StdoutLine: {'line': b'Installing quest_dual_ik_fusion script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[60.248198] (vr_rm75_teleop) StdoutLine: {'line': b'Installing rm75_state_node script to /home/moyu/workspace/vr_teleop/vr_rm75_ws/install/vr_rm75_teleop/lib/vr_rm75_teleop\n'}
+[60.248689] (vr_rm75_teleop) StdoutLine: {'line': b"writing list of installed files to '/home/moyu/workspace/vr_teleop/vr_rm75_ws/build/vr_rm75_teleop/install.log'\n"}
+[60.261769] (vr_rm75_teleop) CommandEnded: {'returncode': 0}
+[60.268550] (vr_rm75_teleop) JobEnded: {'identifier': 'vr_rm75_teleop', 'rc': 0}
+[60.268865] (-) EventReactorShutdown: {}

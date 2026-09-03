@@ -16,8 +16,12 @@ quest_dual_ik_fusion:
     # TCP connect/write bound; ACK receive deadlines are protocol-specific.
     robot_command_transport_timeout_s: 0.01
     # Provisional commissioning value. Measure zero-delta joint_state RTT on
-    # both installed controllers before selecting the final movej watchdog.
+    # both installed controllers before using optional joint_state_ack mode.
     movej_response_timeout_s: 0.05
+    # RM75-6FB controller 4.0 firmware V1.0.4.t11 returns no success frame for
+    # movej_canfd follow=false. Transport send success is supervised through
+    # independent read-only feedback and following-error monitoring.
+    movej_response_mode: send_only
     # Stationary Gate C observations are currently about 3-6 ms.
     stop_response_timeout_s: 0.01
 

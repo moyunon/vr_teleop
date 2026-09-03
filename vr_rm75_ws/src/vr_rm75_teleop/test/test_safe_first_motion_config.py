@@ -93,6 +93,60 @@ def test_first_motion_profile_keeps_all_runtime_guards_enabled():
     assert parameters["following_persistence_s"] > 0.0
 
 
+def test_demo_collision_profile_is_explicit_and_category_specific():
+    """Keep demo self overrides separate from both formal configurations."""
+    demo = load_parameters("demo_collision_profile.yaml")
+    normal = load_parameters("quest_dual_ik_fusion.yaml")
+    first = load_parameters("safe_first_motion.yaml")
+
+    assert demo["enable_robot_motion"] is False
+    assert demo["collision_protection_enabled"] is True
+    assert demo["collision_enabled_categories"] == [
+        "left_self",
+        "right_self",
+        "inter_arm",
+    ]
+    assert demo["collision_left_self_stop_distance_m"] == pytest.approx(
+        0.045
+    )
+    assert demo["collision_left_self_warn_distance_m"] == pytest.approx(
+        0.065
+    )
+    assert demo["collision_right_self_stop_distance_m"] == pytest.approx(
+        0.045
+    )
+    assert demo["collision_right_self_warn_distance_m"] == pytest.approx(
+        0.065
+    )
+    assert demo["collision_inter_arm_stop_distance_m"] == pytest.approx(
+        0.050
+    )
+    assert demo["collision_inter_arm_warn_distance_m"] == pytest.approx(
+        0.150
+    )
+    for formal in (normal, first):
+        assert formal["collision_stop_distance_m"] == pytest.approx(0.05)
+        assert formal["collision_warn_distance_m"] == pytest.approx(0.15)
+        assert not any(
+            key.startswith("collision_left_self_")
+            or key.startswith("collision_right_self_")
+            or key.startswith("collision_inter_arm_")
+            for key in formal
+        )
+
+
+def test_demo_profile_is_not_implicitly_loaded_by_commissioning_launch():
+    """Require an explicit non-empty launch argument to select the demo."""
+    launch_path = (
+        Path(__file__).resolve().parents[1]
+        / "launch"
+        / "commissioning_dry_run.launch.py"
+    )
+    source = launch_path.read_text(encoding="utf-8")
+    assert '"collision_threshold_profile", default_value=""' in source
+    assert "if collision_profile:" in source
+
+
 def test_movej_and_stop_ack_timeouts_are_separate_and_provisional():
     """Keep movej acceptance latency distinct from stop ACK latency."""
     for filename in (
@@ -105,6 +159,7 @@ def test_movej_and_stop_ack_timeouts_are_separate_and_provisional():
         ]
         assert transport_timeout == pytest.approx(0.01)
         assert parameters["movej_response_timeout_s"] == pytest.approx(0.05)
+        assert parameters["movej_response_mode"] == "send_only"
         assert parameters["stop_response_timeout_s"] == pytest.approx(0.01)
 
 

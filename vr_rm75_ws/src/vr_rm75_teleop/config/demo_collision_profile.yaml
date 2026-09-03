@@ -1,0 +1,19 @@
+quest_dual_ik_fusion:
+  ros__parameters:
+    # Explicit, provisional low-speed demo override. Loading this file does
+    # not certify collision safety and never authorizes actuator output.
+    enable_robot_motion: false
+    collision_protection_enabled: true
+    collision_enabled_categories:
+      [left_self, right_self, inter_arm]
+
+    # The formal 0.05/0.15 m defaults remain the fallback. Only the two
+    # physically checked link4-link6 self categories receive demo overrides.
+    collision_stop_distance_m: 0.05
+    collision_warn_distance_m: 0.15
+    collision_left_self_stop_distance_m: 0.045
+    collision_left_self_warn_distance_m: 0.065
+    collision_right_self_stop_distance_m: 0.045
+    collision_right_self_warn_distance_m: 0.065
+    collision_inter_arm_stop_distance_m: 0.050
+    collision_inter_arm_warn_distance_m: 0.150

@@ -70,3 +70,27 @@ left link 1 ↔ right base. With the unchanged 0.05 m stop and 0.15 m warning
 thresholds, the resulting collision decision is WARNING, limited by right
 self-clearance; these close self pairs must be checked against the physical
 mechanism before collision thresholds are calibrated.
+
+## Explicit demo threshold profile
+
+`demo_collision_profile.yaml` is a provisional override for the first
+low-speed VR demonstration; it is not a final safety certification. It keeps
+both self-collision categories enabled, keeps inter-arm at 0.05/0.15 m, and
+sets left/right self collision to 0.045/0.065 m. The formal
+`quest_dual_ik_fusion.yaml` and `safe_first_motion.yaml` values remain
+0.05/0.15 m.
+
+The commissioning launch does not select the demo profile by default. It must
+be supplied explicitly after the base `safe_first_motion.yaml` profile:
+
+```bash
+ros2 launch vr_rm75_teleop commissioning_dry_run.launch.py \
+  collision_threshold_profile:=$(ros2 pkg prefix vr_rm75_teleop)/share/vr_rm75_teleop/config/demo_collision_profile.yaml
+```
+
+This still leaves `enable_robot_motion=false`; a separate on-site operator
+action is required to authorize actuator commands. Runtime diagnostics on
+`/vr_rm75/collision/safety_diagnostics` report the resolved stop/warn values,
+distance, and region for every enabled category, while disabled body and
+environment entries remain `DISABLED_BY_CONFIGURATION` with null distances
+and thresholds.

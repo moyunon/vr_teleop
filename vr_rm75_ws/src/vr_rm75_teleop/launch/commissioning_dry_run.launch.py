@@ -4,7 +4,11 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    OpaqueFunction,
+)
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -26,12 +30,42 @@ RECORDER_TOPICS = [
     "/vr_rm75/control_diagnostics",
     "/vr_rm75/collision/min_distances_m",
     "/vr_rm75/collision/backend_diagnostics",
+    "/vr_rm75/collision/safety_diagnostics",
     "/vr_rm75/safety_state",
     "/vr_rm75/stop_event",
     "/vr_rm75/stop_acknowledged",
     "/vr_rm75/robot_command_status",
     "/vr_rm75/timing_diagnostics",
 ]
+
+
+def _fusion_node(context, *, fusion_config):
+    """Create fusion node, loading an optional explicit threshold profile."""
+    collision_profile = LaunchConfiguration(
+        "collision_threshold_profile"
+    ).perform(context).strip()
+    parameters = [fusion_config]
+    if collision_profile:
+        parameters.append(collision_profile)
+    parameters.append(
+        {
+            "left_command_ip": LaunchConfiguration("left_ip"),
+            "right_command_ip": LaunchConfiguration("right_ip"),
+            "robot_command_port": LaunchConfiguration("tcp_port"),
+            "enable_robot_motion": LaunchConfiguration(
+                "enable_robot_motion"
+            ),
+        }
+    )
+    return [
+        Node(
+            package="vr_rm75_teleop",
+            executable="quest_dual_ik_fusion",
+            name="quest_dual_ik_fusion",
+            output="screen",
+            parameters=parameters,
+        )
+    ]
 
 
 def generate_launch_description():
@@ -51,6 +85,10 @@ def generate_launch_description():
         DeclareLaunchArgument("right_udp_port", default_value="8090"),
         DeclareLaunchArgument(
             "collision_config", default_value=geometry_default
+        ),
+        # Empty by default: demo thresholds are never selected implicitly.
+        DeclareLaunchArgument(
+            "collision_threshold_profile", default_value=""
         ),
         # Deliberately default-off. Only an on-site operator may override it.
         DeclareLaunchArgument("enable_robot_motion", default_value="false"),
@@ -94,22 +132,9 @@ def generate_launch_description():
                 {"geometry_config": LaunchConfiguration("collision_config")}
             ],
         ),
-        Node(
-            package="vr_rm75_teleop",
-            executable="quest_dual_ik_fusion",
-            name="quest_dual_ik_fusion",
-            output="screen",
-            parameters=[
-                fusion_config,
-                {
-                    "left_command_ip": LaunchConfiguration("left_ip"),
-                    "right_command_ip": LaunchConfiguration("right_ip"),
-                    "robot_command_port": LaunchConfiguration("tcp_port"),
-                    "enable_robot_motion": LaunchConfiguration(
-                        "enable_robot_motion"
-                    ),
-                },
-            ],
+        OpaqueFunction(
+            function=_fusion_node,
+            kwargs={"fusion_config": fusion_config},
         ),
         ExecuteProcess(
             cmd=[

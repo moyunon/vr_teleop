@@ -214,3 +214,117 @@ def test_rm75_only_consumer_fails_closed_for_missing_enabled_category():
             10.0,
         )
     assert checker.evaluate(10.01).region == CollisionRegion.UNKNOWN
+
+
+def test_category_thresholds_choose_most_restrictive_normalized_clearance():
+    """Different category bands are evaluated independently and globally."""
+    checker = CollisionSafetyMonitor(
+        d_stop_m=0.05,
+        d_warn_m=0.15,
+        timeout_s=0.10,
+        enabled_sources=("left_self", "right_self", "inter_arm"),
+        thresholds_by_source={
+            "left_self": (0.045, 0.065),
+            "right_self": (0.045, 0.065),
+            "inter_arm": (0.050, 0.150),
+        },
+    )
+    checker.update_snapshot(
+        {
+            "left_self": 0.053036446,
+            "right_self": 0.053015256,
+            "inter_arm": 0.1379,
+        },
+        11.0,
+    )
+
+    decision = checker.evaluate(11.01)
+
+    assert decision.region == CollisionRegion.WARNING
+    assert not decision.hold_required
+    assert decision.limiting_source == CollisionSource.RIGHT_SELF
+    assert decision.stop_distance_m == pytest.approx(0.045)
+    assert decision.warn_distance_m == pytest.approx(0.065)
+    assert decision.speed_scale == pytest.approx(0.353099, abs=1e-6)
+    assert decision.speed_scale > 0.30
+
+
+def test_demo_thresholds_do_not_lower_inter_arm_stop_or_warning():
+    """Inter-arm retains the formal 0.05/0.15 m boundaries."""
+    checker = CollisionSafetyMonitor(
+        d_stop_m=0.05,
+        d_warn_m=0.15,
+        timeout_s=0.10,
+        enabled_sources=("left_self", "right_self", "inter_arm"),
+        thresholds_by_source={
+            "left_self": (0.045, 0.065),
+            "right_self": (0.045, 0.065),
+            "inter_arm": (0.050, 0.150),
+        },
+    )
+    checker.update_snapshot(
+        {"left_self": 0.20, "right_self": 0.20, "inter_arm": 0.05},
+        12.0,
+    )
+
+    decision = checker.evaluate(12.01)
+    assert decision.region == CollisionRegion.STOP
+    assert decision.limiting_source == CollisionSource.INTER_ARM
+    assert decision.stop_distance_m == pytest.approx(0.05)
+    assert decision.warn_distance_m == pytest.approx(0.15)
+
+
+def test_category_diagnostics_report_thresholds_and_disabled_categories():
+    """Never disguise disabled categories with fabricated distances."""
+    checker = CollisionSafetyMonitor(
+        d_stop_m=0.05,
+        d_warn_m=0.15,
+        timeout_s=0.10,
+        enabled_sources=("left_self", "right_self", "inter_arm"),
+        thresholds_by_source={
+            "left_self": (0.045, 0.065),
+            "right_self": (0.045, 0.065),
+        },
+    )
+    checker.update_snapshot(
+        {"left_self": 0.053, "right_self": 0.054, "inter_arm": 0.20},
+        13.0,
+    )
+
+    diagnostics = checker.category_diagnostics()
+    assert diagnostics["left_self"] == {
+        "status": "ENABLED",
+        "stop_distance_m": pytest.approx(0.045),
+        "warn_distance_m": pytest.approx(0.065),
+        "distance_m": pytest.approx(0.053),
+        "region": "warning",
+    }
+    assert diagnostics["inter_arm"]["stop_distance_m"] == pytest.approx(
+        0.05
+    )
+    assert diagnostics["environment"] == {
+        "status": "DISABLED_BY_CONFIGURATION",
+        "stop_distance_m": None,
+        "warn_distance_m": None,
+        "distance_m": None,
+        "region": "disabled",
+    }
+
+
+@pytest.mark.parametrize(
+    "thresholds",
+    [
+        {"left_self": (0.065, 0.045)},
+        {"left_self": (0.0, 0.065)},
+        {"unknown": (0.045, 0.065)},
+    ],
+)
+def test_invalid_category_thresholds_are_rejected(thresholds):
+    with pytest.raises(ValueError):
+        CollisionSafetyMonitor(
+            d_stop_m=0.05,
+            d_warn_m=0.15,
+            timeout_s=0.10,
+            enabled_sources=("left_self", "right_self", "inter_arm"),
+            thresholds_by_source=thresholds,
+        )

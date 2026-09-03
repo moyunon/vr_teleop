@@ -34,6 +34,7 @@ from vr_rm75_teleop.deadman_clutch import (
 )
 from vr_rm75_teleop.collision_safety import (
     CollisionSafetyMonitor,
+    SOURCES,
     disabled_collision_decision,
 )
 from vr_rm75_teleop.rm75_command_interface import (
@@ -149,6 +150,10 @@ class QuestDualIKFusion(Node):
             0.05,
         )
         self.declare_parameter(
+            "movej_response_mode",
+            "send_only",
+        )
+        self.declare_parameter(
             "stop_response_timeout_s",
             0.01,
         )
@@ -176,6 +181,17 @@ class QuestDualIKFusion(Node):
             "collision_warn_distance_m",
             0.15,
         )
+        # A zero category override inherits the formal global threshold.
+        # Demo/commissioning profiles must opt in by setting explicit values.
+        for source in SOURCES:
+            self.declare_parameter(
+                f"collision_{source.value}_stop_distance_m",
+                0.0,
+            )
+            self.declare_parameter(
+                f"collision_{source.value}_warn_distance_m",
+                0.0,
+            )
         self.declare_parameter(
             "max_consecutive_ik_failures",
             3,
@@ -307,6 +323,11 @@ class QuestDualIKFusion(Node):
                 "movej_response_timeout_s"
             ).value
         )
+        self.movej_response_mode = str(
+            self.get_parameter(
+                "movej_response_mode"
+            ).value
+        )
         self.stop_response_timeout_s = float(
             self.get_parameter(
                 "stop_response_timeout_s"
@@ -345,6 +366,27 @@ class QuestDualIKFusion(Node):
                 "collision_warn_distance_m"
             ).value
         )
+        self.collision_thresholds_by_source = {}
+        for source in SOURCES:
+            stop_override = float(
+                self.get_parameter(
+                    f"collision_{source.value}_stop_distance_m"
+                ).value
+            )
+            warn_override = float(
+                self.get_parameter(
+                    f"collision_{source.value}_warn_distance_m"
+                ).value
+            )
+            if stop_override < 0.0 or warn_override < 0.0:
+                raise ValueError(
+                    f"{source.value} collision threshold overrides must "
+                    "be zero (inherit) or positive"
+                )
+            self.collision_thresholds_by_source[source] = (
+                stop_override or self.collision_stop_distance_m,
+                warn_override or self.collision_warn_distance_m,
+            )
         self.max_consecutive_ik_failures = int(
             self.get_parameter(
                 "max_consecutive_ik_failures"
@@ -646,6 +688,8 @@ class QuestDualIKFusion(Node):
             max_command_delta_rad=self.max_robot_command_delta_rad,
             command_timeout_s=self.command_timeout_s,
             nominal_period_s=self.control_period_s,
+            movej_response_mode=self.movej_response_mode,
+            feedback_supervised=self.require_robot_state,
             monotonic=time.perf_counter,
         )
         self.robot_command_hold_required = False
@@ -667,6 +711,7 @@ class QuestDualIKFusion(Node):
             d_warn_m=self.collision_warn_distance_m,
             timeout_s=self.collision_distance_timeout_s,
             enabled_sources=self.collision_enabled_categories,
+            thresholds_by_source=self.collision_thresholds_by_source,
         )
         self.collision_sources = self.collision_monitor.enabled_sources
         if self.collision_protection_enabled:
@@ -952,6 +997,12 @@ class QuestDualIKFusion(Node):
             10,
         )
 
+        self.collision_safety_diagnostics_pub = self.create_publisher(
+            String,
+            "/vr_rm75/collision/safety_diagnostics",
+            10,
+        )
+
         self.robot_command_sent_pub = self.create_publisher(
             Bool,
             "/vr_rm75/robot_command_sent",
@@ -1071,6 +1122,13 @@ class QuestDualIKFusion(Node):
             self.get_logger().info(
                 "Collision protection enabled; waiting for atomic "
                 f"distance snapshots ordered as [{source_order}]."
+            )
+            self.get_logger().info(
+                "Collision category thresholds: "
+                + json.dumps(
+                    self.collision_monitor.category_diagnostics(),
+                    sort_keys=True,
+                )
             )
         else:
             self.get_logger().warning(
@@ -1490,6 +1548,30 @@ class QuestDualIKFusion(Node):
         )
         self.collision_speed_scale_pub.publish(
             Float32(data=decision.speed_scale)
+        )
+        self.collision_safety_diagnostics_pub.publish(
+            String(
+                data=json.dumps(
+                    {
+                        "decision": {
+                            "region": decision.region.value,
+                            "ready": decision.ready,
+                            "hold_required": decision.hold_required,
+                            "speed_scale": decision.speed_scale,
+                            "limiting_source": (
+                                decision.limiting_source.value
+                                if decision.limiting_source is not None
+                                else None
+                            ),
+                            "reason": decision.reason,
+                        },
+                        "categories": (
+                            self.collision_monitor.category_diagnostics()
+                        ),
+                    },
+                    sort_keys=True,
+                )
+            )
         )
         return decision
 

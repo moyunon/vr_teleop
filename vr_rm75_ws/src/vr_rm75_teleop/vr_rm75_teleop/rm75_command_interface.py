@@ -27,6 +27,12 @@ from vr_rm75_teleop.stop_policy import StopClass, StopRequest
 
 
 MOVEJ_CANFD = "movej_canfd"
+MOVEJ_RESPONSE_SEND_ONLY = "send_only"
+MOVEJ_RESPONSE_JOINT_STATE_ACK = "joint_state_ack"
+MOVEJ_RESPONSE_MODES = (
+    MOVEJ_RESPONSE_SEND_ONLY,
+    MOVEJ_RESPONSE_JOINT_STATE_ACK,
+)
 SET_ARM_SLOW_STOP = "set_arm_slow_stop"
 SET_ARM_STOP = "set_arm_stop"
 SIDES = ("left", "right")
@@ -61,12 +67,14 @@ class RM75ControllerCommandError(RM75CommandError):
 
 @dataclass(frozen=True)
 class CommandDispatchResult:
-    """Outcome of one atomic dual-arm dispatch attempt."""
+    """Outcome of one dual send; ``sent`` never implies target attainment."""
 
     sent: bool
     reason: str
     generated_monotonic: Optional[float]
     sent_monotonic: Optional[float]
+    response_expected: bool
+    feedback_supervised: bool
     ack_latency_s: Optional[Tuple[float, float]] = None
     send_duration_s: Optional[float] = None
 
@@ -377,7 +385,9 @@ class RM75LowFollowCommandClient:
             self._socket.settimeout(self.timeout_s)
             self._socket.sendall(payload)
         except (OSError, socket.timeout) as exc:
-            self.close()
+            # A partial write is possible. Keep the handle only long enough
+            # for the dispatcher to attempt SAFETY_STOP on every channel; a
+            # genuinely broken socket will fail that stop send and close.
             raise RM75CommandConnectionError(
                 f"failed sending {self.side} {MOVEJ_CANFD}: {exc}"
             ) from exc
@@ -519,6 +529,8 @@ class DualArmCommandDispatcher:
         max_command_delta_rad=math.radians(0.5),
         command_timeout_s=0.10,
         nominal_period_s=0.02,
+        movej_response_mode=MOVEJ_RESPONSE_SEND_ONLY,
+        feedback_supervised=True,
         monotonic=time.monotonic,
     ):
         """Configure a default-off latest-command dispatcher."""
@@ -542,6 +554,17 @@ class DualArmCommandDispatcher:
             nominal_period_s,
             "nominal_period_s",
         )
+        self.movej_response_mode = str(movej_response_mode).strip().lower()
+        if self.movej_response_mode not in MOVEJ_RESPONSE_MODES:
+            raise ValueError(
+                "movej_response_mode must be 'send_only' or "
+                "'joint_state_ack'"
+            )
+        self.feedback_supervised = bool(feedback_supervised)
+        if self.enable_robot_motion and not self.feedback_supervised:
+            raise ValueError(
+                "enabled motion requires independent feedback supervision"
+            )
         self._velocity_limits = {
             side: self._normalize_positive_limit(
                 joint_velocity_limits[side],
@@ -739,7 +762,17 @@ class DualArmCommandDispatcher:
         """Validate a fresh dual command, then send left and right once."""
         if not self.enable_robot_motion:
             self.last_reason = "enable_robot_motion is false; dry-run only"
-            return CommandDispatchResult(False, self.last_reason, None, None)
+            return CommandDispatchResult(
+                sent=False,
+                reason=self.last_reason,
+                generated_monotonic=None,
+                sent_monotonic=None,
+                response_expected=(
+                    self.movej_response_mode
+                    == MOVEJ_RESPONSE_JOINT_STATE_ACK
+                ),
+                feedback_supervised=self.feedback_supervised,
+            )
         if self.faulted:
             raise RM75CommandConnectionError(
                 "command interface fault is latched"
@@ -753,7 +786,17 @@ class DualArmCommandDispatcher:
                 )
             self.disarm()
             self.last_reason = "Safety Supervisor command gate is closed"
-            return CommandDispatchResult(False, self.last_reason, None, None)
+            return CommandDispatchResult(
+                sent=False,
+                reason=self.last_reason,
+                generated_monotonic=None,
+                sent_monotonic=None,
+                response_expected=(
+                    self.movej_response_mode
+                    == MOVEJ_RESPONSE_JOINT_STATE_ACK
+                ),
+                feedback_supervised=self.feedback_supervised,
+            )
         if not self.connected:
             raise RM75CommandConnectionError(
                 "both command sockets must be connected before dispatch"
@@ -778,10 +821,15 @@ class DualArmCommandDispatcher:
         ):
             self.last_reason = "safe command was already dispatched"
             return CommandDispatchResult(
-                False,
-                self.last_reason,
-                generated_monotonic,
-                None,
+                sent=False,
+                reason=self.last_reason,
+                generated_monotonic=generated_monotonic,
+                sent_monotonic=None,
+                response_expected=(
+                    self.movej_response_mode
+                    == MOVEJ_RESPONSE_JOINT_STATE_ACK
+                ),
+                feedback_supervised=self.feedback_supervised,
             )
 
         commands = self._normalize_dual_q(q_commands, "q_commands")
@@ -830,21 +878,26 @@ class DualArmCommandDispatcher:
             encode_low_follow_movej_canfd(commands[side], side)
 
         transport_start = self._monotonic()
+        response_expected = (
+            self.movej_response_mode == MOVEJ_RESPONSE_JOINT_STATE_ACK
+        )
         ack_starts = {}
-        ack_latencies = {}
+        ack_latencies = None
         try:
             for side in SIDES:
                 ack_starts[side] = self._monotonic()
                 self.clients[side].send_joint_target(commands[side])
-            for side in SIDES:
-                self.clients[side].receive_joint_result()
-                ack_latencies[side] = max(
-                    0.0, self._monotonic() - ack_starts[side]
-                )
+            if response_expected:
+                ack_latencies = {}
+                for side in SIDES:
+                    self.clients[side].receive_joint_result()
+                    ack_latencies[side] = max(
+                        0.0, self._monotonic() - ack_starts[side]
+                    )
         except RM75CommandError as exc:
             stop_result = self.request_stop(
                 StopClass.SAFETY_STOP,
-                "dual-arm command send or acknowledgement failure",
+                "dual-arm command send or optional response failure",
                 self._monotonic(),
             )
             stop_status = (
@@ -870,15 +923,33 @@ class DualArmCommandDispatcher:
         }
         self._last_generated_monotonic = generated_monotonic
         self.last_send_monotonic = sent_monotonic
-        self.last_reason = "dual-arm low-follow point acknowledged"
+        if response_expected:
+            self.last_reason = (
+                "dual-arm low-follow transport send succeeded; "
+                "response_expected=true; joint_state ACK validated; "
+                "feedback_supervised=true; physical target attainment "
+                "not implied"
+            )
+        else:
+            self.last_reason = (
+                "dual-arm low-follow transport send succeeded; "
+                "response_expected=false; feedback_supervised=true; "
+                "physical target attainment not implied"
+            )
         self.motion_armed = True
         return CommandDispatchResult(
-            True,
-            self.last_reason,
-            generated_monotonic,
-            sent_monotonic,
-            tuple(ack_latencies[side] for side in SIDES),
-            send_duration_s,
+            sent=True,
+            reason=self.last_reason,
+            generated_monotonic=generated_monotonic,
+            sent_monotonic=sent_monotonic,
+            response_expected=response_expected,
+            feedback_supervised=self.feedback_supervised,
+            ack_latency_s=(
+                tuple(ack_latencies[side] for side in SIDES)
+                if ack_latencies is not None
+                else None
+            ),
+            send_duration_s=send_duration_s,
         )
 
     @staticmethod

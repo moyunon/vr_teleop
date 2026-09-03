@@ -64,11 +64,11 @@ class FakeSocket:
 
     def sendall(self, payload):
         """Record a full payload or raise the configured failure."""
+        command = json.loads(payload)["command"]
+        self.events.append(f"send:{command}")
         if self.fail_send:
             raise OSError("synthetic send failure")
         self.payloads.append(payload)
-        command = json.loads(payload)["command"]
-        self.events.append(f"send:{command}")
         if self.auto_stop_ack and command in (
             "set_arm_slow_stop",
             "set_arm_stop",
@@ -146,6 +146,7 @@ def connected_dispatcher(
     velocity_limit_deg_s=18.0,
     acceleration_limit_deg_s2=10000.0,
     max_delta_deg=0.5,
+    movej_response_mode="send_only",
 ):
     """Build and connect an enabled dispatcher using fake transports."""
     sockets = {
@@ -171,6 +172,7 @@ def connected_dispatcher(
         max_command_delta_rad=np.deg2rad(max_delta_deg),
         command_timeout_s=0.1,
         nominal_period_s=0.02,
+        movej_response_mode=movej_response_mode,
         monotonic=lambda: 1.01,
     )
     dispatcher.connect()
@@ -413,9 +415,19 @@ def test_malformed_stop_ack_is_reported_as_incomplete_dual_stop():
     assert "must be boolean" in result.arms[1].error
 
 
-def test_valid_fresh_dual_command_is_sent_once_to_each_arm():
-    """Send one fresh low-follow point per arm and never replay it."""
+def test_send_only_dual_command_sends_once_without_receiving():
+    """Treat both successful writes as transport sends, never as ACKs."""
     dispatcher, sockets = connected_dispatcher()
+    send_order = []
+    for side in ("left", "right"):
+        client_ = dispatcher.clients[side]
+        send_target = client_.send_joint_target
+
+        def record_send(q, *, _side=side, _send=send_target):
+            send_order.append(_side)
+            return _send(q)
+
+        client_.send_joint_target = record_send
 
     result = dispatcher.dispatch(
         Q,
@@ -426,6 +438,15 @@ def test_valid_fresh_dual_command_is_sent_once_to_each_arm():
     )
 
     assert result.sent
+    assert not result.response_expected
+    assert result.ack_latency_s is None
+    assert result.feedback_supervised
+    assert "physical target attainment not implied" in result.reason
+    assert send_order == ["left", "right"]
+    assert all(
+        not any(event.startswith("recv:") for event in fake_socket.events)
+        for fake_socket in sockets.values()
+    )
     assert all(
         len(fake_socket.payloads) == 1
         for fake_socket in sockets.values()
@@ -449,6 +470,31 @@ def test_valid_fresh_dual_command_is_sent_once_to_each_arm():
     assert all(
         len(fake_socket.payloads) == 1
         for fake_socket in sockets.values()
+    )
+
+
+def test_optional_joint_state_ack_mode_still_validates_responses():
+    """Retain the old response path only for explicitly compatible firmware."""
+    dispatcher, sockets = connected_dispatcher(
+        movej_response_mode="joint_state_ack"
+    )
+
+    result = dispatcher.dispatch(
+        Q,
+        Q,
+        generated_monotonic=1.0,
+        safety_command_allowed=True,
+        now_monotonic=1.001,
+    )
+
+    assert result.sent
+    assert result.response_expected
+    assert result.ack_latency_s is not None
+    assert result.feedback_supervised
+    assert "response_expected=true" in result.reason
+    assert all(
+        "recv:joint_state" in socket_.events
+        for socket_ in sockets.values()
     )
 
 
@@ -590,7 +636,7 @@ def test_command_acceleration_is_checked_at_final_send_boundary():
 
 def test_partial_transport_failure_closes_both_and_latches_fault():
     """Latch the unavoidable asymmetric network failure as a hard fault."""
-    left_socket = FakeSocket()
+    left_socket = FakeSocket(auto_stop_ack=True)
     right_socket = FakeSocket(fail_send=True)
     dispatcher, _sockets = connected_dispatcher(
         left_socket=left_socket,
@@ -612,6 +658,12 @@ def test_partial_transport_failure_closes_both_and_latches_fault():
     assert right_socket.closed
     assert len(left_socket.payloads) == 2
     assert json.loads(left_socket.payloads[-1])["command"] == "set_arm_stop"
+    assert "send:set_arm_stop" in left_socket.events
+    assert "send:set_arm_stop" in right_socket.events
+    arms = {arm.side: arm for arm in dispatcher.last_stop_result.arms}
+    assert arms["left"].acknowledged
+    assert arms["right"].attempted
+    assert not arms["right"].acknowledged
 
 
 def test_controller_error_response_closes_both_and_latches_fault():
@@ -625,6 +677,7 @@ def test_controller_error_response_closes_both_and_latches_fault():
     )
     dispatcher, sockets = connected_dispatcher(
         right_socket=right_socket,
+        movej_response_mode="joint_state_ack",
     )
 
     with pytest.raises(RM75ControllerCommandError, match="arm_err=23"):
@@ -648,6 +701,7 @@ def test_movej_timeout_stops_both_then_closes_and_latches_fault():
     dispatcher, sockets = connected_dispatcher(
         left_socket=left_socket,
         right_socket=right_socket,
+        movej_response_mode="joint_state_ack",
     )
 
     with pytest.raises(
@@ -686,6 +740,38 @@ def test_movej_timeout_stops_both_then_closes_and_latches_fault():
         )
 
 
+def test_stop_ack_timeout_after_movej_failure_still_latches_fault():
+    """Treat a missing stop ACK as incomplete and require physical E-stop."""
+    left_socket = FakeSocket()
+    left_socket.receive_chunks.clear()
+    right_socket = FakeSocket(auto_stop_ack=True)
+    dispatcher, sockets = connected_dispatcher(
+        left_socket=left_socket,
+        right_socket=right_socket,
+        movej_response_mode="joint_state_ack",
+    )
+
+    with pytest.raises(
+        RM75CommandResponseTimeout,
+        match="stop incomplete; physical E-stop required",
+    ):
+        dispatcher.dispatch(
+            Q,
+            Q,
+            generated_monotonic=1.0,
+            safety_command_allowed=True,
+            now_monotonic=1.0,
+        )
+
+    arms = {arm.side: arm for arm in dispatcher.last_stop_result.arms}
+    assert arms["left"].attempted
+    assert not arms["left"].acknowledged
+    assert "set_arm_stop ACK" in arms["left"].error
+    assert arms["right"].acknowledged
+    assert all(socket_.closed for socket_ in sockets.values())
+    assert dispatcher.faulted
+
+
 @pytest.mark.parametrize(
     "failure",
     [b"", ConnectionResetError("synthetic reset")],
@@ -699,6 +785,7 @@ def test_broken_side_reports_physical_estop_and_peer_still_stops(failure):
     dispatcher, sockets = connected_dispatcher(
         left_socket=left_socket,
         right_socket=right_socket,
+        movej_response_mode="joint_state_ack",
     )
 
     with pytest.raises(

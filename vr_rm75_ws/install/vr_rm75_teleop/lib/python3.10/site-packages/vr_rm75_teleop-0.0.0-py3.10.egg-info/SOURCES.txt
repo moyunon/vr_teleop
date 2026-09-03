@@ -10,6 +10,7 @@ setup.py
 ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/top_level.txt
 ../../build/vr_rm75_teleop/vr_rm75_teleop.egg-info/zip-safe
 config/collision_geometry.yaml
+config/demo_collision_profile.yaml
 config/meta_quest_bridge.yaml
 config/quest_dual_ik_fusion.yaml
 config/rm75_state.yaml
